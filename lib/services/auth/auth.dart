@@ -135,10 +135,10 @@ Future<String?> fetchProfileImage() async {
   if (token == null) return null;
 
   final url = Uri.parse('$_base/me/profile-image');
-  
+
   try {
     final response = await http.get(
-      url, 
+      url,
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -150,6 +150,29 @@ Future<String?> fetchProfileImage() async {
     debugPrint('Error fetching image: $e');
   }
   return null;
+}
+
+Future<void> updateProfileImage(Uint8List image) async {
+  final token = await getToken();
+  if (token == null) return null;
+
+  final url = Uri.parse('$_base/me/profile-image');
+
+  final body = {"profile_image": base64Encode(image)};
+
+  try {
+    final response = await http.put(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 204) {
+      debugPrint(' --- update profile image successfully');
+    }
+  } catch (e) {
+    debugPrint('Error updating profile image: $e');
+  }
 }
 
 class UserDataCache {
@@ -184,10 +207,11 @@ class UserDataCache {
         });
 
         await _loadRemoteImage();
-        
+
         debugPrint('-------------------------');
       } else {
-        debugPrint(' -- FAILED TO INITIALIZE USERDATA: ${response?.statusCode} - ${response?.body}');
+        debugPrint(
+            ' -- FAILED TO INITIALIZE USERDATA: ${response?.statusCode} - ${response?.body}');
       }
     } catch (e) {
       debugPrint(' --- FAILED TO INITIALIZE USERDATA REQUEST: $e');
@@ -233,7 +257,7 @@ class UserDataCache {
 
     try {
       final base64Image = await fetchProfileImage();
-      
+
       if (base64Image != null && base64Image.isNotEmpty) {
         _cachedData?['image'] = base64Image;
       }

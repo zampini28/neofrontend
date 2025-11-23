@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/utils/get_image.dart';
 
 class PhotoProfilePhysio extends StatefulWidget {
   const PhotoProfilePhysio({super.key});
@@ -41,11 +43,16 @@ class PhotoProfilePhysioState extends State<PhotoProfilePhysio> {
                 ],
               ),
               child: IconButton(
+                onPressed: () async {
+                  debugPrint('--- updating profile image');
+                  await updateImage(context);
+                  setState(() => {});
+                  debugPrint('--- DONE WITH: updating profile image');
+                },
                 icon: Icon(
                   Icons.camera_alt_rounded,
                   color: Theme.of(context).textTheme.labelSmall?.color,
                 ),
-                onPressed: () {/* TODO: update image profile endpoint */},
               ),
             ),
           ),
