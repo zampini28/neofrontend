@@ -1,4 +1,7 @@
+import 'package:extended_masked_text/extended_masked_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:physioapp/components/form_components.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
@@ -12,21 +15,20 @@ class FirstFormSignUp extends StatefulWidget {
 }
 
 class FisrtFormSignUpState extends State<FirstFormSignUp> {
-  // Variaveis de controle
   final _authForm = AuthFormData();
   final _signUpPage = SignUpPageForm();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Metodo de controle de página
-  void _nextPageForm({required BuildContext context}) {
-    // man....
-    // final bool isValid = _formKey.currentState?.validate() ?? false;
-    // if (isValid == false) return;
-    
-    // validação do crefito 
-    // 6 números + 1 barra + 1 letra = 8 caracteres
-    // exemplo: 123456-F
+  final maskFormatter = MaskTextInputFormatter(
+    mask: '######-@',
+    filter: {
+      '#': RegExp('[0-9]'),
+      '@': RegExp('[a-zA-Z]'),
+    },
+    type: MaskAutoCompletionType.eager,
+  );
 
+  void _nextPageForm({required BuildContext context}) {
     // remover espaços em branco, traço e deixar em maiusculo
     final String crefito = AuthFormData.crefito?.trim().toUpperCase().replaceAll('-', '') ?? '';
     final crefitoRegex = RegExp(r'^\d{6}[A-Za-z]$');
@@ -45,7 +47,6 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final authFormProvider = Provider.of<AuthFormData>(context);
@@ -56,20 +57,30 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
           FormComponents(
             textForm: TextFormField(
               onChanged: (crefito) => AuthFormData.crefito = crefito,
+              inputFormatters: [
+                maskFormatter,
+                UpperCaseTextFormatter(),
+              ],
               decoration: InputDecoration(
                 label: Text(
                   'Número Crefito',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
                   ),
                 ),
+                hintText: '123456-F',
+                hintStyle: TextStyle(
+                  fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                  color: Theme.of(context).textTheme.labelMedium?.color,
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal,
+                ),
                 border: InputBorder.none,
               ),
-              keyboardType: TextInputType.text,
+              keyboardType: TextInputType.visiblePassword,
             ),
           ),
           Row(
@@ -87,8 +98,7 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
                     softWrap: false,
                     style: TextStyle(
                       fontSize: 14,
-                      fontFamily:
-                          Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                      fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                       color: authFormProvider.optionPhysioSelected
                           ? Colors.white
                           : Theme.of(context).textTheme.labelLarge?.color,
@@ -98,8 +108,7 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
                     debugPrint('Fisioterapeuta');
                     AuthFormData.occupational = false;
                     authFormProvider.onChangedRadioValue(value: value);
-                    _authForm.currentRadioValue =
-                        value ?? _authForm.physioValue;
+                    _authForm.currentRadioValue = value ?? _authForm.physioValue;
                     _authForm.physioType = value;
                   },
                   fillColor: WidgetStatePropertyAll(
@@ -123,8 +132,7 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
-                      fontFamily:
-                          Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                      fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                       color: authFormProvider.optionTherapySelected
                           ? Colors.white
                           : Theme.of(context).textTheme.labelLarge?.color,
@@ -134,8 +142,7 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
                     debugPrint('Terapia Ocupacional');
                     AuthFormData.occupational = true;
                     authFormProvider.onChangedRadioValue(value: value);
-                    _authForm.currentRadioValue =
-                        value ?? _authForm.therapyValue;
+                    _authForm.currentRadioValue = value ?? _authForm.therapyValue;
                     _authForm.physioType = value;
                   },
                   fillColor: WidgetStatePropertyAll(
@@ -163,8 +170,7 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
                 'Próximo',
                 style: TextStyle(
                   color: Colors.white,
-                  fontFamily:
-                      Theme.of(context).textTheme.titleLarge?.fontFamily,
+                  fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
                   fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
                   fontWeight: FontWeight.w700,
                 ),
@@ -179,6 +185,16 @@ class FisrtFormSignUpState extends State<FirstFormSignUp> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
     );
   }
 }

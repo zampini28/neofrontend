@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
 import 'package:physioapp/utils/get_image.dart';
@@ -43,7 +44,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
                 ],
               ),
               child: IconButton(
-                onPressed: () => getImage(context),
+                onPressed: () => compute(getImage, context), 
                 icon: Icon(
                   Icons.camera_alt_rounded,
                   color: Theme.of(context).textTheme.labelSmall?.color,
