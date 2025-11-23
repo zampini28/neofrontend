@@ -1,0 +1,22 @@
+flutter_launcher_icons:
+  image_path: "assets/images/IconKitchen/ios/AppIcon~ios-marketing.png"
+  android: "launcher_icon"
+  ios: "AppIcon"
+  adaptive_icon_background: "assets/images/IconKitchen/android/res/mipmap-xxxhdpi/ic_launcher_background.png"
+  adaptive_icon_foreground: "assets/images/IconKitchen/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png"
+  monochrome: "assets/images/IconKitchen/android/res/mipmap-xxxhdpi/ic_launcher_monochrome.png"
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "assets/images/IconKitchen/ios/AppIcon~ios-marketing.png"
+    background_color: "#6A6DFE"
+    theme_color: "#6A6DFE"
+  windows:
+    generate: true
+    image_path: "assets/images/IconKitchen/ios/AppIcon~ios-marketing.png"
+    icon_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/images/IconKitchen/ios/AppIcon~ios-marketing.png"
+
+  # Since linux is not supported by 'flutter_launcher_icons' package, icons must be inserted manually

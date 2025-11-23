@@ -1,0 +1,2 @@
+C:/Users/davioliveira/Downloads/PhysioApp/android/app/.cxx/Debug/y4e476xo/x86/CMakeFiles/edit_cache.dir
+C:/Users/davioliveira/Downloads/PhysioApp/android/app/.cxx/Debug/y4e476xo/x86/CMakeFiles/rebuild_cache.dir
