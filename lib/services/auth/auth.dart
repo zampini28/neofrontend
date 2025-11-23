@@ -80,6 +80,8 @@ Future<bool> authLogin({
 
   await saveToken(token as String);
 
+  await UserDataCache().initialize();
+
   return true;
 }
 
@@ -181,7 +183,7 @@ class UserDataCache {
           debugPrint('$key: $value');
         });
 
-        _loadRemoteImage();
+        await _loadRemoteImage();
         
         debugPrint('-------------------------');
       } else {
@@ -204,7 +206,6 @@ class UserDataCache {
   String get crefito => _cachedData?['crefito'] ?? '123456-F';
 
   ImageProvider get imageProfile {
-    // TODO: request image if missing, if failed use fake_profile
     final String? base64String = _cachedData?['image'];
 
     if (base64String == null || base64String.isEmpty) {

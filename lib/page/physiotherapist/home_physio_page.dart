@@ -12,7 +12,6 @@ class HomePhysioPage extends StatelessWidget {
   Widget build(BuildContext context) {
     //final _scaffoldKey = GlobalKey<ScaffoldState>();
     final currentUser = UserDataCache();
-    currentUser.initialize();
 
     return Container(
       //key: _scaffoldKey,

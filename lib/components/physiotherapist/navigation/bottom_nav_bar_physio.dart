@@ -12,6 +12,7 @@ class BottomNavBarPhysio extends StatefulWidget {
 }
 
 class BottomNavBarPhysioState extends State<BottomNavBarPhysio> {
+  
   Widget _buttomIcons({
     required IconData icon,
     required int index,
