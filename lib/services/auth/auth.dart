@@ -128,6 +128,28 @@ Future<http.Response?> updateProfile({
   );
 }
 
+Future<String?> fetchProfileImage() async {
+  final token = await getToken();
+  if (token == null) return null;
+
+  final url = Uri.parse('$_base/me/profile-image');
+  
+  try {
+    final response = await http.get(
+      url, 
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['profile_image'] as String?;
+    }
+  } catch (e) {
+    debugPrint('Error fetching image: $e');
+  }
+  return null;
+}
+
 class UserDataCache {
   static final UserDataCache _instance = UserDataCache._internal();
   factory UserDataCache() => _instance;
@@ -135,6 +157,7 @@ class UserDataCache {
 
   Map<String, String?>? _cachedData;
   bool _isFetching = false;
+  bool _isFetchingImage = false;
 
   bool get isLoaded => _cachedData == null;
   void clear() => _cachedData = null;
@@ -157,6 +180,9 @@ class UserDataCache {
         _cachedData!.forEach((key, value) {
           debugPrint('$key: $value');
         });
+
+        _loadRemoteImage();
+        
         debugPrint('-------------------------');
       } else {
         debugPrint(' -- FAILED TO INITIALIZE USERDATA: ${response?.statusCode} - ${response?.body}');
@@ -197,6 +223,24 @@ class UserDataCache {
   String get firstName {
     final parts = name.split(' ');
     return parts.first;
+  }
+
+  Future<void> _loadRemoteImage() async {
+    if (_cachedData?['image'] != null || _isFetchingImage) return;
+
+    _isFetchingImage = true;
+
+    try {
+      final base64Image = await fetchProfileImage();
+      
+      if (base64Image != null && base64Image.isNotEmpty) {
+        _cachedData?['image'] = base64Image;
+      }
+    } catch (e) {
+      debugPrint('Error loading background image: $e');
+    } finally {
+      _isFetchingImage = false;
+    }
   }
 }
 

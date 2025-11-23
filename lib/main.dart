@@ -6,6 +6,8 @@ import 'package:physioapp/utils/app_providers.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
 
+import 'package:physioapp/services/auth/auth.dart';
+
 // TODO: create an export files for pages (maybe same for services)
 
 Future<void> main() async {
@@ -15,6 +17,9 @@ Future<void> main() async {
     DeviceOrientation.portraitUp, 
     DeviceOrientation.portraitDown, 
   ]);
+
+  // TODO: REMOVE THIS
+  logout();
 
   runApp(
     DevicePreview(
