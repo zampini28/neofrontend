@@ -116,8 +116,7 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
                 ),
                 border: InputBorder.none,
               ),
-              onChanged: (description) =>
-                  exerciseFormProvider.descriptionExercise = description,
+              onChanged: (description) => exerciseFormProvider.descriptionExercise = description,
               keyboardType: TextInputType.multiline,
               maxLines: 3,
             ),
@@ -145,70 +144,75 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                height: 50,
-                margin: const EdgeInsets.only(top: 10),
-                child: ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      Theme.of(context).colorScheme.tertiary,
-                    ),
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+              Expanded(
+                child: Container(
+                  height: 50,
+                  margin: const EdgeInsets.only(top: 10),
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        Theme.of(context).colorScheme.tertiary,
+                      ),
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
-                  ),
-                  onPressed: () {
-                    exerciseFormProvider.addLenghtListStep();
+                    onPressed: () {
+                      exerciseFormProvider.addLenghtListStep();
 
-                    exerciseFormProvider.addStep(
-                      titleStep: exerciseFormProvider.titleStep ?? '',
-                      descriptionStep:
-                          exerciseFormProvider.descriptionStep ?? '',
-                    );
-                  },
-                  child: const Text(
-                    'Adicionar Etapa',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
+                      exerciseFormProvider.addStep(
+                        titleStep: exerciseFormProvider.titleStep ?? '',
+                        descriptionStep: exerciseFormProvider.descriptionStep ?? '',
+                      );
+                    },
+                    child: const Text(
+                      'Adicionar Etapa',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
               ),
-              Container(
-                height: 50,
-                margin: const EdgeInsets.only(top: 10),
-                child: ElevatedButton.icon(
-                  style: ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      exerciseFormProvider.getNextForm
-                          ? Theme.of(context).colorScheme.tertiary
-                          : Colors.grey,
-                    ),
-                    shape: WidgetStatePropertyAll(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  height: 50,
+                  margin: const EdgeInsets.only(top: 10),
+                  child: ElevatedButton.icon(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        exerciseFormProvider.getNextForm
+                            ? Theme.of(context).colorScheme.tertiary
+                            : Colors.grey,
+                      ),
+                      shape: WidgetStatePropertyAll(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
-                  ),
-                  onPressed: () => _validateForm(
-                    exerciseFormProvider: exerciseFormProvider,
-                  ),
-                  label: const Text(
-                    'Concluir',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w300,
+                    onPressed: () => _validateForm(
+                      exerciseFormProvider: exerciseFormProvider,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  icon: const Icon(
-                    Icons.add_task_rounded,
-                    color: Colors.white,
+                    label: const Text(
+                      'Concluir',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w300,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    icon: const Icon(
+                      Icons.add_task_rounded,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),

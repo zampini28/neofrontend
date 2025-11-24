@@ -71,27 +71,6 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
             ),
           ),
           AddVideoBox(formProvider: exercisesControllerProvider),
-          defaultTextForm(
-            textForm: TextFormField(
-              decoration: InputDecoration(
-                label: Text(
-                  'Duração do Vídeo',
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.labelLarge?.color,
-                  ),
-                ),
-                hintText: '00:00',
-                border: InputBorder.none,
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                TimeInputFormatter(),
-              ],
-              onChanged: (videoDuration) =>
-                  exercisesControllerProvider.durationVideo =
-                      double.parse(videoDuration.replaceAll(':', '.')),
-            ),
-          ),
           Container(
             width: double.infinity,
             height: 50,
