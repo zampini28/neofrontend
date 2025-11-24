@@ -7,17 +7,20 @@ class DataRetention extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget titleTopic({IconData? icon, required String title}) {
       return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (icon != null)
-            Icon(
-              icon,
-              color: Theme.of(context).textTheme.labelLarge?.color,
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Icon(
+                icon,
+                color: Theme.of(context).textTheme.labelLarge?.color,
+              ),
             ),
           const SizedBox(
             width: 10,
           ),
-          SizedBox(
-            width: 300,
+          Expanded(
             child: Text(
               title,
               style: TextStyle(

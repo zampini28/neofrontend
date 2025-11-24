@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -33,15 +34,17 @@ class FormSignInState extends State<FormSignIn> {
       _radioPhysioValue = value ?? RadioButton.physioOption;
     });
   }
-
   Future<void> _submit({required SignUpPageForm pageForm}) async {
-    final auth = AuthPhysioService();
     try {
       pageForm.toggleLoadingValue();
-      await auth.login(
+      final success = await authLogin(
         email: formData.email!,
         password: formData.password!,
       );
+
+      if (!success) {
+        throw Exception('Email ou senha estão incorretos.');
+      }
 
       if (mounted) {
         Navigator.of(context)
@@ -49,8 +52,12 @@ class FormSignInState extends State<FormSignIn> {
       }
     } catch (error) {
       if (mounted) {
+        String errorMessage = error.toString();
+        if (error is Exception) {
+          errorMessage = error.toString().replaceFirst('Exception: ', '');
+        }
         authException.showErrorSubmit(
-            messageError: error.toString(), context: context);
+            messageError: errorMessage, context: context);
       }
     } finally {
       pageForm.toggleLoadingValue();

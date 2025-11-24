@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -40,9 +41,7 @@ class _AlertDeleteAccountState extends State<AlertDeleteAccount> {
         ),
         TextButton(
           onPressed: () {
-            final currentUser = AuthPhysioService();
-
-            currentUser.deleteAccount(currentUser: currentUser.currentPhysioUser!);
+            deleteAccount();
 
             navigationPage.toggleIndex(index: 0);
 

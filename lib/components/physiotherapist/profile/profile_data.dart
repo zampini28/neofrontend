@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/profile/change_email_form.dart';
 import 'package:physioapp/components/physiotherapist/profile/change_name_form.dart';
+import 'package:physioapp/components/physiotherapist/profile/change_password_form.dart';
 import 'package:physioapp/components/physiotherapist/profile/profile_option_tile.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/profile/physio/physio_profile_service.dart';
@@ -24,15 +25,13 @@ class ProfileData extends StatelessWidget {
     );
   }
 
-  void _showChangNameForm({
+  void _showChangPasswordForm({
     required BuildContext context,
   }) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return ChangeNameForm(
-          refreshPage: refreshPage,
-        );
+        return const ChangePasswordForm();
       },
     );
   }
@@ -58,20 +57,19 @@ class ProfileData extends StatelessWidget {
       children: [
         _listTileData(
           context: context,
-          icon: Icons.person,
-          title: 'Nome',
-          fn: (context) => _showChangNameForm(context: context),
-          subtitle:
-              profileProvider.isVisible ? currentUser.name : obscureText(currentUser.name),
-        ),
-        _listTileData(
-          context: context,
           icon: Icons.mail,
           title: 'Email',
           fn: (context) => _showChangEmailForm(context: context),
           subtitle: profileProvider.isVisible
               ? currentUser.email
               : obscureText(currentUser.email),
+        ),
+         _listTileData(
+          context: context,
+          icon: Icons.lock,
+          title: 'Senha',
+          fn: (context) => _showChangPasswordForm(context: context),
+          subtitle: '********',
         ),
       ],
     );

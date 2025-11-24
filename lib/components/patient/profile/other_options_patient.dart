@@ -67,11 +67,11 @@ class _OtherOptionsPatientState extends State<OtherOptionsPatient> {
           function: () => Navigator.of(context)
               .pushNamed(AppRoutes.policyPrivacyPatientPage),
         ),
-        _componentListTile(
-          icon: Icons.lock,
-          text: 'Mudar Senha',
-          function: () => _showChagePassword(context),
-        ),
+        // _componentListTile(
+        //   icon: Icons.lock,
+        //   text: 'Mudar Senha',
+        //   function: () => _showChagePassword(context),
+        // ),
         _componentListTile(
           icon: Icons.delete,
           text: 'Excluir Conta',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
 
 class ChangePasswordForm extends StatefulWidget {
@@ -30,7 +31,6 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
 
   Future<void> _submit({required BuildContext context}) async {
     final isValid = _formKey.currentState?.validate() ?? false;
-    final currentUser = AuthPhysioService();
     final exception = ChangeDataProfileException();
 
     if (!isValid) {
@@ -40,10 +40,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
     try {
       setState(() => _isLoading = true);
 
-      await currentUser.updateUser(
-        currentUser: currentUser.currentPhysioUser,
-        password: _passwordController.text,
-      );
+      await updateUserPassword(password: _passwordController.text);
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',

@@ -69,11 +69,11 @@ class _OtherOptionsPhysioState extends State<OtherOptionsPhysio> {
           function: () =>
               Navigator.of(context).pushNamed(AppRoutes.policyPrivacyPage),
         ),
-        _componentListTile(
-          icon: Icons.lock,
-          text: 'Mudar Senha',
-          function: () => _showChagePassword(context),
-        ),
+        // _componentListTile(
+        //   icon: Icons.lock,
+        //   text: 'Mudar Senha',
+        //   function: () => _showChagePassword(context),
+        // ),
         _componentListTile(
           icon: Icons.delete,
           text: 'Excluir Conta',

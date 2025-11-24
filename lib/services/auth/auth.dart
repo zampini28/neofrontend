@@ -62,15 +62,17 @@ Future<bool> authLogin({
   required String email,
   required String password,
 }) async {
-  final body = jsonEncode({
+  final body = {
     'email': email,
     'password': password,
-  });
+  };
+
+  debugPrint(' -- send login body: ${prettier(body)}');
 
   final response = await http.post(
     Uri.parse('$_base/auth/login'),
     headers: {'Content-Type': 'application/json'},
-    body: body,
+    body: jsonEncode(body),
   );
 
   if (response.statusCode != 200) return false;
@@ -92,7 +94,7 @@ Future<http.Response?> getProfile() async {
     debugPrint(' -- No token found for getProfile');
     return null;
   }
-  debugPrint(' -- Token found, fetching profile from $_base/me using ${token}...');
+  debugPrint(' -- Token found, fetching profile from $_base/me using $token...');
 
   final response = await http.get(
     Uri.parse('$_base/me'),
@@ -154,11 +156,11 @@ Future<String?> fetchProfileImage() async {
 
 Future<void> updateProfileImage(Uint8List image) async {
   final token = await getToken();
-  if (token == null) return null;
+  if (token == null) return;
 
   final url = Uri.parse('$_base/me/profile-image');
 
-  final body = {"profile_image": base64Encode(image)};
+  final body = {'profile_image': base64Encode(image)};
 
   try {
     final response = await http.put(
@@ -172,6 +174,105 @@ Future<void> updateProfileImage(Uint8List image) async {
     }
   } catch (e) {
     debugPrint('Error updating profile image: $e');
+  }
+}
+
+Future<void> updateUserFullname({required String fullname}) async {
+  final token = await getToken();
+  if (token == null) return;
+
+  final url = Uri.parse('$_base/me/fullname');
+
+  final body = {'fullname': fullname};
+
+  try {
+    final response = await http.put(
+      url,
+      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      debugPrint(' --- update user fullname successfully');
+      final data = jsonDecode(response.body);
+      final token = data['token'] as String;
+      await saveToken(token);
+      UserDataCache().initialize();
+    }
+  } catch (e) {
+    debugPrint('Error updating user fullname: $e');
+  }
+}
+
+Future<void> updateUserEmail({required String email}) async {
+  final token = await getToken();
+  if (token == null) return;
+
+  final url = Uri.parse('$_base/me/email');
+
+  final body = {'email': email};
+
+  try {
+    final response = await http.put(
+      url,
+      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      debugPrint(' --- update user email successfully');
+      final data = jsonDecode(response.body);
+      final token = data['token'] as String;
+      await saveToken(token);
+      UserDataCache().initialize();
+    }
+  } catch (e) {
+    debugPrint('Error updating user email: $e');
+  }
+}
+
+Future<void> updateUserPassword({required String password}) async {
+  final token = await getToken();
+  if (token == null) return;
+
+  final url = Uri.parse('$_base/me/password');
+
+  final body = {'password': password};
+
+  try {
+    final response = await http.put(
+      url,
+      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 204) {
+      debugPrint(' --- update user password successfully');
+      UserDataCache().initialize();
+    }
+  } catch (e) {
+    debugPrint('Error updating user password: $e');
+  }
+}
+
+Future<void> deleteAccount() async {
+  final token = await getToken();
+  if (token == null) return;
+
+  final url = Uri.parse('$_base/me');
+
+  try {
+    final response = await http.delete(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 204) {
+      debugPrint(' --- delete user successfully');
+      UserDataCache().clear();
+    }
+  } catch (e) {
+    debugPrint('Error deleting user: $e');
   }
 }
 

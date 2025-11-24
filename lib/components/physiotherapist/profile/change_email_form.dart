@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
 
 class ChangeEmailForm extends StatefulWidget {
@@ -39,10 +40,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
     try {
       setState(() => _isLoading = true);
 
-      await currentUser.updateUser(
-        currentUser: currentUser.currentPhysioUser,
-        email: _emailController.text,
-      );
+      await updateUserEmail(email: _emailController.text);
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
