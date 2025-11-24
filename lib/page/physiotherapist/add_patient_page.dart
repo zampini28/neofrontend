@@ -1,71 +1,162 @@
 import 'package:flutter/material.dart';
-import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
+import 'package:physioapp/page/qrscanner_page.dart';
+import 'package:physioapp/repositories/relationship_repository.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class AddPatientPage extends StatelessWidget {
+class AddPatientPage extends StatefulWidget {
   const AddPatientPage({super.key});
 
   @override
+  State<AddPatientPage> createState() => _AddPatientPageState();
+}
+
+class _AddPatientPageState extends State<AddPatientPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RelationshipProvider>(context, listen: false).loadMyQrCode();
+    });
+  }
+
+  void _openScanner() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const QrScannerPage()),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currentUser = AuthPhysioService();
+    final relationshipProvider = Provider.of<RelationshipProvider>(context);
+    final qrData = relationshipProvider.myQrCodeLink;
+    final isLoading = relationshipProvider.isLoading;
+    final hasError = relationshipProvider.error != null;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Adicionar Paciente'),
+        centerTitle: true,
+        elevation: 0,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(
-              'Adicione Pacientes',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w500,
-                fontFamily:
-                    Theme.of(context).textTheme.displayLarge?.fontFamily,
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(10.0),
-            child: Text(
-              'Compartilhe o QR-Code com seus pacientes\ne comece a automatizar seu atendimento!',
-              style: TextStyle(
-                fontFamily:
-                    Theme.of(context).textTheme.displayLarge?.fontFamily,
-              ),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              const SizedBox(height: 20),
+              Text(
+                'Seu QR Code',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontFamily: Theme.of(context).textTheme.displayLarge?.fontFamily,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Peça para seu paciente escanear este código para conectar-se a você.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 40),
+
               Container(
-                padding: const EdgeInsets.all(20.0),
-                margin: const EdgeInsets.only(right: 20, left: 20),
+                padding: const EdgeInsets.all(24.0),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color.fromARGB(255, 223, 224, 234),
-                      Color.fromARGB(255, 233, 235, 240),
-                    ],
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      spreadRadius: 5,
+                      blurRadius: 15,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    if (isLoading && qrData == null)
+                      const SizedBox(
+                        height: 260,
+                        width: 260,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (hasError)
+                      SizedBox(
+                        height: 260,
+                        width: 260,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                            const SizedBox(height: 10),
+                            Text('Erro ao carregar.\n${relationshipProvider.error}',
+                                textAlign: TextAlign.center),
+                            TextButton(
+                              onPressed: () => relationshipProvider.loadMyQrCode(),
+                              child: const Text('Tentar Novamente'),
+                            )
+                          ],
+                        ),
+                      )
+                    else
+                      QrImageView(
+                        data: qrData ?? 'error',
+                        version: QrVersions.auto,
+                        size: 260,
+                        backgroundColor: Colors.white,
+                        eyeStyle: QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        dataModuleStyle: QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 60),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: _openScanner,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 4,
+                  ),
+                  icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                  label: const Text(
+                    'Escanear QR de Paciente',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-                child: QrImageView(
-                  data: currentUser
-                      .currentPhysioUser!.id, // O correto é utilizar um token
-                  version: QrVersions.auto,
-                  size: 280,
-                  errorStateBuilder: (context, error) =>
-                      Text('Erro na geração de QR-Code: $error'),
-                ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

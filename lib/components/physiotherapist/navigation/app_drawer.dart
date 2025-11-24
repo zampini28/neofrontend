@@ -42,7 +42,10 @@ class AppDrawer extends StatelessWidget {
       return ListTile(
         leading: Icon(icon),
         title: Text(title),
-        onTap: function,
+        onTap: () {
+          Navigator.of(context).pop();
+          function();
+        },
       );
     }
 

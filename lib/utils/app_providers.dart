@@ -1,3 +1,4 @@
+import 'package:physioapp/repositories/relationship_repository.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
@@ -8,6 +9,7 @@ class AppProviders {
   AppProviders._();
 
   static List<SingleChildWidget> get global => [
+    ChangeNotifierProvider(create: (_) => RelationshipProvider()),
     ChangeNotifierProvider(create: (_) => SignUpPageForm()),
     ChangeNotifierProvider(create: (_) => AuthFormData()),
     ChangeNotifierProvider(create: (_) => ExercisesControllerComponent()),
