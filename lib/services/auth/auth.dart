@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
 import 'package:physioapp/utils/domain_connection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -379,4 +380,9 @@ String obscureText(String text) {
   final firstPart = partsEmail[0];
   final domainAnoni = firstPart.substring(0).replaceRange(0, firstPart.length, '*****');
   return '$domainAnoni@${partsEmail[1]}';
+}
+
+
+Future<bool> updateExerciseToServer({required ExercisesControllerForm formExercise}) async {
+  return true;
 }

@@ -24,7 +24,6 @@ class ExerciseController with ChangeNotifier {
   void addExercises({required ExercisesControllerForm formExercise}) {
     final name = formExercise.mainExercise.title;
     final description = formExercise.mainExercise.description;
-    final videoDuration = formExercise.durationVideo!;
     final steps = formExercise.steps;
 
     final newExercise = Exercise(
@@ -32,7 +31,7 @@ class ExerciseController with ChangeNotifier {
       name: name,
       description: description,
       videoUrl: '',
-      videoDuration: videoDuration,
+      videoDuration: 0,
       steps: steps,
       categoryId: [CategoryId.personalized],
     );

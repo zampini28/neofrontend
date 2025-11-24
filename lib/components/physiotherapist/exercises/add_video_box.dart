@@ -1,9 +1,9 @@
-import 'dart:io';
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart'; // For kIsWeb
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:physioapp/services/exercises/physio/exercise_controller.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 class AddVideoBox extends StatefulWidget {
@@ -16,6 +16,8 @@ class AddVideoBox extends StatefulWidget {
 
 class _AddVideoBoxState extends State<AddVideoBox> {
   VideoPlayerController? _controller;
+
+  // ignore: unused_field, use_late_for_private_fields_and_variables
   XFile? _pickedFile;
 
   bool _isLoading = false;
@@ -30,19 +32,24 @@ class _AddVideoBoxState extends State<AddVideoBox> {
   Future<void> _initializeVideo(XFile video) async {
     await _controller?.dispose();
 
+    Uri videoUri;
+
     if (kIsWeb) {
-      _controller = VideoPlayerController.networkUrl(Uri.parse(video.path));
+      videoUri = Uri.parse(video.path);
     } else {
-      _controller = VideoPlayerController.file(File(video.path));
+      videoUri = Uri.file(video.path);
     }
+
+    _controller = VideoPlayerController.networkUrl(videoUri);
 
     try {
       await _controller!.initialize();
+      await _controller!.setLooping(true);
       await _controller!.play();
 
       setState(() {
         _isLoading = false;
-        widget.formProvider.toggleValueVideo();
+        widget.formProvider.updateVideoFile(video);
       });
     } catch (e) {
       debugPrint('Error initializing video: $e');
@@ -77,7 +84,7 @@ class _AddVideoBoxState extends State<AddVideoBox> {
     return Column(
       children: [
         Container(
-          height: 200,
+          height: 220,
           width: double.infinity,
           decoration: BoxDecoration(
             color: Colors.grey[200],
@@ -112,9 +119,7 @@ class _AddVideoBoxState extends State<AddVideoBox> {
                       ],
                     ),
         ),
-
         const SizedBox(height: 10),
-
         SizedBox(
           width: double.infinity,
           height: 45,
@@ -134,7 +139,7 @@ class _AddVideoBoxState extends State<AddVideoBox> {
 
   Widget _buildControls() {
     return Container(
-      color: Colors.black38,
+      color: Colors.black26,
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -143,6 +148,7 @@ class _AddVideoBoxState extends State<AddVideoBox> {
             icon: Icon(
               _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
               color: Colors.white,
+              size: 30,
             ),
             onPressed: () {
               setState(() {
@@ -150,8 +156,9 @@ class _AddVideoBoxState extends State<AddVideoBox> {
               });
             },
           ),
+          const SizedBox(width: 20),
           IconButton(
-            icon: const Icon(Icons.stop, color: Colors.white),
+            icon: const Icon(Icons.stop, color: Colors.white, size: 30),
             onPressed: () {
               _controller!.pause();
               _controller!.seekTo(Duration.zero);

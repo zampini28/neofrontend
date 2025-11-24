@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/add_video_box.dart';
 import 'package:physioapp/components/physiotherapist/exercises/time_input_formatter.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/exercises/physio/exercise_controller.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
@@ -16,36 +17,39 @@ class SecondAddExerciseForm extends StatefulWidget {
 }
 
 class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
-  Future<void> _submitFormAddExercise({
-    required ExercisesControllerForm formExercise,
-  }) async {
-    final authException = AuthSignupException();
-    final exerciseController =
-        Provider.of<ExerciseController>(context, listen: false);
-    final navigationPage =
-        Provider.of<BottomNavBarPhysioController>(context, listen: false);
-
-    if (formExercise.durationVideo == null) {
-      return authException.showErrorValidate(
-        message: 'Digite o tempo de duração do vídeo',
+  Future<void> _submitFormAddExercise({required ExercisesControllerForm formExercise}) async {
+    if (!formExercise.videoSelected) {
+      return AuthSignupException().showErrorValidate(
+        message: 'Selecione um vídeo.',
         context: context,
       );
     }
+
+    final bool isUpdated = await updateExerciseToServer(formExercise: formExercise);
+
+    if (!isUpdated) {
+      return AuthSignupException().showErrorValidate(
+        message: 'Erro ao atualizar o exercício.',
+        context: context,
+      );
+    }
+
+    formExercise.resetSteps();
+    formExercise.toggleSecondForm();
 
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.tabPagePhysio,
       (_) => false,
     );
-    navigationPage.toggleIndex(index: 2);
-    formExercise.toggleForm(valueForm: formExercise.getFirstForm);
-    exerciseController.addExercises(formExercise: formExercise);
-    formExercise.resetSteps();
+
+    // navigationPage.toggleIndex(index: 2);
+    // formExercise.toggleForm(valueForm: formExercise.getFirstForm);
+    // exerciseController.addExercises(formExercise: formExercise);
   }
 
   @override
   Widget build(BuildContext context) {
-    final exercisesControllerProvider =
-        Provider.of<ExercisesControllerForm>(context);
+    final exercisesFormProvider = Provider.of<ExercisesControllerForm>(context);
 
     Widget defaultTextForm({required Widget textForm}) {
       return Container(
@@ -70,7 +74,7 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
               color: Theme.of(context).textTheme.labelLarge?.color,
             ),
           ),
-          AddVideoBox(formProvider: exercisesControllerProvider),
+          AddVideoBox(formProvider: exercisesFormProvider),
           Container(
             width: double.infinity,
             height: 50,
@@ -78,7 +82,7 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
             child: ElevatedButton(
               style: ButtonStyle(
                 backgroundColor: WidgetStatePropertyAll(
-                  exercisesControllerProvider.videoSelected
+                  exercisesFormProvider.videoSelected
                       ? Theme.of(context).colorScheme.tertiary
                       : Colors.grey,
                 ),
@@ -89,9 +93,8 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
                 ),
               ),
               onPressed: () {
-                if (exercisesControllerProvider.videoSelected) {
-                  _submitFormAddExercise(
-                      formExercise: exercisesControllerProvider);
+                if (exercisesFormProvider.videoSelected) {
+                  _submitFormAddExercise(formExercise: exercisesFormProvider);
                 }
               },
               child: const Text(

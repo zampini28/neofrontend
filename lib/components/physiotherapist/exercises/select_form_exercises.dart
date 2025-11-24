@@ -12,17 +12,22 @@ class SelectFormExercises extends StatefulWidget {
 class _SelectFormExercisesState extends State<SelectFormExercises> {
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return 
+    Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Radio(
-            value: widget.exerciseForm.getFirstForm,
-            groupValue: widget.exerciseForm.currentForm,
-            onChanged: (value) {}),
-        Radio(
-            value: widget.exerciseForm.getSecondForm,
-            groupValue: widget.exerciseForm.currentForm,
-            onChanged: (value) {}),
+        Radio<bool>(
+          value: false,
+          groupValue: widget.exerciseForm.secondForm,
+          onChanged: (bool? value) {
+          },
+        ),
+        Radio<bool>(
+          value: true,
+          groupValue: widget.exerciseForm.secondForm,
+          onChanged: (value) {
+          },
+        ),
       ],
     );
   }

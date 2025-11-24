@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ExercisesControllerForm with ChangeNotifier {
   List<StepModel> steps = [StepModel()];
@@ -12,6 +13,24 @@ class ExercisesControllerForm with ChangeNotifier {
   bool isNextButtonEnable = false;
 
   bool get getEnableNextButton => isNextButtonEnable;
+
+  XFile? videoFile;
+
+  bool get videoSelected => videoFile != null;
+
+  bool isSecondForm = false;
+
+  bool get secondForm => isSecondForm;
+
+  void toggleSecondForm() {
+    isSecondForm = !isSecondForm;
+    notifyListeners();
+  }
+
+  void updateVideoFile(XFile video) {
+    videoFile = video;
+    notifyListeners();
+  }
 
   void updateMainExercise({String? title, String? description}) {
     if (title != null) mainExercise.title = title;
@@ -28,6 +47,16 @@ class ExercisesControllerForm with ChangeNotifier {
     isNextButtonEnable = false;
     notifyListeners();
   }
+  void resetSteps() {
+    steps = [StepModel()];
+    mainExercise = StepModel();
+    notifyListeners();
+  }
+
+  void updateSecondForm() {
+    isSecondForm = !isSecondForm;
+    notifyListeners();
+  }
 
   void updateStep(int index, {String? title, String? description}) {
     if (title != null) steps[index].title = title;
@@ -37,29 +66,6 @@ class ExercisesControllerForm with ChangeNotifier {
 
   void addStep() {
     steps.add(StepModel());
-    notifyListeners();
-  }
-
-  void resetSteps() {
-    steps = [StepModel()];
-    notifyListeners();
-  }
-
-  // OLD
-  FormExercise get getSecondForm => FormExercise.secondForm;
-  FormExercise get currentForm => _currentForm;
-  FormExercise _currentForm = FormExercise.firstForm;
-  double? durationVideo;
-  void toggleForm({required FormExercise valueForm}) {
-    _currentForm = valueForm;
-    notifyListeners();
-  }
-
-  FormExercise get getFirstForm => FormExercise.firstForm;
-  bool _selectedVideo = false;
-  bool get videoSelected => _selectedVideo;
-  void toggleValueVideo() {
-    _selectedVideo = true;
     notifyListeners();
   }
 }
@@ -73,8 +79,3 @@ class StepModel {
   bool get isFilled => title.trim().isNotEmpty && description.trim().isNotEmpty;
 }
 
-// OLD
-enum FormExercise {
-  firstForm,
-  secondForm,
-}

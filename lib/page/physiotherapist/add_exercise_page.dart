@@ -15,8 +15,6 @@ class AddExercisePage extends StatefulWidget {
 }
 
 class _AddExercisePageState extends State<AddExercisePage> {
-  bool secondForm = false;
-
   @override
   Widget build(BuildContext context) {
     final exerciseFormProvider = Provider.of<ExercisesControllerForm>(context);
@@ -27,10 +25,8 @@ class _AddExercisePageState extends State<AddExercisePage> {
         leading: IconButton(
           onPressed: () {
 
-            if (secondForm) {
-              setState(() {
-                secondForm = false;
-              });
+            if (exerciseFormProvider.secondForm) {
+              exerciseFormProvider.toggleSecondForm();
               return;
             }
 
@@ -76,21 +72,19 @@ class _AddExercisePageState extends State<AddExercisePage> {
               ),
               child: Column(
                 children: [
-                  if (secondForm) const SecondAddExerciseForm() else const FirstAddExerciseForm(),
+                  if (exerciseFormProvider.secondForm) const SecondAddExerciseForm() else const FirstAddExerciseForm(),
                   const SizedBox(height: 10),
                   SelectFormExercises(
                     exerciseForm: exerciseFormProvider,
                   ),
-                  if (!secondForm)
+                  if (!exerciseFormProvider.secondForm)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
                         onPressed: () {
                           if (exerciseFormProvider.isAllStepsFilled) {
-                            setState(() {
-                              secondForm = !secondForm;
-                            });
+                            exerciseFormProvider.toggleSecondForm();
                           }
                         },
                         child: Text(

@@ -7,8 +7,8 @@ class Exercise with ChangeNotifier {
   final String name;
   final String description;
   final String videoUrl;
-  final List<StepModel> steps;
   final double videoDuration;
+  final List<StepModel> steps;
   final List<CategoryId> categoryId;
   bool isFavorite;
 
