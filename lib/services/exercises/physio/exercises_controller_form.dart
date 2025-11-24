@@ -16,11 +16,18 @@ class ExercisesControllerForm with ChangeNotifier {
 
   XFile? videoFile;
 
+  double? duration;
+
   bool get videoSelected => videoFile != null;
 
   bool isSecondForm = false;
 
   bool get secondForm => isSecondForm;
+
+  void updateDuration(double value) {
+    duration = value;
+    notifyListeners();
+  }
 
   void toggleSecondForm() {
     isSecondForm = !isSecondForm;

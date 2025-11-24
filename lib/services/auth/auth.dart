@@ -384,5 +384,59 @@ String obscureText(String text) {
 
 
 Future<bool> updateExerciseToServer({required ExercisesControllerForm formExercise}) async {
-  return true;
+  final url = Uri.parse('${DomainConnection().url}/api/exercises');
+  final token = await getToken();
+
+  try {
+    var request = http.MultipartRequest('POST', url);
+
+    request.headers['Authorization'] = 'Bearer $token';
+
+    request.fields['name'] = formExercise.mainExercise.title;
+    request.fields['description'] = formExercise.mainExercise.description;
+
+    double durationVal = formExercise.duration ?? 0.0;
+    String formattedDuration;
+
+    if (durationVal < 1.0 && durationVal > 0.0) {
+      formattedDuration = '${(durationVal * 60).ceil()} sec';
+    } else {
+      formattedDuration = '${durationVal.ceil()} min';
+    }
+    request.fields['videoDuration'] = formattedDuration;
+
+    final stepsList = formExercise.steps
+        .map((step) => {
+              'title': step.title,
+              'description': step.description,
+            })
+        .toList();
+
+    request.fields['steps'] = jsonEncode(stepsList);
+
+    if (formExercise.videoFile != null) {
+      final videoBytes = await formExercise.videoFile!.readAsBytes();
+
+      final multipartFile = http.MultipartFile.fromBytes(
+        'video',
+        videoBytes,
+        filename: formExercise.videoFile!.name,
+      );
+
+      request.files.add(multipartFile);
+    }
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    } else {
+      debugPrint('Failed to upload: ${response.statusCode} - ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    debugPrint('Error connecting to server: $e');
+    return false;
+  }
 }

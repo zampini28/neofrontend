@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart'; // For kIsWeb
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:physioapp/services/exercises/physio/exercise_controller.dart';
@@ -16,8 +16,6 @@ class AddVideoBox extends StatefulWidget {
 
 class _AddVideoBoxState extends State<AddVideoBox> {
   VideoPlayerController? _controller;
-
-  // ignore: unused_field, use_late_for_private_fields_and_variables
   XFile? _pickedFile;
 
   bool _isLoading = false;
@@ -44,6 +42,12 @@ class _AddVideoBoxState extends State<AddVideoBox> {
 
     try {
       await _controller!.initialize();
+
+      final Duration videoDuration = _controller!.value.duration;
+      final double durationInMinutes = videoDuration.inMilliseconds / 60000.0;
+
+      widget.formProvider.updateDuration(durationInMinutes);
+
       await _controller!.setLooping(true);
       await _controller!.play();
 
