@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/model/exercises/category.dart';
 import 'package:physioapp/model/exercises/exercise.dart';
+import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
 
 class ExercisesMockData {
   static const List<Category> categoryList = [
@@ -46,31 +47,32 @@ class ExercisesMockData {
     Exercise(
       id: 'e1',
       name: 'Esticada de Perna (Quadriceps)',
-      description:
-          'Exercício para alongar as articulações das pernas, melhorando a mobilidade',
+      description: 'Exercício para alongar as articulações das pernas, melhorando a mobilidade',
       videoUrl: '',
       videoDuration: 25.3,
       steps: [
-        {
-          'Posição Corporal':
-              'Deite-se em um local plano que possa estabilizar seu corpo'
-        },
-        {
-          'Movimento do Exercício':
-              'Com o corpo deitado de bruços, estique uma perna para cima, mantendo-a esticada'
-        },
-        {
-          'Manter Posição':
-              'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente'
-        },
-        {
-          'Trocar Perna':
-              'Estique a outra perna e eleve-a o maximo que conseguir, mantendo-a esticada'
-        },
-        {
-          'Manter Posição':
-              'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente'
-        },
+        StepModel(
+          title: 'Posição Corporal',
+          description: 'Deite-se em um local plano que possa estabilizar seu corpo',
+        ),
+        StepModel(
+          title: 'Movimento do Exercício',
+          description:
+              'Com o corpo deitado de bruços, estique uma perna para cima, mantendo-a esticada',
+        ),
+        StepModel(
+          title: 'Manter Posição',
+          description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
+        ),
+        StepModel(
+          title: 'Trocar Perna',
+          description:
+              'Estique a outra perna e eleve-a o maximo que conseguir, mantendo-a esticada',
+        ),
+        StepModel(
+          title: 'Manter Posição',
+          description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
+        ),
       ],
       categoryId: [CategoryId.legs, CategoryId.back],
     ),
@@ -82,29 +84,34 @@ class ExercisesMockData {
       videoUrl: '',
       videoDuration: 21.3,
       steps: [
-        {
-          'Posição Corporal':
-              'Deite-se em um local plano que possa estabilizar seu corpo'
-        },
-        {
-          'Movimento do Exercício':
-              'Com o corpo deitado de costas, estique uma perna para cima, mantendo-a esticada'
-        },
-        {
-          'Dobrar Joelho':
-              'Quando a perna estiver esticada, dobre o joelho deixando a perna em um angulo de 90 graus'
-        },
-        {
-          'Trocar Perna':
-              'Estique a outra perna e eleve-a o maximo que conseguir, mantendo-a esticada'
-        },
-        {
-          'Dobrar Joelhos':
-              'Quando a perna estiver esticada, dobre o joelho deixando a perna em um angulo de 90 graus'
-        },
-        {
-          'Abaixar perna': 'Abaixe a perna lentamente e deixe as duas esticadas'
-        },
+        StepModel(
+          title: 'Posição Corporal',
+          description: 'Deite-se em um local plano que possa estabilizar seu corpo',
+        ),
+        StepModel(
+          title: 'Movimento do Exercício',
+          description:
+              'Com o corpo deitado de costas, estique uma perna para cima, mantendo-a esticada',
+        ),
+        StepModel(
+          title: 'Dobrar Joelho',
+          description:
+              'Quando a perna estiver esticada, dobre o joelho deixando a perna em um angulo de 90 graus',
+        ),
+        StepModel(
+          title: 'Trocar Perna',
+          description:
+              'Estique a outra perna e eleve-a o maximo que conseguir, mantendo-a esticada',
+        ),
+        StepModel(
+          title: 'Dobrar Joelhos',
+          description:
+              'Quando a perna estiver esticada, dobre o joelho deixando a perna em um angulo de 90 graus',
+        ),
+        StepModel(
+          title: 'Abaixar perna',
+          description: 'Abaixe a perna lentamente e deixe as duas esticadas',
+        ),
       ],
       categoryId: [
         CategoryId.legs,
@@ -115,31 +122,33 @@ class ExercisesMockData {
     Exercise(
       id: 'e3',
       name: 'Alogamento a Fundo (Posterior)',
-      description:
-          'Exercício para alongar as articulações das costas e membros inferiores',
+      description: 'Exercício para alongar as articulações das costas e membros inferiores',
       videoUrl: '',
       videoDuration: 13.3,
       steps: [
-        {
-          'Posição Corporal':
-              'Sente-se em um local reto, incline-se em 45 graus para trás, mantendo-se sentado'
-        },
-        {
-          'Movimento do Exercício':
-              'Com auxílio de um objeto eleve a perna em um angulo pouco acima do chão e mantenha-a esticada'
-        },
-        {
-          'Manter Posição':
-              'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente'
-        },
-        {
-          'Trocar Perna':
-              'Com auxílio de um objeto eleve a perna em um angulo pouco acima do chão e mantenha-a esticada'
-        },
-        {
-          'Manter Posição':
-              'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente'
-        },
+        StepModel(
+          title: 'Posição Corporal',
+          description:
+              'Sente-se em um local reto, incline-se em 45 graus para trás, mantendo-se sentado',
+        ),
+        StepModel(
+          title: 'Movimento do Exercício',
+          description:
+              'Com auxílio de um objeto eleve a perna em um angulo pouco acima do chão e mantenha-a esticada',
+        ),
+        StepModel(
+          title: 'Manter Posição',
+          description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
+        ),
+        StepModel(
+          title: 'Trocar Perna',
+          description:
+              'Com auxílio de um objeto eleve a perna em um angulo pouco acima do chão e mantenha-a esticada',
+        ),
+        StepModel(
+          title: 'Manter Posição',
+          description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
+        ),
       ],
       categoryId: [
         CategoryId.legs,
@@ -155,23 +164,26 @@ class ExercisesMockData {
       videoUrl: '',
       videoDuration: 15.3,
       steps: [
-        {
-          'Posição Corporal':
-              'Sente-se em um local reto com pelo menos 90 centimetros do chão'
-        },
-        {
-          'Movimento do Exercício':
-              'Incline o corpo em um angulo de 45 graus para frente'
-        },
-        {
-          'Estique a perna':
-              'Com o corpo para frente, mantenha a perna esticada'
-        },
-        {'Relaxar Corpo': 'Volte para a posição inicial'},
-        {
-          'Troque de Perna':
-              'Com o corpo para frente, mantenha a perna esticada'
-        },
+        StepModel(
+          title: 'Posição Corporal',
+          description: 'Sente-se em um local reto com pelo menos 90 centimetros do chão',
+        ),
+        StepModel(
+          title: 'Movimento do Exercício',
+          description: 'Incline o corpo em um angulo de 45 graus para frente',
+        ),
+        StepModel(
+          title: 'Estique a perna',
+          description: 'Com o corpo para frente, mantenha a perna esticada',
+        ),
+        StepModel(
+          title: 'Relaxar Corpo',
+          description: 'Volte para a posição inicial',
+        ),
+        StepModel(
+          title: 'Troque de Perna',
+          description: 'Com o corpo para frente, mantenha a perna esticada',
+        ),
       ],
       categoryId: [CategoryId.legs, CategoryId.back, CategoryId.abdominal],
     ),
@@ -183,23 +195,28 @@ class ExercisesMockData {
       videoUrl: '',
       videoDuration: 17.3,
       steps: [
-        {'Posição Corporal': 'Fique de quatro sobre uma superficie reta'},
-        {
-          'Movimento do Exercício':
-              'Levante o braço esquerdo e a perna direita e mantenha-os elevados'
-        },
-        {
-          'Manter Posição':
-              'Mantenha a posição por 30 segundos e após isso abaixe a perna e o braço lentamente'
-        },
-        {
-          'Trocar Posição':
-              'Levante o braço direito e a perna esquerda e mantenha-os elevados'
-        },
-        {
-          'Manter Posição':
-              'Mantenha a posição por 30 segundos e após isso abaixe a perna e o braço lentamente'
-        },
+        StepModel(
+          title: 'Posição Corporal',
+          description: 'Fique de quatro sobre uma superficie reta',
+        ),
+        StepModel(
+          title: 'Movimento do Exercício',
+          description: 'Levante o braço esquerdo e a perna direita e mantenha-os elevados',
+        ),
+        StepModel(
+          title: 'Manter Posição',
+          description:
+              'Mantenha a posição por 30 segundos e após isso abaixe a perna e o braço lentamente',
+        ),
+        StepModel(
+          title: 'Trocar Posição',
+          description: 'Levante o braço direito e a perna esquerda e mantenha-os elevados',
+        ),
+        StepModel(
+          title: 'Manter Posição',
+          description:
+              'Mantenha a posição por 30 segundos e após isso abaixe a perna e o braço lentamente',
+        ),
       ],
       categoryId: [
         CategoryId.legs,
@@ -216,19 +233,25 @@ class ExercisesMockData {
       videoUrl: '',
       videoDuration: 20.3,
       steps: [
-        {'Posição Corporal': 'Fique de quatro sobre uma superficie reta'},
-        {
-          'Movimento do Exercício':
-              'deixe suas pernas juntas, e icline-se com seus braços juntos para frente o máximo que conseguir'
-        },
-        {
-          'Manter Posição':
-              'Mantenha a posição por 10 segundos e após isso volte lentamente a posição inicial'
-        },
-        {
-          'Repetir Movimento':
-              'deixe suas pernas juntas, e icline-se com seus braços juntos para frente o máximo que conseguir'
-        },
+        StepModel(
+          title: 'Posição Corporal',
+          description: 'Fique de quatro sobre uma superficie reta',
+        ),
+        StepModel(
+          title: 'Movimento do Exercício',
+          description:
+              'deixe suas pernas juntas, e icline-se com seus braços juntos para frente o máximo que conseguir',
+        ),
+        StepModel(
+          title: 'Manter Posição',
+          description:
+              'Mantenha a posição por 10 segundos e após isso volte lentamente a posição inicial',
+        ),
+        StepModel(
+          title: 'Repetir Movimento',
+          description:
+              'deixe suas pernas juntas, e icline-se com seus braços juntos para frente o máximo que conseguir',
+        ),
       ],
       categoryId: [
         CategoryId.legs,

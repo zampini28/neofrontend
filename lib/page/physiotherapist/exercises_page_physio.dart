@@ -54,7 +54,7 @@ class ExercisesPagePhysio extends StatelessWidget {
                         .pushNamed(AppRoutes.addExercisePage);
                   },
                   child: Text(
-                    'Adicionar exercício',
+                    'Adicionar Exercício',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),

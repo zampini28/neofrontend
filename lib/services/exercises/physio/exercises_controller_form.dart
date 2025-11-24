@@ -1,91 +1,80 @@
 import 'package:flutter/material.dart';
 
-enum FormExercise {
-  firstForm,
-  secondForm,
-}
-
 class ExercisesControllerForm with ChangeNotifier {
-  String? titleExercise;
-  String? descriptionExercise;
-  String? titleStep;
-  String? descriptionStep;
-  List<Map<String, String>> stepsExercise = [];
-  bool _selectedVideo = false;
+  List<StepModel> steps = [StepModel()];
 
-  String? videoUrl;
-  double? durationVideo;
-  bool _nextForm = false;
-  bool _enableNextButton = false;
-  int _quantitySteps = 1;
+  bool get isAllStepsFilled => mainExercise.isFilled && steps.every((step) => step.isFilled);
 
-  int get quantitySteps => _quantitySteps;
+  StepModel mainExercise = StepModel();
 
-  bool get getNextForm => _nextForm;
-  bool get getEnableNextButton => _enableNextButton;
+  int get quantitySteps => steps.length;
 
-  bool get videoSelected => _selectedVideo;
+  bool isNextButtonEnable = false;
 
-  FormExercise _currentForm = FormExercise.firstForm;
-  FormExercise get currentForm => _currentForm;
+  bool get getEnableNextButton => isNextButtonEnable;
 
-  FormExercise get getFirstForm => FormExercise.firstForm;
-  FormExercise get getSecondForm => FormExercise.secondForm;
-
-  bool get firstForm => _currentForm == FormExercise.firstForm;
-  bool get secondForm => _currentForm == FormExercise.secondForm;
-
-  void toggleValueVideo() {
-    _selectedVideo = true;
+  void updateMainExercise({String? title, String? description}) {
+    if (title != null) mainExercise.title = title;
+    if (description != null) mainExercise.description = description;
     notifyListeners();
   }
 
+  void enableNextButton() {
+    isNextButtonEnable = true;
+    notifyListeners();
+  }
+
+  void disableNextButton() {
+    isNextButtonEnable = false;
+    notifyListeners();
+  }
+
+  void updateStep(int index, {String? title, String? description}) {
+    if (title != null) steps[index].title = title;
+    if (description != null) steps[index].description = description;
+    notifyListeners();
+  }
+
+  void addStep() {
+    steps.add(StepModel());
+    notifyListeners();
+  }
+
+  void resetSteps() {
+    steps = [StepModel()];
+    notifyListeners();
+  }
+
+  // OLD
+  FormExercise get getSecondForm => FormExercise.secondForm;
+  FormExercise get currentForm => _currentForm;
+  FormExercise _currentForm = FormExercise.firstForm;
+  double? durationVideo;
   void toggleForm({required FormExercise valueForm}) {
     _currentForm = valueForm;
     notifyListeners();
   }
 
-  void stepAdded() {
-    if (stepsExercise.isNotEmpty) {
-      _nextForm = true;
-      notifyListeners();
-    }
-  }
-
-  void advanceForm() {
-    _enableNextButton = true;
+  FormExercise get getFirstForm => FormExercise.firstForm;
+  bool _selectedVideo = false;
+  bool get videoSelected => _selectedVideo;
+  void toggleValueVideo() {
+    _selectedVideo = true;
     notifyListeners();
   }
+}
 
-  void addStep({required String titleStep, required String descriptionStep}) {
-    if (stepsExercise.isEmpty) {
-      stepsExercise.add({titleStep: descriptionStep});
-    } else if (stepsExercise.last.entries.last.key != titleStep &&
-        stepsExercise.last.entries.last.value != descriptionStep) {
-      stepsExercise.add({titleStep: descriptionStep});
-    }
+class StepModel {
+  String title;
+  String description;
 
-    stepAdded();
-    _enableNextButton = false;
-    notifyListeners();
-  }
+  StepModel({this.title = '', this.description = ''});
 
-  void addLenghtListStep() {
-    _quantitySteps += 1;
-    notifyListeners();
-  }
+  bool get isFilled => title.trim().isNotEmpty && description.trim().isNotEmpty;
+}
 
-  void resetSteps() {
-    _quantitySteps = 1;
-    stepsExercise = [];
-    titleStep = '';
-    descriptionStep = '';
-    titleExercise = '';
-    descriptionExercise = '';
-    durationVideo = null;
-    _nextForm = false;
-    _enableNextButton = false;
-    _selectedVideo = false;
-    notifyListeners();
-  }
+// OLD
+enum FormExercise {
+  firstForm,
+  secondForm,
 }

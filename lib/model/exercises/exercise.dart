@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/model/exercises/category.dart';
+import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
 
 class Exercise with ChangeNotifier {
   final String id;
   final String name;
   final String description;
   final String videoUrl;
-  final List<Map<String, String>> steps;
+  final List<StepModel> steps;
   final double videoDuration;
   final List<CategoryId> categoryId;
   bool isFavorite;
@@ -30,7 +31,7 @@ class Exercise with ChangeNotifier {
       videoUrl: json['videoUrl'] as String,
       videoDuration: json['videoDuration'] as double,
       steps: (json['steps'] as List)
-          .map((step) => Map<String, String>.from(step as Map<String, dynamic>))
+          .map((step) => StepModel(title: step['title'] as String, description: step['description'] as String))
           .toList(),
       categoryId: (json['categoryId'] as List)
           .map((id) => CategoryId.values.firstWhere((e) => e.toString() == 'CategoryId.$id'))

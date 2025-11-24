@@ -7,56 +7,39 @@ import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
 
-class AddExercisePage extends StatelessWidget {
+class AddExercisePage extends StatefulWidget {
   const AddExercisePage({super.key});
+
+  @override
+  State<AddExercisePage> createState() => _AddExercisePageState();
+}
+
+class _AddExercisePageState extends State<AddExercisePage> {
+  bool secondForm = false;
 
   @override
   Widget build(BuildContext context) {
     final exerciseFormProvider = Provider.of<ExercisesControllerForm>(context);
     final navigationPage = Provider.of<BottomNavBarPhysioController>(context);
 
-    void showConfirmForm() {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog.adaptive(
-              title: const Text('Avançar?'),
-              content: const Text(
-                  'Após processeguir você não poderá retornar a edição das etapas'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    exerciseFormProvider.toggleForm(
-                      valueForm: exerciseFormProvider.getSecondForm,
-                    );
-
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Sim'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Não'),
-                ),
-              ],
-            );
-          });
-    }
-
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
+
+            if (secondForm) {
+              setState(() {
+                secondForm = false;
+              });
+              return;
+            }
+
             Navigator.of(context).pushNamedAndRemoveUntil(
               AppRoutes.tabPagePhysio,
               (route) => false,
             );
             navigationPage.toggleIndex(index: 2);
             exerciseFormProvider.resetSteps();
-            exerciseFormProvider.toggleForm(
-                valueForm: exerciseFormProvider.getFirstForm);
           },
           icon: const Icon(
             Icons.arrow_back_ios_rounded,
@@ -93,34 +76,32 @@ class AddExercisePage extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  if (exerciseFormProvider.firstForm) const FirstAddExerciseForm(),
-                  if (exerciseFormProvider.secondForm)
-                    const SecondAddExerciseForm(),
+                  if (secondForm) const SecondAddExerciseForm() else const FirstAddExerciseForm(),
                   const SizedBox(height: 10),
                   SelectFormExercises(
                     exerciseForm: exerciseFormProvider,
                   ),
+                  if (!secondForm)
                   Row(
-                    mainAxisAlignment: exerciseFormProvider.firstForm
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      if (exerciseFormProvider.firstForm)
-                        TextButton(
-                          onPressed: () {
-                            if (exerciseFormProvider.getEnableNextButton) {
-                              showConfirmForm();
-                            }
-                          },
-                          child: Text(
-                            'Proximo',
-                            style: TextStyle(
-                              color: exerciseFormProvider.getEnableNextButton
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.grey,
-                            ),
+                      TextButton(
+                        onPressed: () {
+                          if (exerciseFormProvider.isAllStepsFilled) {
+                            setState(() {
+                              secondForm = !secondForm;
+                            });
+                          }
+                        },
+                        child: Text(
+                          'Próximo',
+                          style: TextStyle(
+                            color: exerciseFormProvider.isAllStepsFilled
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey,
                           ),
-                        )
+                        ),
+                      ),
                     ],
                   ),
                 ],

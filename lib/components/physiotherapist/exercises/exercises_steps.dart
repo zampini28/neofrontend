@@ -47,9 +47,9 @@ class ExerciseSteps extends StatelessWidget {
                 itemCount: exercise.steps.length,
                 itemBuilder: (context, index) => StepExercise(
                   indexStep: index + 1,
-                  titleStep: exercise.steps.elementAt(index).keys.cast().join(),
+                  titleStep: exercise.steps.elementAt(index).title,
                   subtitleStep:
-                      exercise.steps.elementAt(index).values.cast().join(),
+                      exercise.steps.elementAt(index).description,
                 ),
               ),
             ),

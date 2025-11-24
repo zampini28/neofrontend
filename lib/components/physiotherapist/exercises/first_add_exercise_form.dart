@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/list_steps_exercises.dart';
-import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
 import 'package:provider/provider.dart';
 
@@ -13,52 +12,6 @@ class FirstAddExerciseForm extends StatefulWidget {
 
 class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
   final _formKey = GlobalKey<FormState>();
-
-  void _validateForm({required ExercisesControllerForm exerciseFormProvider}) {
-    final authException = AuthSignupException();
-    final isValid = _formKey.currentState?.validate() ?? false;
-
-    if (isValid == false) {
-      return;
-    }
-
-    if (exerciseFormProvider.titleExercise!.isEmpty) {
-      return authException.showErrorValidate(
-        message: 'Digite um título para o exercício',
-        context: context,
-      );
-    }
-
-    if (exerciseFormProvider.descriptionExercise!.isEmpty) {
-      return authException.showErrorValidate(
-        message: 'Digite uma descrição para o exercício',
-        context: context,
-      );
-    }
-
-    if (exerciseFormProvider.titleStep!.isEmpty) {
-      return authException.showErrorValidate(
-        message: 'Digite um título para a etapa do exercício',
-        context: context,
-      );
-    }
-
-    if (exerciseFormProvider.descriptionStep!.isEmpty) {
-      return authException.showErrorValidate(
-        message: 'Digite uma descrição para a etapa do exercício',
-        context: context,
-      );
-    }
-
-    if (exerciseFormProvider.getNextForm == true) {
-      exerciseFormProvider.addStep(
-        titleStep: exerciseFormProvider.titleStep ?? '',
-        descriptionStep: exerciseFormProvider.descriptionStep ?? '',
-      );
-
-      exerciseFormProvider.advanceForm();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +45,7 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
           const SizedBox(height: 6),
           defaultTextForm(
             textForm: TextFormField(
+              initialValue: exerciseFormProvider.mainExercise.title,
               decoration: InputDecoration(
                 label: Text(
                   'Título do exercício',
@@ -101,12 +55,13 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
                 ),
                 border: InputBorder.none,
               ),
-              onChanged: (title) => exerciseFormProvider.titleExercise = title,
+              onChanged: (title) => exerciseFormProvider.updateMainExercise(title: title),
               keyboardType: TextInputType.text,
             ),
           ),
           defaultTextForm(
             textForm: TextFormField(
+              initialValue: exerciseFormProvider.mainExercise.description,
               decoration: InputDecoration(
                 label: Text(
                   'Descrição do exercício',
@@ -116,7 +71,7 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
                 ),
                 border: InputBorder.none,
               ),
-              onChanged: (description) => exerciseFormProvider.descriptionExercise = description,
+              onChanged: (description) => exerciseFormProvider.updateMainExercise(description: description),
               keyboardType: TextInputType.multiline,
               maxLines: 3,
             ),
@@ -137,7 +92,7 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
             child: ListView.builder(
               itemCount: exerciseFormProvider.quantitySteps,
               itemBuilder: (context, index) {
-                return const ListStepsExercises();
+                return StepExercise(index: index);
               },
             ),
           ),
@@ -160,12 +115,7 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
                       ),
                     ),
                     onPressed: () {
-                      exerciseFormProvider.addLenghtListStep();
-
-                      exerciseFormProvider.addStep(
-                        titleStep: exerciseFormProvider.titleStep ?? '',
-                        descriptionStep: exerciseFormProvider.descriptionStep ?? '',
-                      );
+                      exerciseFormProvider.addStep();
                     },
                     child: const Text(
                       'Adicionar Etapa',
@@ -180,42 +130,6 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
                 ),
               ),
               const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  height: 50,
-                  margin: const EdgeInsets.only(top: 10),
-                  child: ElevatedButton.icon(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStatePropertyAll(
-                        exerciseFormProvider.getNextForm
-                            ? Theme.of(context).colorScheme.tertiary
-                            : Colors.grey,
-                      ),
-                      shape: WidgetStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    onPressed: () => _validateForm(
-                      exerciseFormProvider: exerciseFormProvider,
-                    ),
-                    label: const Text(
-                      'Concluir',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    icon: const Icon(
-                      Icons.add_task_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ],

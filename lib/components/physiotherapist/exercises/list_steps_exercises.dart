@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
 import 'package:provider/provider.dart';
 
-class ListStepsExercises extends StatefulWidget {
-  const ListStepsExercises({super.key});
+class StepExercise extends StatelessWidget {
+  const StepExercise({super.key, required this.index});
 
-  @override
-  State<ListStepsExercises> createState() => _ListStepsExercisesState();
-}
+  final int index;
 
-class _ListStepsExercisesState extends State<ListStepsExercises> {
   Widget defaultTextForm({required Widget textForm}) {
     return Container(
       padding: const EdgeInsets.only(left: 10),
@@ -24,6 +21,9 @@ class _ListStepsExercisesState extends State<ListStepsExercises> {
   @override
   Widget build(BuildContext context) {
     final exercisesFormProvider = Provider.of<ExercisesControllerForm>(context);
+
+    final step = exercisesFormProvider.steps[index];
+
     return SizedBox(
       height: 180,
       child: Column(
@@ -31,6 +31,7 @@ class _ListStepsExercisesState extends State<ListStepsExercises> {
         children: [
           defaultTextForm(
             textForm: TextFormField(
+              initialValue: step.title,
               decoration: InputDecoration(
                 label: Text(
                   'Título da Etapa',
@@ -40,13 +41,18 @@ class _ListStepsExercisesState extends State<ListStepsExercises> {
                 ),
                 border: InputBorder.none,
               ),
-              onChanged: (titleStep) =>
-                  exercisesFormProvider.titleStep = titleStep,
               keyboardType: TextInputType.text,
+              onChanged: (value) {
+                exercisesFormProvider.updateStep(
+                  index,
+                  title: value,
+                );
+              },
             ),
           ),
           defaultTextForm(
             textForm: TextFormField(
+              initialValue: step.description,
               decoration: InputDecoration(
                 label: Text(
                   'Descrição da Etapa',
@@ -56,10 +62,14 @@ class _ListStepsExercisesState extends State<ListStepsExercises> {
                 ),
                 border: InputBorder.none,
               ),
-              onChanged: (descriptionStep) =>
-                  exercisesFormProvider.descriptionStep = descriptionStep,
               keyboardType: TextInputType.text,
               maxLines: 3,
+              onChanged: (value) {
+                exercisesFormProvider.updateStep(
+                  index,
+                  description: value,
+                );
+              },
             ),
           ),
         ],
