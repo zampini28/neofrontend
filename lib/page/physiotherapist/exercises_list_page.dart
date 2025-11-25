@@ -6,17 +6,44 @@ import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
 
-class ExercisesListPage extends StatelessWidget {
+class ExercisesListPage extends StatefulWidget {
   const ExercisesListPage({super.key});
+
+  @override
+  State<ExercisesListPage> createState() => _ExercisesListPageState();
+}
+
+class _ExercisesListPageState extends State<ExercisesListPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Defer the check to the next frame to access ModalRoute
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final category = ModalRoute.of(context)!.settings.arguments! as Category;
+
+      // Trigger Fetch if category is Personalized
+      if (category.id == CategoryId.personalized) {
+        Provider.of<ExerciseController>(context, listen: false).fetchPersonalizedExercises();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final category = ModalRoute.of(context)!.settings.arguments! as Category;
-    final exercises = Provider.of<ExerciseController>(context);
-    // Filtrando por categoria
-    final filteredList = exercises.listExercises.where(
-      (exe) => exe.categoryId.contains(category.id),
-    );
+    final exercisesProvider = Provider.of<ExerciseController>(context);
+
+    // Filtering Logic
+    final filteredList = exercisesProvider.listExercises
+        .where(
+          (exe) => exe.categoryId.contains(category.id),
+        )
+        .toList();
+
+    final displayList = category.id == exercisesProvider.favoriteCategory
+        ? exercisesProvider.listFavorites
+        : filteredList;
+
     final navigationPage = Provider.of<BottomNavBarPhysioController>(context);
 
     return Scaffold(
@@ -29,25 +56,21 @@ class ExercisesListPage extends StatelessWidget {
             );
             navigationPage.toggleIndex(index: 2);
           },
-          icon: const Icon(
-            Icons.arrow_back_ios_rounded,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_rounded),
         ),
         title: Text(category.title),
       ),
       body: Container(
         width: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: ListView.builder(
-          itemBuilder: (context, index) => ExercisesList(
-            exercise: category.id == exercises.favoriteCategory
-                ? exercises.listFavorites.elementAt(index)
-                : filteredList.elementAt(index),
-          ),
-          itemCount: category.id == exercises.favoriteCategory
-              ? exercises.listFavorites.length
-              : filteredList.length,
-        ),
+        child: displayList.isEmpty
+            ? const Center(child: Text("Nenhum exercício encontrado."))
+            : ListView.builder(
+                itemBuilder: (context, index) => ExercisesList(
+                  exercise: displayList.elementAt(index),
+                ),
+                itemCount: displayList.length,
+              ),
       ),
     );
   }

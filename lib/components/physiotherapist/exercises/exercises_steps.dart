@@ -10,7 +10,6 @@ class ExerciseSteps extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 350,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(10.0),
       decoration: BoxDecoration(
@@ -18,6 +17,7 @@ class ExerciseSteps extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -25,12 +25,11 @@ class ExerciseSteps extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Como Fazer o Exercício',
+                  'Como Fazer',
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 18,
-                    fontFamily:
-                        Theme.of(context).textTheme.titleMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.titleMedium?.fontFamily,
                   ),
                 ),
                 Text(
@@ -40,19 +39,18 @@ class ExerciseSteps extends StatelessWidget {
               ],
             ),
           ),
-          SingleChildScrollView(
-            child: SizedBox(
-              height: 280,
-              child: ListView.builder(
-                itemCount: exercise.steps.length,
-                itemBuilder: (context, index) => StepExercise(
-                  indexStep: index + 1,
-                  titleStep: exercise.steps.elementAt(index).title,
-                  subtitleStep:
-                      exercise.steps.elementAt(index).description,
-                ),
-              ),
-            ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: exercise.steps.length,
+            itemBuilder: (context, index) {
+              final Map<String, String> step = exercise.steps[index];
+              return StepExercise(  
+                indexStep: index + 1,
+                titleStep: step.keys.first ?? 'Sem Título',
+                subtitleStep: step.values.first ?? 'Sem Descrição',
+              );
+            },
           ),
         ],
       ),

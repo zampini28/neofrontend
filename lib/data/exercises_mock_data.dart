@@ -54,25 +54,25 @@ class ExercisesMockData {
         StepModel(
           title: 'Posição Corporal',
           description: 'Deite-se em um local plano que possa estabilizar seu corpo',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Movimento do Exercício',
           description:
               'Com o corpo deitado de bruços, estique uma perna para cima, mantendo-a esticada',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Manter Posição',
           description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Trocar Perna',
           description:
               'Estique a outra perna e eleve-a o maximo que conseguir, mantendo-a esticada',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Manter Posição',
           description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
-        ),
+        ).toMap(),
       ],
       categoryId: [CategoryId.legs, CategoryId.back],
     ),
@@ -87,31 +87,31 @@ class ExercisesMockData {
         StepModel(
           title: 'Posição Corporal',
           description: 'Deite-se em um local plano que possa estabilizar seu corpo',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Movimento do Exercício',
           description:
               'Com o corpo deitado de costas, estique uma perna para cima, mantendo-a esticada',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Dobrar Joelho',
           description:
               'Quando a perna estiver esticada, dobre o joelho deixando a perna em um angulo de 90 graus',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Trocar Perna',
           description:
               'Estique a outra perna e eleve-a o maximo que conseguir, mantendo-a esticada',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Dobrar Joelhos',
           description:
               'Quando a perna estiver esticada, dobre o joelho deixando a perna em um angulo de 90 graus',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Abaixar perna',
           description: 'Abaixe a perna lentamente e deixe as duas esticadas',
-        ),
+        ).toMap(),
       ],
       categoryId: [
         CategoryId.legs,
@@ -130,25 +130,25 @@ class ExercisesMockData {
           title: 'Posição Corporal',
           description:
               'Sente-se em um local reto, incline-se em 45 graus para trás, mantendo-se sentado',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Movimento do Exercício',
           description:
               'Com auxílio de um objeto eleve a perna em um angulo pouco acima do chão e mantenha-a esticada',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Manter Posição',
           description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Trocar Perna',
           description:
               'Com auxílio de um objeto eleve a perna em um angulo pouco acima do chão e mantenha-a esticada',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Manter Posição',
           description: 'Mantenha a posição por 1 minutos e após isso abaixe a perna lentamente',
-        ),
+        ).toMap(),
       ],
       categoryId: [
         CategoryId.legs,
@@ -167,23 +167,23 @@ class ExercisesMockData {
         StepModel(
           title: 'Posição Corporal',
           description: 'Sente-se em um local reto com pelo menos 90 centimetros do chão',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Movimento do Exercício',
           description: 'Incline o corpo em um angulo de 45 graus para frente',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Estique a perna',
           description: 'Com o corpo para frente, mantenha a perna esticada',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Relaxar Corpo',
           description: 'Volte para a posição inicial',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Troque de Perna',
           description: 'Com o corpo para frente, mantenha a perna esticada',
-        ),
+        ).toMap(),
       ],
       categoryId: [CategoryId.legs, CategoryId.back, CategoryId.abdominal],
     ),
@@ -198,25 +198,25 @@ class ExercisesMockData {
         StepModel(
           title: 'Posição Corporal',
           description: 'Fique de quatro sobre uma superficie reta',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Movimento do Exercício',
           description: 'Levante o braço esquerdo e a perna direita e mantenha-os elevados',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Manter Posição',
           description:
               'Mantenha a posição por 30 segundos e após isso abaixe a perna e o braço lentamente',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Trocar Posição',
           description: 'Levante o braço direito e a perna esquerda e mantenha-os elevados',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Manter Posição',
           description:
               'Mantenha a posição por 30 segundos e após isso abaixe a perna e o braço lentamente',
-        ),
+        ).toMap(),
       ],
       categoryId: [
         CategoryId.legs,
@@ -236,22 +236,22 @@ class ExercisesMockData {
         StepModel(
           title: 'Posição Corporal',
           description: 'Fique de quatro sobre uma superficie reta',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Movimento do Exercício',
           description:
               'deixe suas pernas juntas, e icline-se com seus braços juntos para frente o máximo que conseguir',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Manter Posição',
           description:
               'Mantenha a posição por 10 segundos e após isso volte lentamente a posição inicial',
-        ),
+        ).toMap(),
         StepModel(
           title: 'Repetir Movimento',
           description:
               'deixe suas pernas juntas, e icline-se com seus braços juntos para frente o máximo que conseguir',
-        ),
+        ).toMap(),
       ],
       categoryId: [
         CategoryId.legs,

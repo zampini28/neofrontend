@@ -19,10 +19,10 @@ class ExercisesDetailPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: double.infinity,
                 height: 250,
-                child: VideoBox(),
+                child: VideoBox(videoUrl: exercise.videoUrl),
               ),
               ExercisesDetail(
                 exercise: exercise,
