@@ -104,6 +104,7 @@ class _ChatListPageState extends State<ChatListPage> {
             builder: (context) => IndividualChatScreen(
               patientName: user.fullname,
               patientId: user.id,
+              patientImage: user.imageProvider,
             ),
           ),
         );
