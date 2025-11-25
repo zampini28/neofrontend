@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/schedule_appointment/first_form_schedule_appointment.dart';
 import 'package:physioapp/components/physiotherapist/schedule_appointment/second_form_schedule_appointment.dart';
 import 'package:physioapp/components/physiotherapist/schedule_appointment/select_form.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_form.dart';
 import 'package:provider/provider.dart';
 
@@ -92,7 +93,9 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
                               Size(double.infinity, 50),
                             ),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            makeAppointment();
+                          },
                           child: Text(
                             'Agendar Consulta',
                             style: TextStyle(

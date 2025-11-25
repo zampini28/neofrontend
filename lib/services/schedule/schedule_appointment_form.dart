@@ -36,4 +36,6 @@ class ScheduleAppointmentForm with ChangeNotifier {
     _currentTypeQuery = valueTypeQuery;
     notifyListeners();
   }
+
+  
 }

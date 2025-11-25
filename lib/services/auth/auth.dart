@@ -439,3 +439,8 @@ Future<bool> updateExerciseToServer({required ExercisesControllerForm formExerci
     return false;
   }
 }
+
+
+Future<void> makeAppointment() async {
+  debugPrint(' -- makeAppointment');
+}
