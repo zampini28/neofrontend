@@ -21,10 +21,7 @@ Future<void> main() async {
   logout();
 
   runApp(
-    DevicePreview(
-      enabled: true,
-      builder: (_) => const PhysioApp()
-    )
+   const PhysioApp()
   );
 }
 
