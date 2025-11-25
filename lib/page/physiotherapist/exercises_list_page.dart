@@ -64,7 +64,7 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
         width: MediaQuery.of(context).size.height,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: displayList.isEmpty
-            ? const Center(child: Text("Nenhum exercício encontrado."))
+            ? const Center(child: Text('Nenhum exercício encontrado.'))
             : ListView.builder(
                 itemBuilder: (context, index) => ExercisesList(
                   exercise: displayList.elementAt(index),

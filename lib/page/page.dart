@@ -1,4 +1,3 @@
-export 'physio_or_patient_page.dart';
 export 'patient/add_physio_page.dart';
 export 'patient/auth_patient_page.dart';
 export 'patient/chat_patient_page.dart';
@@ -10,6 +9,7 @@ export 'patient/policy_privacy_patient_page.dart';
 export 'patient/signin_patient_page.dart';
 export 'patient/signup_patient_page.dart';
 export 'patient/tabs_page_patient.dart';
+export 'physio_or_patient_page.dart';
 export 'physiotherapist/add_exercise_page.dart';
 export 'physiotherapist/add_patient_page.dart';
 export 'physiotherapist/auth_physio_page.dart';

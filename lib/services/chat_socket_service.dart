@@ -21,8 +21,8 @@ class ChatSocketService {
   }) : _userToken = userToken;
 
   void connect() {
-    final String BASE_URL = dotenv.env['BASE_URL'] ?? 'localhost:8080';
-    final String socketUrl = 'ws://$BASE_URL/ws';
+    final String baseUrl = dotenv.env['BASE_URL'] ?? 'localhost:8080';
+    final String socketUrl = 'ws://$baseUrl/ws';
 
     stompClient = StompClient(
       config: StompConfig(

@@ -1,8 +1,8 @@
 import 'package:physioapp/repositories/relationship_repository.dart';
+import 'package:physioapp/services/services.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import 'package:physioapp/services/services.dart';
 
 class AppProviders {
   

@@ -106,7 +106,7 @@ class _VideoBoxState extends State<VideoBox> {
     }
 
     if (_isDownloading || !_isInitialized || _controller == null) {
-      return Container(
+      return ColoredBox(
         color: Colors.black12,
         child: const Center(child: CircularProgressIndicator()),
       );

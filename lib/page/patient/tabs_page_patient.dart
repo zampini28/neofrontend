@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/patient/bottom_nav_bar_patient.dart';
-import 'package:physioapp/page/patient/chat_patient_page.dart';
+import 'package:physioapp/page/common/chat_list_page.dart';
 import 'package:physioapp/page/patient/exercises_page.dart';
 import 'package:physioapp/page/patient/home_patient_page.dart';
 import 'package:physioapp/page/patient/patient_profile_page.dart';
@@ -21,8 +21,8 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
       'screen': const HomePatientPage(),
     },
     {
-      'title': '',
-      'screen': const ChatPatientPage(),
+      'title': 'Chat',
+      'screen': const ChatListPage(),
     },
     {
       'title': '',

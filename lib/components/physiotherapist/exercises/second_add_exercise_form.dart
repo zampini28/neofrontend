@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/add_video_box.dart';
-import 'package:physioapp/components/physiotherapist/exercises/time_input_formatter.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
-import 'package:physioapp/services/exercises/physio/exercise_controller.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
-import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
 

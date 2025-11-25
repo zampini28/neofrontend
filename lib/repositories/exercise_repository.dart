@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:physioapp/model/exercises/exercise.dart';
-import 'package:provider/provider.dart';
 import 'package:physioapp/core/network/api_client.dart';
+import 'package:physioapp/model/exercises/exercise.dart';
 
 class ExerciseRepository {
   final ApiClient _api;

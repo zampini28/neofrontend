@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/domain_connection.dart';
+import 'package:physioapp/models/chat/connected_user.dart';
 
 class RelationshipRepository {
   final String _baseUrl = DomainConnection().url;
@@ -45,7 +46,26 @@ class RelationshipRepository {
       }
     }
   }
+
+  Future<List<ConnectedUser>> getConnections() async {
+    final token = await getToken();
+    final response = await http.get(
+      Uri.parse('${DomainConnection().url}/api/relationships'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> list = jsonDecode(response.body) as List<dynamic>;
+      return list.map((json) => ConnectedUser.fromJson(json as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception('Failed to load connections: ${response.statusCode}');
+    }
+  }
 }
+
 
 class RelationshipProvider with ChangeNotifier {
   final RelationshipRepository _repo = RelationshipRepository();
@@ -57,6 +77,13 @@ class RelationshipProvider with ChangeNotifier {
   String? get myQrCodeLink => _myQrCodeLink;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  List<ConnectedUser> _connections = [];
+  List<ConnectedUser> _filteredConnections = [];
+  bool _isLoadingConnections = false;
+
+  List<ConnectedUser> get connections => _filteredConnections;
+  bool get isLoadingConnections => _isLoadingConnections;
 
   Future<void> loadMyQrCode() async {
     if (_myQrCodeLink != null) return;
@@ -104,5 +131,33 @@ class RelationshipProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> fetchConnections() async {
+    _isLoadingConnections = true;
+    notifyListeners();
+
+    try {
+      final data = await _repo.getConnections();
+      _connections = data;
+      _filteredConnections = data;
+    } catch (e) {
+      debugPrint('Error fetching connections: $e');
+    } finally {
+      _isLoadingConnections = false;
+      notifyListeners();
+    }
+  }
+
+  void searchConnections(String query) {
+    if (query.isEmpty) {
+      _filteredConnections = _connections;
+    } else {
+      _filteredConnections = _connections.where((user) {
+        return user.fullname.toLowerCase().contains(query.toLowerCase()) ||
+               user.email.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    }
+    notifyListeners();
   }
 }

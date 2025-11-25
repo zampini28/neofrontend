@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/profile/change_email_form.dart';
-import 'package:physioapp/components/physiotherapist/profile/change_name_form.dart';
 import 'package:physioapp/components/physiotherapist/profile/change_password_form.dart';
 import 'package:physioapp/components/physiotherapist/profile/profile_option_tile.dart';
 import 'package:physioapp/services/auth/auth.dart';

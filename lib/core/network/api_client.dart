@@ -21,7 +21,7 @@ class ApiClient {
         return handler.next(options);
       },
       onError: (DioException e, handler) {
-        print("API Error: ${e.response?.statusCode} - ${e.message}");
+        print('API Error: ${e.response?.statusCode} - ${e.message}');
         return handler.next(e);
       },
     ));

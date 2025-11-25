@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
-import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';

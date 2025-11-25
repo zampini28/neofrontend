@@ -1,13 +1,9 @@
 
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart' as syspath;
-import 'package:physioapp/services/auth/auth_form.dart';
-
-import 'package:physioapp/utils/get_image.dart';
-
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:physioapp/services/auth/auth_form.dart';
+import 'package:physioapp/utils/get_image.dart';
 
 
 class ImagePicket extends StatefulWidget {

@@ -20,7 +20,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
     super.dispose();
   }
 
-  void _handleDetection(BarcodeCapture capture) async {
+  Future<void> _handleDetection(BarcodeCapture capture) async {
     if (_isProcessing) return;
 
     final List<Barcode> barcodes = capture.barcodes;

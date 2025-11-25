@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/navigation/app_drawer.dart';
 import 'package:physioapp/components/physiotherapist/navigation/bottom_nav_bar_physio.dart';
-import 'package:physioapp/page/physiotherapist/chat_page_physio.dart';
+import 'package:physioapp/page/common/chat_list_page.dart';
 import 'package:physioapp/page/physiotherapist/exercises_page_physio.dart';
 import 'package:physioapp/page/physiotherapist/home_physio_page.dart';
 import 'package:physioapp/page/physiotherapist/physio_profile_page.dart';
@@ -23,8 +23,8 @@ class _TabsPagePhysioState extends State<TabsPagePhysio> {
       'screen': const HomePhysioPage(),
     },
     {
-      'title': '',
-      'screen': const ChatPagePhysio(),
+      'title': 'Chat',
+      'screen': const ChatListPage(),
     },
     {
       'title': '',

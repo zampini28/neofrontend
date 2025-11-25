@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/get_image.dart';

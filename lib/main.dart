@@ -2,11 +2,10 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:physioapp/core/theme/app_theme.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_providers.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
-
-import 'package:physioapp/services/auth/auth.dart';
 
 // TODO: create an export files for pages (maybe same for services)
 
