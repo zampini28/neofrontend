@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:video_player/video_player.dart';
 
@@ -13,8 +15,10 @@ class VideoBox extends StatefulWidget {
 }
 
 class _VideoBoxState extends State<VideoBox> {
-  late VideoPlayerController _controller;
-  Future<void>? _initializeVideoPlayerFuture;
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  bool _isDownloading = false;
 
   @override
   void initState() {
@@ -22,80 +26,136 @@ class _VideoBoxState extends State<VideoBox> {
     _initPlayer();
   }
 
-  Future<void> _initPlayer() async {
-    final token = await getToken();
-
-    if (widget.videoUrl.startsWith('http')) {
-      _controller = VideoPlayerController.networkUrl(
-        Uri.parse(widget.videoUrl),
-        httpHeaders: {
-          'Authorization': 'Bearer $token',
-        },
-      );
-    } else {
-      _controller = VideoPlayerController.asset(widget.videoUrl);
-    }
-
-    _initializeVideoPlayerFuture = _controller.initialize();
-    setState(() {});
-  }
-
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_initializeVideoPlayerFuture == null) {
-      return const Center(child: CircularProgressIndicator());
+  Future<void> _initPlayer() async {
+    if (widget.videoUrl.trim().isEmpty) {
+      if (mounted) setState(() => _hasError = true);
+      return;
     }
 
-    return FutureBuilder(
-      future: _initializeVideoPlayerFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.done) {
-          return Stack(
-            alignment: Alignment.bottomCenter,
-            children: [
-              AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
-              ),
-              _ControlsOverlay(controller: _controller),
-            ],
-          );
-        } else {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      },
-    );
-  }
-}
+    final token = await getToken();
 
-class _ControlsOverlay extends StatelessWidget {
-  final VideoPlayerController controller;
-  const _ControlsOverlay({required this.controller});
+    try {
+      if (kIsWeb) {
+        debugPrint('---------------- hello world ------------------');  
+        _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
+        await _controller!.initialize();
+      } else {
+        if (widget.videoUrl.startsWith('http')) {
+          if (mounted) setState(() => _isDownloading = true);
+
+          final response = await http.get(
+            Uri.parse(widget.videoUrl),
+            headers: {'Authorization': 'Bearer $token'},
+          );
+
+          if (response.statusCode == 200) {
+            final dir = await getTemporaryDirectory();
+            final fileName = 'video_${widget.videoUrl.hashCode}.mp4';
+            final file = File('${dir.path}/$fileName');
+
+            await file.writeAsBytes(response.bodyBytes);
+
+            _controller = VideoPlayerController.file(file);
+            await _controller!.initialize();
+          } else {
+            throw Exception('Auth Failed: ${response.statusCode}');
+          }
+        } else {
+          _controller = VideoPlayerController.asset(widget.videoUrl);
+          await _controller!.initialize();
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+          _isDownloading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error initializing video: $e');
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _isDownloading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_hasError) {
+      return Container(
+        color: Colors.grey[300],
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.videocam_off, size: 50, color: Colors.grey[600]),
+            const SizedBox(height: 10),
+            Text('Vídeo indisponível', style: TextStyle(color: Colors.grey[700])),
+          ],
+        ),
+      );
+    }
+
+    if (_isDownloading || !_isInitialized || _controller == null) {
+      return Container(
+        color: Colors.black12,
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Center(
+          child: AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: VideoPlayer(_controller!),
+          ),
+        ),
+        _buildControls(),
+      ],
+    );
+  }
+
+  Widget _buildControls() {
     return Container(
-      color: Colors.black26,
-      height: 50,
+      color: Colors.black38,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           IconButton(
             onPressed: () {
-              controller.value.isPlaying ? controller.pause() : controller.play();
+              setState(() {
+                if (_controller!.value.isPlaying) {
+                  _controller!.pause();
+                } else {
+                  _controller!.play();
+                }
+              });
             },
             icon: Icon(
-              controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+              _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
               color: Colors.white,
+              size: 30,
             ),
+          ),
+          IconButton(
+            onPressed: () {
+              _controller!.pause();
+              _controller!.seekTo(Duration.zero);
+              setState(() {});
+            },
+            icon: const Icon(Icons.replay, color: Colors.white, size: 30),
           ),
         ],
       ),
