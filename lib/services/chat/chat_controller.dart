@@ -12,40 +12,37 @@ class ChatController with ChangeNotifier {
   List<ChatMessage> _messages = [];
   bool _isLoading = false;
   bool _isConnected = false;
-  bool _hasNoAppointment = false; // New flag for UI state
+  bool _hasNoAppointment = false;
 
   ChatSocketService? _socketService;
-  String? _activeChatId; // This will hold the APPOINTMENT ID
+  String? _activeChatId; // Stores the Appointment ID
 
   List<ChatMessage> get messages => [..._messages.reversed];
   bool get isLoading => _isLoading;
   bool get isConnected => _isConnected;
-  bool get hasNoAppointment => _hasNoAppointment; // Getter for UI
+  bool get hasNoAppointment => _hasNoAppointment;
 
-  // 1. Initialize
+  // 1. Initialize Chat
   Future<void> initChat(String targetUserId) async {
     _isLoading = true;
     _hasNoAppointment = false;
+    _messages = []; // Clear old messages
     notifyListeners();
 
     try {
       final token = await getToken();
       if (token != null) {
-        // STEP A: Find the Appointment ID for this user first
+        // Resolve the correct ID for the socket topic
         final appointmentId = await _resolveAppointmentId(targetUserId, token);
 
         if (appointmentId != null) {
           _activeChatId = appointmentId;
 
-          // STEP B: Connect using APPOINTMENT ID
+          // Connect & Fetch
           _connectSocket(_activeChatId!, token);
-
-          // STEP C: Fetch History
           await _fetchHistory(_activeChatId!, token);
         } else {
-          // No appointment found -> Cannot chat
           _hasNoAppointment = true;
-          debugPrint('❌ No active appointment found for user $targetUserId');
         }
       }
     } catch (e) {
@@ -56,36 +53,63 @@ class ChatController with ChangeNotifier {
     }
   }
 
-  // NEW: Helper to find the Appointment ID based on the User ID
+  // 2. Robust ID Resolution
   Future<String?> _resolveAppointmentId(String targetUserId, String token) async {
     try {
+      debugPrint('🔍 [Chat] Resolving Appointment for Target User: $targetUserId');
+
       final response = await http.get(
         Uri.parse('$_baseUrl/api/appointments'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
+      debugPrint('📥 [Chat] API Status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
-        final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+        // Use UTF8 decoding to avoid character issues
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        List<dynamic> list = [];
 
-        // Find an appointment where the target user is involved
+        // Handle both List and Spring Page<T> formats
+        if (decoded is Map && decoded.containsKey('content')) {
+          list = decoded['content'] as List<dynamic>; // It's a Page
+        } else if (decoded is List) {
+          list = decoded; // It's a plain List
+        }
+
+        debugPrint('📋 [Chat] Found ${list.length} appointments in DB.');
+
         for (var appt in list) {
-          // Handle both nested object (patient: {id: ...}) and flat (patientId: ...) formats
-          final pId = appt['patientId']?.toString() ?? appt['patient']?['id']?.toString();
-          final phId =
-              appt['physiotherapistId']?.toString() ?? appt['physiotherapist']?['id']?.toString();
+          final String apptId = appt['id']?.toString() ?? '';
 
-          if (pId == targetUserId || phId == targetUserId) {
-            return appt['id'].toString();
+          // Extract Patient/Physio IDs safely, handling nested objects or flat fields
+          String pId = (appt['patientId'] ?? appt['patient']?['id'])?.toString() ?? '';
+          String phId =
+              (appt['physiotherapistId'] ?? appt['physiotherapist']?['id'])?.toString() ?? '';
+
+          // Normalize for comparison
+          pId = pId.trim().toLowerCase();
+          phId = phId.trim().toLowerCase();
+          final target = targetUserId.trim().toLowerCase();
+
+          // debugPrint('   👉 Checking Appt $apptId: Pat=$pId | Phys=$phId');
+
+          if (pId == target || phId == target) {
+            debugPrint('✅ [Chat] Match Found! Appointment ID: $apptId');
+            return apptId;
           }
         }
+      } else {
+        debugPrint('❌ [Chat] Failed to fetch appointments. Body: ${response.body}');
       }
     } catch (e) {
-      debugPrint('Error resolving appointment: $e');
+      debugPrint('🛑 [Chat] Error resolving appointment: $e');
     }
+    debugPrint('⚠️ [Chat] No matching appointment found for this user.');
     return null;
   }
 
-  // 2. Fetch History
+  // 3. Fetch History
   Future<void> _fetchHistory(String chatId, String token) async {
     try {
       final response = await http.get(
@@ -94,7 +118,7 @@ class ChatController with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>; 
         _messages = data.map((json) => ChatMessage.fromJson(json as Map<String, dynamic>)).toList();
         _messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
         notifyListeners();
@@ -104,14 +128,13 @@ class ChatController with ChangeNotifier {
     }
   }
 
-  // 3. Connect Socket
+  // 4. Connect Socket
   void _connectSocket(String chatId, String token) {
     _socketService = ChatSocketService(
       userToken: token,
       onConnectCallback: () {
         _isConnected = true;
         notifyListeners();
-        // Subscribe using APPOINTMENT ID
         _socketService?.subscribeToChat(chatId);
       },
       onMessageReceivedCallback: (message) {
@@ -126,20 +149,21 @@ class ChatController with ChangeNotifier {
     _socketService?.connect();
   }
 
-  // 4. Send Message
+  // 5. Send Message
   void sendMessage(String text) {
     if (_activeChatId == null || text.trim().isEmpty) return;
 
     final myId = UserDataCache().id;
 
-    // Optimistic Update
-    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-    final tempMsg = ChatMessage(id: tempId, text: text, senderId: myId, timestamp: DateTime.now());
+    final tempMsg = ChatMessage(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        text: text,
+        senderId: myId,
+        timestamp: DateTime.now());
 
     _messages.add(tempMsg);
     notifyListeners();
 
-    // Send to Backend
     _socketService?.sendMessage(_activeChatId!, text, myId);
   }
 

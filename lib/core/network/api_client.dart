@@ -5,7 +5,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiClient {
   final Dio _dio;
   final _storage = const FlutterSecureStorage();
-  final String BASE_URL = dotenv.env['BASE_URL'] ?? 'localhost:8080';
+  //final String BASE_URL = dotenv.env['BASE_URL'] ?? 'localhost:8080';
+  final String BASE_URL = 'https://neobackend.fly.dev';
 
   ApiClient() : _dio = Dio(BaseOptions(
     baseUrl: 'http://BASE_URL',
