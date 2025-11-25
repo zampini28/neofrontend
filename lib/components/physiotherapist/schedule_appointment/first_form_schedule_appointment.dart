@@ -8,7 +8,7 @@ import 'package:physioapp/repositories/relationship_repository.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_controller.dart';
 import 'package:provider/provider.dart';
 
-import 'package:physioapp/model/schedule/schedule_form_data.dart';
+import 'package:physioapp/utils/temp_globals.dart'; // 1. IMPORT GLOBALS
 
 class FirstFormScheduleAppointment extends StatefulWidget {
   const FirstFormScheduleAppointment({super.key});
@@ -32,6 +32,11 @@ class _FirstFormScheduleAppointmentState extends State<FirstFormScheduleAppointm
             _selectedUser = user;
           });
 
+          // 2. FORCE GLOBAL SAVE
+          globalSelectedPatientId = user.id;
+          globalSelectedPatientName = user.fullname;
+
+          // Keep updating legacy static data just in case UI needs it elsewhere
           ScheduleFormData.name = user.fullname;
         },
       ),
@@ -40,8 +45,11 @@ class _FirstFormScheduleAppointmentState extends State<FirstFormScheduleAppointm
 
   @override
   Widget build(BuildContext context) {
-    final scheduleProvider = Provider.of<ScheduleAppointmentController>(context);
-    final hasSelection = _selectedUser != null || scheduleProvider.whenSelected;
+    // 3. Check if we have a selection in GLOBAL variable
+    final hasSelection = _selectedUser != null || globalSelectedPatientId != null;
+
+    // Helper to get display name safely
+    final displayName = _selectedUser?.fullname ?? globalSelectedPatientName ?? 'Paciente';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,10 +94,7 @@ class _FirstFormScheduleAppointmentState extends State<FirstFormScheduleAppointm
                               backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                               backgroundImage: _selectedUser?.imageProvider,
                               child: _selectedUser?.profileImageBase64 == null
-                                  ? (_selectedUser == null &&
-                                          scheduleProvider.patientSelected != null)
-                                      ? null
-                                      : Icon(Icons.person, color: Theme.of(context).primaryColor)
+                                  ? Icon(Icons.person, color: Theme.of(context).primaryColor)
                                   : null,
                             ),
                             const SizedBox(width: 12),
@@ -98,21 +103,17 @@ class _FirstFormScheduleAppointmentState extends State<FirstFormScheduleAppointm
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    _selectedUser?.fullname ??
-                                        scheduleProvider.patientSelected?.name ??
-                                        'Paciente',
+                                    displayName,
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  Text(
-                                    _selectedUser?.email ??
-                                        scheduleProvider.patientSelected?.email ??
-                                        '',
+                                  const Text(
+                                    'Paciente selecionado',
                                     style: TextStyle(
                                       fontSize: 13,
-                                      color: Colors.grey[600],
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 ],
@@ -148,9 +149,7 @@ class _FirstFormScheduleAppointmentState extends State<FirstFormScheduleAppointm
                         ),
                 ),
               ),
-
               const SizedBox(height: 20),
-
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(

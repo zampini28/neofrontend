@@ -35,7 +35,7 @@ jobs:
       - name: Build Web App
         run: |
           flutter pub get
-          flutter build web --release --base-href /physioapp/
+          flutter build web --release --base-href /neofrontend/
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3

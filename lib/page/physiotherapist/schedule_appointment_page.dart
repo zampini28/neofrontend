@@ -2,19 +2,83 @@ import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/schedule_appointment/first_form_schedule_appointment.dart';
 import 'package:physioapp/components/physiotherapist/schedule_appointment/second_form_schedule_appointment.dart';
 import 'package:physioapp/components/physiotherapist/schedule_appointment/select_form.dart';
-import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/model/schedule/schedule_form_data.dart';
+import 'package:physioapp/services/appointment/appointment_service.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_form.dart';
+import 'package:physioapp/utils/app_routes.dart';
+import 'package:physioapp/utils/temp_globals.dart'; // 1. IMPORT GLOBALS
 import 'package:provider/provider.dart';
 
 class ScheduleAppointmentPage extends StatefulWidget {
   const ScheduleAppointmentPage({super.key});
 
   @override
-  State<ScheduleAppointmentPage> createState() =>
-      _ScheduleAppointmentPageState();
+  State<ScheduleAppointmentPage> createState() => _ScheduleAppointmentPageState();
 }
 
 class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 2. Clean up old selections when opening the page
+    clearGlobals();
+  }
+
+  Future<void> _handleCreateAppointment() async {
+    // 3. CHECK GLOBAL VARIABLE
+    if (globalSelectedPatientId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione um paciente primeiro.')),
+      );
+      return;
+    }
+
+    if (ScheduleFormData.isoDateTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione data e hora para a consulta.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    // 4. Call API with global ID
+    final success = await AppointmentService.createAppointment(
+      patientId: globalSelectedPatientId!, // USE GLOBAL
+      dateTimeIso: ScheduleFormData.isoDateTime!,
+      notes: ScheduleFormData.occurrence ?? '',
+    );
+
+    setState(() => _isLoading = false);
+
+    if (!mounted) return;
+
+    // 5. Handle Result
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Consulta agendada com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Clean up
+      clearGlobals();
+      ScheduleFormData.clear();
+
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao agendar. Verifique se o horário está disponível.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheduleProvider = Provider.of<ScheduleAppointmentForm>(context);
@@ -34,13 +98,8 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
               children: [
                 Container(
                   width: double.infinity,
-                  margin:
-                      const EdgeInsets.only(left: 20, right: 20, bottom: 120),
-                  padding: const EdgeInsets.only(
-                    left: 20.0,
-                    right: 20.0,
-                    bottom: 10,
-                  ),
+                  margin: const EdgeInsets.only(left: 20, right: 20, bottom: 120),
+                  padding: const EdgeInsets.only(left: 20.0, right: 20.0, bottom: 10),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       begin: Alignment.topCenter,
@@ -57,15 +116,13 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
                         ? CrossAxisAlignment.end
                         : CrossAxisAlignment.start,
                     children: [
-                      if (scheduleProvider.firstForm)
-                        const FirstFormScheduleAppointment(),
-                      if (scheduleProvider.secondForm)
-                        const SecondFormScheduleAppointment(),
+                      if (scheduleProvider.firstForm) const FirstFormScheduleAppointment(),
+                      if (scheduleProvider.secondForm) const SecondFormScheduleAppointment(),
                       const SelectForm(),
+                      const SizedBox(height: 10),
                       if (scheduleProvider.firstForm)
                         TextButton(
                           onPressed: () {
-
                             scheduleProvider.toggleForm(
                               valueForm: scheduleProvider.getSecondForm,
                             );
@@ -79,44 +136,45 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
                           ),
                         ),
                       if (scheduleProvider.secondForm)
-                        ElevatedButton(
-                          style: ButtonStyle(
-                            shape: WidgetStatePropertyAll(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        SizedBox(
+                          height: 50,
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              shape: WidgetStatePropertyAll(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              backgroundColor: WidgetStatePropertyAll(
+                                Theme.of(context).colorScheme.tertiary,
                               ),
                             ),
-                            backgroundColor: WidgetStatePropertyAll(
-                              Theme.of(context).colorScheme.tertiary,
-                            ),
-                            minimumSize: const WidgetStatePropertyAll(
-                              Size(double.infinity, 50),
-                            ),
-                          ),
-                          onPressed: () {
-                            makeAppointment();
-                          },
-                          child: Text(
-                            'Agendar Consulta',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontFamily: Theme.of(context)
-                                  .textTheme
-                                  .titleSmall
-                                  ?.fontFamily,
-                              fontWeight: FontWeight.w300,
-                            ),
+                            onPressed: _isLoading ? null : _handleCreateAppointment,
+                            child: _isLoading
+                                ? const CircularProgressIndicator(color: Colors.white)
+                                : Text(
+                                    'Agendar Consulta',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontFamily:
+                                          Theme.of(context).textTheme.titleSmall?.fontFamily,
+                                      fontWeight: FontWeight.w300,
+                                    ),
+                                  ),
                           ),
                         ),
                       if (scheduleProvider.secondForm)
-                        TextButton(
-                          onPressed: () {
-                            scheduleProvider.toggleForm(
-                              valueForm: scheduleProvider.getFirstForm,
-                            );
-                          },
-                          child: const Text('Voltar'),
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              scheduleProvider.toggleForm(
+                                valueForm: scheduleProvider.getFirstForm,
+                              );
+                            },
+                            child: const Text('Voltar'),
+                          ),
                         ),
                     ],
                   ),

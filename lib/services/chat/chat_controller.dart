@@ -12,17 +12,17 @@ class ChatController with ChangeNotifier {
   List<ChatMessage> _messages = [];
   bool _isLoading = false;
   bool _isConnected = false;
+  bool _hasNoAppointment = false; // New flag for UI state
 
   ChatSocketService? _socketService;
-  String? _appointmentId;
+  String? _activeChatId; // This will hold the APPOINTMENT ID
 
   List<ChatMessage> get messages => [..._messages.reversed];
   bool get isLoading => _isLoading;
   bool get isConnected => _isConnected;
+  bool get hasNoAppointment => _hasNoAppointment; // Getter for UI
 
-  bool _hasNoAppointment = false;
-  bool get hasNoAppointment => _hasNoAppointment;
-
+  // 1. Initialize
   Future<void> initChat(String targetUserId) async {
     _isLoading = true;
     _hasNoAppointment = false;
@@ -30,16 +30,23 @@ class ChatController with ChangeNotifier {
 
     try {
       final token = await getToken();
-      if (token == null) return;
+      if (token != null) {
+        // STEP A: Find the Appointment ID for this user first
+        final appointmentId = await _resolveAppointmentId(targetUserId, token);
 
-      _appointmentId = await _resolveAppointmentId(targetUserId, token);
+        if (appointmentId != null) {
+          _activeChatId = appointmentId;
 
-      if (_appointmentId != null) {
-        _connectSocket(_appointmentId!, token);
-        await _fetchHistory(_appointmentId!, token);
-      } else {
-        _hasNoAppointment = true;
-        debugPrint(' -- No active appointment found for user $targetUserId');
+          // STEP B: Connect using APPOINTMENT ID
+          _connectSocket(_activeChatId!, token);
+
+          // STEP C: Fetch History
+          await _fetchHistory(_activeChatId!, token);
+        } else {
+          // No appointment found -> Cannot chat
+          _hasNoAppointment = true;
+          debugPrint('❌ No active appointment found for user $targetUserId');
+        }
       }
     } catch (e) {
       debugPrint('Error initializing chat: $e');
@@ -49,31 +56,25 @@ class ChatController with ChangeNotifier {
     }
   }
 
+  // NEW: Helper to find the Appointment ID based on the User ID
   Future<String?> _resolveAppointmentId(String targetUserId, String token) async {
     try {
-      debugPrint('🔍 Looking for Appointment with User: $targetUserId');
-
       final response = await http.get(
         Uri.parse('$_baseUrl/api/appointments'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
-      debugPrint('📥 API Response [${response.statusCode}]: ${response.body}');
-
       if (response.statusCode == 200) {
-        final List<dynamic> list = jsonDecode(response.body) as List<dynamic>;
+        final List<dynamic> list = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
 
-        for (final appt in list) {
-          String? pId = appt['patientId']?.toString();
-          String? phId = appt['physiotherapistId']?.toString();
-
-          if (pId == null) pId = appt['patient']?['id']?.toString();
-          if (phId == null) phId = appt['physiotherapist']?['id']?.toString();
-
-          debugPrint('   - Appt ${appt['id']}: Pat=$pId | Phys=$phId');
+        // Find an appointment where the target user is involved
+        for (var appt in list) {
+          // Handle both nested object (patient: {id: ...}) and flat (patientId: ...) formats
+          final pId = appt['patientId']?.toString() ?? appt['patient']?['id']?.toString();
+          final phId =
+              appt['physiotherapistId']?.toString() ?? appt['physiotherapist']?['id']?.toString();
 
           if (pId == targetUserId || phId == targetUserId) {
-            debugPrint(' -- match found! ID: ${appt['id']}');
             return appt['id'].toString();
           }
         }
@@ -84,6 +85,7 @@ class ChatController with ChangeNotifier {
     return null;
   }
 
+  // 2. Fetch History
   Future<void> _fetchHistory(String chatId, String token) async {
     try {
       final response = await http.get(
@@ -102,12 +104,14 @@ class ChatController with ChangeNotifier {
     }
   }
 
+  // 3. Connect Socket
   void _connectSocket(String chatId, String token) {
     _socketService = ChatSocketService(
       userToken: token,
       onConnectCallback: () {
         _isConnected = true;
         notifyListeners();
+        // Subscribe using APPOINTMENT ID
         _socketService?.subscribeToChat(chatId);
       },
       onMessageReceivedCallback: (message) {
@@ -118,24 +122,25 @@ class ChatController with ChangeNotifier {
         }
       },
     );
+
     _socketService?.connect();
   }
 
+  // 4. Send Message
   void sendMessage(String text) {
-    if (_appointmentId == null || text.trim().isEmpty) return;
+    if (_activeChatId == null || text.trim().isEmpty) return;
 
     final myId = UserDataCache().id;
 
-    final tempMsg = ChatMessage(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        text: text,
-        senderId: myId,
-        timestamp: DateTime.now());
+    // Optimistic Update
+    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+    final tempMsg = ChatMessage(id: tempId, text: text, senderId: myId, timestamp: DateTime.now());
 
     _messages.add(tempMsg);
     notifyListeners();
 
-    _socketService?.sendMessage(_appointmentId!, text, myId);
+    // Send to Backend
+    _socketService?.sendMessage(_activeChatId!, text, myId);
   }
 
   @override
