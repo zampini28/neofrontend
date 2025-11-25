@@ -382,20 +382,19 @@ String obscureText(String text) {
   return '$domainAnoni@${partsEmail[1]}';
 }
 
-
 Future<bool> updateExerciseToServer({required ExercisesControllerForm formExercise}) async {
-  final url = Uri.parse('${DomainConnection().url}/api/exercises');
+  final url = Uri.parse('${DomainConnection().url}/exercises');
   final token = await getToken();
 
   try {
-    var request = http.MultipartRequest('POST', url);
+    final request = http.MultipartRequest('POST', url);
 
     request.headers['Authorization'] = 'Bearer $token';
 
     request.fields['name'] = formExercise.mainExercise.title;
     request.fields['description'] = formExercise.mainExercise.description;
 
-    double durationVal = formExercise.duration ?? 0.0;
+    final double durationVal = formExercise.duration ?? 0.0;
     String formattedDuration;
 
     if (durationVal < 1.0 && durationVal > 0.0) {

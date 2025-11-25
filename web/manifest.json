@@ -1,6 +1,6 @@
 {
-    "name": "physioapp",
-    "short_name": "physioapp",
+    "name": "PhysioApp",
+    "short_name": "PhysioApp",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#6A6DFE",
