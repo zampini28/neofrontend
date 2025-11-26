@@ -1,3 +1,9 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+
+String prettier(Map<String, dynamic> jsonMap) =>
+    const JsonEncoder.withIndent('  ').convert(jsonMap);
+
 class ChatMessage {
   final String id;
   final String text;
@@ -14,6 +20,11 @@ class ChatMessage {
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
+
+    debugPrint('--------------------');
+    debugPrint(prettier(json));
+    debugPrint('--------------------');
+    
     return ChatMessage(
       id: json['messageId']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       text: json['text']?.toString() ?? '',
@@ -21,7 +32,8 @@ class ChatMessage {
       timestamp: json['timestamp'] != null 
           ? DateTime.parse(json['timestamp'] as String) 
           : DateTime.now(),
-      isRead: json['isRead'] as bool ?? false,
+      //isRead: json['isRead'] as bool ?? false, // TODO: isRead not returning (see chat_socket_service.dart)
+      isRead: false,
     );
   }
 

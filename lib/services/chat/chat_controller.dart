@@ -105,21 +105,27 @@ class ChatController with ChangeNotifier {
     return null;
   }
 
-  Future<void> _fetchHistory(String chatId, String token) async {
+  Future<void> _fetchHistory(String appointmentID, String token) async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/chat/history/$chatId'),
+        Uri.parse('$_baseUrl/api/chat/history/$appointmentID'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>; 
+        final List<dynamic> data = jsonDecode(utf8.decode(response.bodyBytes)) as List<dynamic>;
         _messages = data.map((json) => ChatMessage.fromJson(json as Map<String, dynamic>)).toList();
-        _messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+        // _messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
         notifyListeners();
+      } else if (response.statusCode == 403) {
+        debugPrint('Access Denied: You are not a participant in this appointment.');
+      } else {
+        debugPrint('Failed to load history: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error loading history: $e');
+      debugPrint('Network Error loading history: $e');
     }
   }
 
