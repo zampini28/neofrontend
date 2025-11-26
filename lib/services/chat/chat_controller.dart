@@ -15,30 +15,27 @@ class ChatController with ChangeNotifier {
   bool _hasNoAppointment = false;
 
   ChatSocketService? _socketService;
-  String? _activeChatId; // Stores the Appointment ID
+  String? _activeChatId;
 
   List<ChatMessage> get messages => [..._messages.reversed];
   bool get isLoading => _isLoading;
   bool get isConnected => _isConnected;
   bool get hasNoAppointment => _hasNoAppointment;
 
-  // 1. Initialize Chat
   Future<void> initChat(String targetUserId) async {
     _isLoading = true;
     _hasNoAppointment = false;
-    _messages = []; // Clear old messages
+    _messages = [];
     notifyListeners();
 
     try {
       final token = await getToken();
       if (token != null) {
-        // Resolve the correct ID for the socket topic
         final appointmentId = await _resolveAppointmentId(targetUserId, token);
 
         if (appointmentId != null) {
           _activeChatId = appointmentId;
 
-          // Connect & Fetch
           _connectSocket(_activeChatId!, token);
           await _fetchHistory(_activeChatId!, token);
         } else {
@@ -53,7 +50,6 @@ class ChatController with ChangeNotifier {
     }
   }
 
-  // 2. Robust ID Resolution
   Future<String?> _resolveAppointmentId(String targetUserId, String token) async {
     try {
       debugPrint('🔍 [Chat] Resolving Appointment for Target User: $targetUserId');
@@ -66,33 +62,29 @@ class ChatController with ChangeNotifier {
       debugPrint('📥 [Chat] API Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        // Use UTF8 decoding to avoid character issues
         final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
         List<dynamic> list = [];
 
-        // Handle both List and Spring Page<T> formats
         if (decoded is Map && decoded.containsKey('content')) {
-          list = decoded['content'] as List<dynamic>; // It's a Page
+          list = decoded['content'] as List<dynamic>;
         } else if (decoded is List) {
-          list = decoded; // It's a plain List
+          list = decoded;
         }
 
         debugPrint('📋 [Chat] Found ${list.length} appointments in DB.');
 
-        for (var appt in list) {
+        for (final appt in list) {
           final String apptId = appt['id']?.toString() ?? '';
 
-          // Extract Patient/Physio IDs safely, handling nested objects or flat fields
           String pId = (appt['patientId'] ?? appt['patient']?['id'])?.toString() ?? '';
           String phId =
               (appt['physiotherapistId'] ?? appt['physiotherapist']?['id'])?.toString() ?? '';
 
-          // Normalize for comparison
           pId = pId.trim().toLowerCase();
           phId = phId.trim().toLowerCase();
           final target = targetUserId.trim().toLowerCase();
 
-          // debugPrint('   👉 Checking Appt $apptId: Pat=$pId | Phys=$phId');
+          debugPrint('   👉 Checking Appt $apptId: Pat=$pId | Phys=$phId');
 
           if (pId == target || phId == target) {
             debugPrint('✅ [Chat] Match Found! Appointment ID: $apptId');
@@ -109,7 +101,6 @@ class ChatController with ChangeNotifier {
     return null;
   }
 
-  // 3. Fetch History
   Future<void> _fetchHistory(String chatId, String token) async {
     try {
       final response = await http.get(
@@ -128,7 +119,6 @@ class ChatController with ChangeNotifier {
     }
   }
 
-  // 4. Connect Socket
   void _connectSocket(String chatId, String token) {
     _socketService = ChatSocketService(
       userToken: token,
@@ -149,7 +139,6 @@ class ChatController with ChangeNotifier {
     _socketService?.connect();
   }
 
-  // 5. Send Message
   void sendMessage(String text) {
     if (_activeChatId == null || text.trim().isEmpty) return;
 

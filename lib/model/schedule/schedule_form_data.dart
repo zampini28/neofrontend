@@ -3,14 +3,14 @@ import 'package:intl/intl.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_form.dart';
 
 class ScheduleFormData {
-  static String? patientId; // NEW: Store the ID
+  static String? patientId;
   static String? name;
   static String? occurrence;
   static DateTime? consultationDate;
   static TimeOfDay? consultationTime;
+  static int durationMinutes = 60;
   static TypeQuery? typeQuery;
 
-  // Helper to combine Date and Time into ISO 8 601 string for API
   static String? get isoDateTime {
     if (consultationDate == null || consultationTime == null) return null;
 
@@ -45,6 +45,7 @@ class ScheduleFormData {
     occurrence = null;
     consultationDate = null;
     consultationTime = null;
+    durationMinutes = 60;
     typeQuery = null;
   }
 }

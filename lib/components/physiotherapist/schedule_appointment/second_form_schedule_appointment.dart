@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Added for date formatting
+import 'package:intl/intl.dart';
 import 'package:physioapp/model/schedule/schedule_form_data.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_form.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +12,7 @@ class SecondFormScheduleAppointment extends StatefulWidget {
 }
 
 class _SecondFormScheduleAppointmentState extends State<SecondFormScheduleAppointment> {
+  // UI Helpers
   Future<void> _showDatePicker() async {
     final pickedDate = await showDatePicker(
       context: context,
@@ -39,7 +40,6 @@ class _SecondFormScheduleAppointmentState extends State<SecondFormScheduleAppoin
     }
   }
 
-  // Helper to build consistent "Input-like" buttons
   Widget _buildSelector({
     required String label,
     required String value,
@@ -102,11 +102,118 @@ class _SecondFormScheduleAppointmentState extends State<SecondFormScheduleAppoin
     );
   }
 
+  Widget _buildDurationSlider() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.timer_outlined, size: 20, color: Theme.of(context).primaryColor),
+              const SizedBox(width: 8),
+              Text(
+                'Duração: ${ScheduleFormData.durationMinutes} min',
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              ),
+            ],
+          ),
+          Slider(
+            value: ScheduleFormData.durationMinutes.toDouble(),
+            min: 15,
+            max: 120,
+            divisions: 7,
+            label: '${ScheduleFormData.durationMinutes} min',
+            activeColor: Theme.of(context).primaryColor,
+            onChanged: (val) {
+              setState(() {
+                ScheduleFormData.durationMinutes = val.round();
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchType(ScheduleAppointmentForm typeQueryProvider) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          RadioListTile<TypeQuery>(
+            value: typeQueryProvider.inPersonTypeQuery,
+            groupValue: typeQueryProvider.currentTypeQuery,
+            activeColor: Theme.of(context).primaryColor,
+            onChanged: (value) {
+              typeQueryProvider.toggleTypeQuery(valueTypeQuery: value!);
+            },
+            title: const Text(
+              'Presencial',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            secondary: Icon(
+              Icons.storefront_rounded,
+              color: typeQueryProvider.currentTypeQuery == typeQueryProvider.inPersonTypeQuery
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Divider(height: 1, color: Colors.grey.shade200),
+          ),
+          RadioListTile<TypeQuery>(
+            value: typeQueryProvider.onlineTypeQuery,
+            groupValue: typeQueryProvider.currentTypeQuery,
+            activeColor: Theme.of(context).primaryColor,
+            onChanged: (value) {
+              typeQueryProvider.toggleTypeQuery(valueTypeQuery: value!);
+            },
+            title: const Text(
+              'Online',
+              style: TextStyle(fontWeight: FontWeight.w500),
+            ),
+            secondary: Icon(
+              Icons.videocam_rounded,
+              color: typeQueryProvider.currentTypeQuery == typeQueryProvider.onlineTypeQuery
+                  ? Theme.of(context).primaryColor
+                  : Colors.grey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final typeQueryProvider = Provider.of<ScheduleAppointmentForm>(context);
 
-    // Formatting helpers
+    // Formaters
     final dateText = ScheduleFormData.consultationDate != null
         ? DateFormat('dd/MM/yyyy').format(ScheduleFormData.consultationDate!)
         : 'Selecionar Data';
@@ -133,7 +240,7 @@ class _SecondFormScheduleAppointmentState extends State<SecondFormScheduleAppoin
               ),
             ),
 
-            // Date Selector
+            // Date
             _buildSelector(
               label: 'Data da Consulta',
               value: dateText,
@@ -141,7 +248,7 @@ class _SecondFormScheduleAppointmentState extends State<SecondFormScheduleAppoin
               onTap: _showDatePicker,
             ),
 
-            // Time Selector
+            // Time
             _buildSelector(
               label: 'Horário',
               value: timeText,
@@ -149,75 +256,16 @@ class _SecondFormScheduleAppointmentState extends State<SecondFormScheduleAppoin
               onTap: _showTimePicker,
             ),
 
-            const SizedBox(height: 16),
+            // Duration
+            _buildDurationSlider(),
 
-            // Type Selector Group
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  RadioListTile<TypeQuery>(
-                    value: typeQueryProvider.inPersonTypeQuery,
-                    groupValue: typeQueryProvider.currentTypeQuery,
-                    activeColor: Theme.of(context).primaryColor,
-                    onChanged: (value) {
-                      typeQueryProvider.toggleTypeQuery(valueTypeQuery: value!);
-                    },
-                    title: const Text(
-                      'Presencial',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    secondary: Icon(
-                      Icons.storefront_rounded,
-                      color:
-                          typeQueryProvider.currentTypeQuery == typeQueryProvider.inPersonTypeQuery
-                              ? Theme.of(context).primaryColor
-                              : Colors.grey,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Divider(height: 1, color: Colors.grey.shade200),
-                  ),
-                  const SizedBox(height: 16),
-                  RadioListTile<TypeQuery>(
-                    value: typeQueryProvider.onlineTypeQuery,
-                    groupValue: typeQueryProvider.currentTypeQuery,
-                    activeColor: Theme.of(context).primaryColor,
-                    onChanged: (value) {
-                      typeQueryProvider.toggleTypeQuery(valueTypeQuery: value!);
-                    },
-                    title: const Text(
-                      'Online',
-                      style: TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    secondary: Icon(
-                      Icons.videocam_rounded,
-                      color: typeQueryProvider.currentTypeQuery == typeQueryProvider.onlineTypeQuery
-                          ? Theme.of(context).primaryColor
-                          : Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 10),
 
-           // if (typeQueryProvider.inPersonCurrentType)
-           //   Padding(
-           //     padding: const EdgeInsets.only(top: 16.0),
-           //     child: const PreviewMap(),
-           //   ),
+            // if (typeQueryProvider.inPersonCurrentType)
+            //   Padding(
+            //     padding: const EdgeInsets.only(top: 16.0),
+            //     child: const PreviewMap(),
+            //   ),
           ],
         ),
       ),

@@ -6,7 +6,7 @@ import 'package:physioapp/model/schedule/schedule_form_data.dart';
 import 'package:physioapp/services/appointment/appointment_service.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_form.dart';
 import 'package:physioapp/utils/app_routes.dart';
-import 'package:physioapp/utils/temp_globals.dart'; // 1. IMPORT GLOBALS
+import 'package:physioapp/utils/temp_globals.dart';
 import 'package:provider/provider.dart';
 
 class ScheduleAppointmentPage extends StatefulWidget {
@@ -22,12 +22,10 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
   @override
   void initState() {
     super.initState();
-    // 2. Clean up old selections when opening the page
     clearGlobals();
   }
 
   Future<void> _handleCreateAppointment() async {
-    // 3. CHECK GLOBAL VARIABLE
     if (globalSelectedPatientId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecione um paciente primeiro.')),
@@ -44,18 +42,22 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
 
     setState(() => _isLoading = true);
 
-    // 4. Call API with global ID
+    final patientId = globalSelectedPatientId!;
+    final dateTimeIso = ScheduleFormData.isoDateTime!;
+    final durationMinutes = ScheduleFormData.durationMinutes;
+    final notes = ScheduleFormData.occurrence ?? '';
+
     final success = await AppointmentService.createAppointment(
-      patientId: globalSelectedPatientId!, // USE GLOBAL
-      dateTimeIso: ScheduleFormData.isoDateTime!,
-      notes: ScheduleFormData.occurrence ?? '',
+      patientId: patientId!,
+      dateTimeIso: dateTimeIso,
+      durationMinutes: durationMinutes,
+      notes: notes,
     );
 
     setState(() => _isLoading = false);
 
     if (!mounted) return;
 
-    // 5. Handle Result
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -64,7 +66,6 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
         ),
       );
 
-      // Clean up
       clearGlobals();
       ScheduleFormData.clear();
 

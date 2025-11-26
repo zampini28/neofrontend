@@ -1,15 +1,13 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:physioapp/utils/domain_connection.dart';
 
 class ApiClient {
   final Dio _dio;
   final _storage = const FlutterSecureStorage();
-  //final String BASE_URL = dotenv.env['BASE_URL'] ?? 'localhost:8080';
-  final String BASE_URL = 'https://neobackend.fly.dev';
-
+  
   ApiClient() : _dio = Dio(BaseOptions(
-    baseUrl: 'http://BASE_URL',
+    baseUrl: DomainConnection().url,
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
   )) {

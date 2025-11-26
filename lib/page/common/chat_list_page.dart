@@ -123,19 +123,19 @@ class _ChatListPageState extends State<ChatListPage> {
                       ? Text(user.initials, style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold))
                       : null,
                 ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                  ),
-                ),
+                // Positioned(
+                //   right: 0,
+                //   bottom: 0,
+                //   child: Container(
+                //     width: 14,
+                //     height: 14,
+                //     decoration: BoxDecoration(
+                //       color: Colors.green,
+                //       shape: BoxShape.circle,
+                //       border: Border.all(color: Colors.white, width: 2),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
             const SizedBox(width: 16),

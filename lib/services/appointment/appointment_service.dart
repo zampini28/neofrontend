@@ -5,15 +5,24 @@ import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/domain_connection.dart';
 
 class AppointmentService {
+  AppointmentService._();
   static Future<bool> createAppointment({
     required String patientId,
     required String dateTimeIso,
+    required int durationMinutes,
     required String notes,
-    int durationMinutes = 60,
   }) async {
     final token = await getToken();
-    final physioId = UserDataCache().id; // Current logged user
+    final physioId = UserDataCache().id;
     final url = Uri.parse('${DomainConnection().url}/appointments');
+
+    final payload = {
+      'physiotherapistId': physioId,
+      'patientId': patientId,
+      'dateTime': dateTimeIso,
+      'durationMinutes': durationMinutes,
+      'notes': notes
+    };
 
     try {
       final response = await http.post(
@@ -22,13 +31,7 @@ class AppointmentService {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          "physiotherapistId": physioId,
-          "patientId": patientId,
-          "dateTime": dateTimeIso,
-          "durationMinutes": durationMinutes,
-          "notes": notes
-        }),
+        body: jsonEncode(payload),
       );
 
       if (response.statusCode == 201) {
