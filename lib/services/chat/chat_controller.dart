@@ -30,6 +30,10 @@ class ChatController with ChangeNotifier {
 
     try {
       final token = await getToken();
+
+      debugPrint('🔑 [Chat] Using Token: $token');
+      debugPrint('📨 [Chat] Header: Bearer $token');
+
       if (token != null) {
         final appointmentId = await _resolveAppointmentId(targetUserId, token);
 
@@ -55,7 +59,7 @@ class ChatController with ChangeNotifier {
       debugPrint('🔍 [Chat] Resolving Appointment for Target User: $targetUserId');
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/appointments'),
+        Uri.parse('$_baseUrl/appointments'),
         headers: {'Authorization': 'Bearer $token'},
       );
 

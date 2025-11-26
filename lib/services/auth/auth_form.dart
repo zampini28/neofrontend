@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 enum RadioButton {
@@ -40,5 +39,17 @@ class AuthFormData with ChangeNotifier {
   void onChangedRadioValue({required RadioButton? value}) {
     currentRadioValue = value ?? physioValue;
     notifyListeners();
+  }
+
+  void reset() {
+    crefito = null;
+    imageProfile = null;
+    occupational = false;
+
+    physioType = null;
+    name = null;
+    email = null;
+    password = null;
+    currentRadioValue = RadioButton.physioOption;
   }
 }

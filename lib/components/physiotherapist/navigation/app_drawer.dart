@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
@@ -85,6 +86,7 @@ class AppDrawer extends StatelessWidget {
                 title: 'Sair',
                 function: () async {
                   await logout();
+                  AuthFormData().reset();
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     AppRoutes.initial,
                     (_) => false,
