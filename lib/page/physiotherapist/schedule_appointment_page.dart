@@ -69,6 +69,9 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
       clearGlobals();
       ScheduleFormData.clear();
 
+      final scheduleProvider = Provider.of<ScheduleAppointmentForm>(context, listen: false);
+      scheduleProvider.toggleForm(valueForm: scheduleProvider.getFirstForm);
+
       Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
