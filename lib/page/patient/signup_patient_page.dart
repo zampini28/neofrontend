@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:physioapp/components/patient/auth/form_signup_patient.dart';
 import 'package:physioapp/components/physiotherapist/auth/image_picker_widget.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
-import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
@@ -16,46 +16,67 @@ class SignupPatientPage extends StatefulWidget {
 }
 
 class _SignupPatientPageState extends State<SignupPatientPage> {
-  Future<void> _submit(AuthFormData? authForm) async {
-    final auth = AuthPatientService();
-    final authException = AuthSignupException();
-    final image = AuthFormData.imageProfile;
+  Future<void> _submit(AuthFormData authData) async {
     final pageForm = Provider.of<SignUpPageForm>(context, listen: false);
 
-    if (authForm == null) return;
+    void showBarError(String message) =>
+        AuthSignupException().showErrorValidate(message: message, context: context);
 
-    if (image == null) {
-      if (mounted) {
-        return authException.showErrorValidate(
-          message: 'Imagem não selecionada!',
-          context: context,
-        );
-      }
-    }
+    void showPopupError(String message) =>
+        AuthSignupException().showErrorSubmit(messageError: message, context: context);
 
     try {
+      // get user data
+      final String? image = AuthFormData.imageProfile;
+      final String name = authData.name!;
+      final String email = authData.email!;
+      final String password = authData.password!;
+
+      // verify image
+      if (image == null) {
+        showBarError('Imagem não selecionada!');
+        return;
+      }
+
+      debugPrint(' -- image: ${image.substring(0, 10)}...');
+      debugPrint(' -- name: $name');
+      debugPrint(' -- email: $email');
+      debugPrint(' -- password: $password');
+
       pageForm.toggleLoadingValue();
 
-      // await auth.signUp(
-      //   imageProfile: image!,
-      //   name: authForm.name!,
-      //   email: authForm.email!,
-      //   password: authForm.password!,
-      // );
+      // register user
+      final register = await authRegister(
+        imageProfile: image,
+        fullname: name,
+        email: email,
+        password: password,
+        userType: 'PATIENT',
+      );
 
-      if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.tabPagePatient,
-          (_) => false,
-        );
+      if (!register) {
+        showPopupError('Usuário já cadastrado!');
+        return;
       }
-    } catch (error) {
-      if (mounted) {
-        authException.showErrorSubmit(
-          messageError: error.toString(),
-          context: context,
-        );
+      // login user
+      final login = await authLogin(email: email, password: password);
+
+      if (!login) {
+        showPopupError('Erro ao conectar com o servidor!');
+        return;
       }
+
+      pageForm.toggleForm(value: pageForm.firstForm);
+
+      debugPrint('-- done --');
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.tabPagePhysio,
+        (_) => false,
+      );
+    } catch (e) {
+      debugPrint(' -- error: $e');
+      showPopupError('Erro ao conectar com o servidor!');
     } finally {
       pageForm.toggleLoadingValue();
     }
@@ -97,14 +118,10 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
                     Text(
                       'Cadastre-se',
                       style: TextStyle(
-                        fontFamily: Theme.of(context)
-                            .textTheme
-                            .displayMedium
-                            ?.fontFamily,
+                        fontFamily: Theme.of(context).textTheme.displayMedium?.fontFamily,
                         color: Colors.white,
                         fontWeight: FontWeight.normal,
-                        fontSize:
-                            Theme.of(context).textTheme.displayMedium?.fontSize,
+                        fontSize: Theme.of(context).textTheme.displayMedium?.fontSize,
                       ),
                     ),
                   ],
@@ -112,8 +129,7 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
                 Text(
                   'Crie sua conta e inicie sua jornada de recuperação com apoio profissional.',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Colors.white,
                     fontWeight: FontWeight.w300,
                     fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
@@ -133,33 +149,24 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
                       Text(
                         'Já possui conta? ',
                         style: TextStyle(
-                          fontFamily: Theme.of(context)
-                              .textTheme
-                              .labelLarge
-                              ?.fontFamily,
+                          fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
                           color: Theme.of(context).textTheme.labelLarge?.color,
-                          fontSize:
-                              Theme.of(context).textTheme.labelLarge?.fontSize,
+                          fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.of(context)
-                            .pushReplacementNamed(AppRoutes.signInPatientPage),
+                        onTap: () =>
+                            Navigator.of(context).pushReplacementNamed(AppRoutes.signInPatientPage),
                         child: Text(
                           'Entre agora!',
                           style: TextStyle(
-                            fontFamily: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.fontFamily,
-                            fontSize:
-                                Theme.of(context).textTheme.bodyLarge?.fontSize,
+                            fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                            fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
                             fontWeight: FontWeight.w700,
                             color: Theme.of(context).colorScheme.primary,
                             decoration: TextDecoration.underline,
-                            decorationColor:
-                                Theme.of(context).colorScheme.primary,
+                            decorationColor: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),

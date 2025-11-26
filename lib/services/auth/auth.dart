@@ -46,7 +46,7 @@ Future<bool> authRegister({
     'occupational': occupational,
   };
 
-  print(' -- send register body: ${prettier(body)}');
+  debugPrint(' -- send register body: ${prettier(body)}');
 
   final response = await http.post(
     Uri.parse('$_base/auth/register'),
@@ -54,7 +54,7 @@ Future<bool> authRegister({
     body: jsonEncode(body),
   );
 
-  print(' -- register status_code: ${response.statusCode}');
+  debugPrint(' -- register status_code: ${response.statusCode}');
 
   return response.statusCode == 201;
 }

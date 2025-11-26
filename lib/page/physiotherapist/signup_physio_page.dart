@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/auth/first_form_signup.dart';
 import 'package:physioapp/components/physiotherapist/auth/image_picker_widget.dart';
@@ -64,9 +63,15 @@ class _SignupPhysioPageState extends State<SignupPhysioPage> {
 
       if (!register) {
         showPopupError('Usuário já cadastrado!');
+        return;
       }
       // login user
-      await authLogin(email: email, password: password);
+      final login = await authLogin(email: email, password: password);
+
+      if (!login) {
+        showPopupError('Erro ao conectar com o servidor!');
+        return;
+      }
 
       pageForm.toggleForm(value: pageForm.firstForm);
 
