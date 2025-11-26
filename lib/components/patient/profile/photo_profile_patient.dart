@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/get_image.dart';
 
 class PhotoProfilePatient extends StatefulWidget {
@@ -13,7 +13,7 @@ class PhotoProfilePatient extends StatefulWidget {
 class PhotoProfilePatientState extends State<PhotoProfilePatient> {
   @override
   Widget build(BuildContext context) {
-    final currentUser = AuthPatientService();
+    final currentUser = UserDataCache();
     return SizedBox(
       height: 110,
       width: 110,
@@ -21,8 +21,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
         children: [
           CircleAvatar(
             backgroundColor: Colors.grey,
-            backgroundImage:
-                FileImage(currentUser.currentPatientUser!.imageProfile),
+            backgroundImage:currentUser.imageProfile,
             maxRadius: 50,
           ),
           Positioned(
@@ -36,7 +35,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
                 borderRadius: BorderRadius.circular(50),
                 boxShadow: const [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Colors.black12,  
                     offset: Offset(1, 1),
                     blurRadius: 4,
                     spreadRadius: 2,

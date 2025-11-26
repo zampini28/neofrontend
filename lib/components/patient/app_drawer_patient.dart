@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -12,20 +13,17 @@ class AppDrawerPatient extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = AuthPatientService();
+    final currentUser = UserDataCache();
     final currentPage = Provider.of<BottomNavBarPatientController>(context);
 
-    Widget userComponentDrawer({
-      required String name,
-      required String email,
-      required File imageProfile,
-    }) {
+    Widget userComponentDrawer(
+        {required String name, required String email, required ImageProvider imageProfile}) {
       return Container(
         padding: const EdgeInsets.all(8.0),
         child: ListTile(
           leading: CircleAvatar(
             backgroundColor: Colors.grey,
-            backgroundImage: FileImage(imageProfile),
+            backgroundImage: imageProfile,
             maxRadius: 30,
           ),
           title: Text(
@@ -48,18 +46,24 @@ class AppDrawerPatient extends StatelessWidget {
       return ListTile(
         leading: Icon(icon),
         title: Text(title),
-        onTap: function,
+        onTap: () {
+          Navigator.of(context).pop();
+          function();
+        },
       );
     }
 
-    return SafeArea(
+    return Container(
       child: Drawer(
         child: Column(
           children: [
+            const SizedBox(
+              height: 45,
+            ),
             userComponentDrawer(
-              name: currentUser.currentPatientUser!.userName,
-              email: currentUser.currentPatientUser!.email,
-              imageProfile: currentUser.currentPatientUser!.imageProfile,
+              name: currentUser.userName,
+              email: currentUser.email,
+              imageProfile: currentUser.imageProfile,
             ),
             Divider(
               color: Colors.grey[300],
@@ -84,6 +88,7 @@ class AppDrawerPatient extends StatelessWidget {
                 title: 'Sair',
                 function: () async {
                   await logout();
+                  AuthFormData().reset();
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     AppRoutes.initial,
                     (_) => false,

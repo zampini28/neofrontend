@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
 
 class ChangeNameForm extends StatefulWidget {
@@ -28,19 +29,19 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
   }
 
   Future<void> _submit({required BuildContext context}) async {
-    final currentUser = AuthPhysioService();
-    final exception = ChangeDataProfileException();
     final isValid = _formKey.currentState?.validate() ?? false;
+    final exception = ChangeDataProfileException();
 
     if (!isValid) return;
 
     try {
       setState(() => _isLoading = true);
 
-      await currentUser.updateUser(
-        currentUser: currentUser.currentPhysioUser,
-        name: _nameController.text,
-      );
+      final result = await updateUserFullname(fullname: _nameController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar seu nome!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
@@ -50,7 +51,7 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
     } catch (error) {
       await exception.showFailedMessageDialog(
         title: 'Erro',
-        message: 'Não foi possivel atualizar o nome! $error',
+        message: 'Não foi possivel atualizar o nome!',
         context: context,
       );
     } finally {
@@ -97,11 +98,16 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
                   border: OutlineInputBorder(borderSide: BorderSide.none),
                 ),
                 keyboardType: TextInputType.name,
-                validator: (inputName) {
-                  final String name = inputName ?? '';
+                validator: (_name) {
+                 final String fname = _name ?? '';
 
-                  if (name.trim().length < 6) {
-                    return 'Digite seu nome completo';
+                  if (fname.isEmpty || !fname.contains(' ')) {
+                    return 'Digite seu nome completo!';
+                  }
+
+                  final RegExp nameRegex = RegExp(r'^[a-zA-ZÀ-ÖØ-öø-ÿ\s]+$');
+                  if (!nameRegex.hasMatch(fname)) {
+                    return 'Nome completo não deve conter números ou caracteres especiais!';
                   }
                   return null;
                 },

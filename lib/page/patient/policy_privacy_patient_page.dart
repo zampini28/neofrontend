@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:physioapp/components/patient/policy_privacy/data_retention_patient.dart';
+import 'package:physioapp/components/physiotherapist/policy_privacy/data_retention.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
@@ -46,7 +46,7 @@ class PolicyPrivacyPatientPage extends StatelessWidget {
               ),
               child: const Column(
                 children: [
-                  DataRetentionPatient(),
+                  DataRetention(),
                 ],
               )),
         ),

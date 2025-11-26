@@ -1,3 +1,215 @@
+lib
+├── components
+│   ├── form_components.dart
+│   ├── patient
+│   │   ├── add_physio
+│   │   │   └── list_physio_item.dart
+│   │   ├── app_drawer_patient.dart
+│   │   ├── auth
+│   │   │   ├── form_signin_patient.dart
+│   │   │   └── form_signup_patient.dart
+│   │   ├── bottom_nav_bar_patient.dart
+│   │   ├── home
+│   │   │   ├── consultation_calendar_patient.dart
+│   │   │   ├── physio_appointment_list.dart
+│   │   │   ├── scheduled_appointments.dart
+│   │   │   ├── scheduled_appointments_item.dart
+│   │   │   ├── search_physio.dart
+│   │   │   ├── shared_exercise_item_patient.dart
+│   │   │   └── view_shared_exercises_patient.dart
+│   │   ├── policy_privacy
+│   │   │   └── data_retention_patient.dart
+│   │   └── profile
+│   │       ├── alert_delete_account.dart
+│   │       ├── change_email_form.dart
+│   │       ├── change_name_form.dart
+│   │       ├── change_password_form.dart
+│   │       ├── data_visualization_patient.dart
+│   │       ├── other_options_patient.dart
+│   │       ├── photo_profile_patient.dart
+│   │       ├── profile_data_patient.dart
+│   │       └── profile_option_tile.dart
+│   ├── physiotherapist
+│   │   ├── auth
+│   │   │   ├── first_form_signup.dart
+│   │   │   ├── form_signin.dart
+│   │   │   ├── image_picker_widget.dart
+│   │   │   └── second_form_signup.dart
+│   │   ├── chat
+│   │   │   ├── list_patient.dart
+│   │   │   ├── message_bubble.dart
+│   │   │   ├── search_patient.dart
+│   │   │   └── select_patient_photo.dart
+│   │   ├── exercises
+│   │   │   ├── add_video_box.dart
+│   │   │   ├── box_exercises_type.dart
+│   │   │   ├── box_view_exercises_shared.dart
+│   │   │   ├── exercises_detail.dart
+│   │   │   ├── exercises_list.dart
+│   │   │   ├── exercises_steps.dart
+│   │   │   ├── first_add_exercise_form.dart
+│   │   │   ├── grid_view_exercises.dart
+│   │   │   ├── list_steps_exercises.dart
+│   │   │   ├── second_add_exercise_form.dart
+│   │   │   ├── select_form_exercises.dart
+│   │   │   ├── shared_exercises_view.dart
+│   │   │   ├── step_exercise.dart
+│   │   │   ├── time_input_formatter.dart
+│   │   │   └── video_box.dart
+│   │   ├── home
+│   │   │   ├── consultation_calendar.dart
+│   │   │   ├── grid_day_calendar.dart
+│   │   │   ├── patient_appointment_list.dart
+│   │   │   └── search_patient.dart
+│   │   ├── navigation
+│   │   │   ├── app_drawer.dart
+│   │   │   └── bottom_nav_bar_physio.dart
+│   │   ├── policy_privacy
+│   │   │   └── data_retention.dart
+│   │   ├── profile
+│   │   │   ├── alert_delete_account.dart
+│   │   │   ├── change_email_form.dart
+│   │   │   ├── change_name_form.dart
+│   │   │   ├── change_password_form.dart
+│   │   │   ├── data_visualization_physio.dart
+│   │   │   ├── other_options_physio.dart
+│   │   │   ├── photo_profile_physio.dart
+│   │   │   ├── profile_data.dart
+│   │   │   └── profile_option_tile.dart
+│   │   └── schedule_appointment
+│   │       ├── first_form_schedule_appointment.dart
+│   │       ├── patient_item_appointment.dart
+│   │       ├── patient_selected.dart
+│   │       ├── preview_map.dart
+│   │       ├── second_form_schedule_appointment.dart
+│   │       ├── select_form.dart
+│   │       └── show_patients_appoinments.dart
+│   └── shared
+│       └── gradient_background.dart
+├── core
+│   ├── network
+│   │   └── api_client.dart
+│   └── theme
+│       └── app_theme.dart
+├── data
+│   ├── exercises_mock_data.dart
+│   └── paired_users_data.dart
+├── exception
+│   ├── auth_signup_exception.dart
+│   └── profile
+│       └── change_data_profile_exception.dart
+├── main.dart
+├── model
+│   ├── exercises
+│   │   ├── category.dart
+│   │   └── exercise.dart
+│   ├── schedule
+│   │   ├── schedule.dart
+│   │   └── schedule_form_data.dart
+│   └── user
+│       ├── patient
+│       │   └── patient_user.dart
+│       └── physio
+│           └── physio_user.dart
+├── models
+│   ├── chat
+│   │   ├── chat_message.dart
+│   │   └── connected_user.dart
+│   ├── chat_message.dart
+│   └── conversation_preview.dart
+├── page
+│   ├── common
+│   │   └── chat_list_page.dart
+│   ├── page.dart
+│   ├── patient
+│   │   ├── add_physio_page.dart
+│   │   ├── auth_patient_page.dart
+│   │   ├── chat_patient_page.dart
+│   │   ├── exercises_page.dart
+│   │   ├── home_patient_page.dart
+│   │   ├── paired_physio_data_page.dart
+│   │   ├── patient_profile_page.dart
+│   │   ├── policy_privacy_patient_page.dart
+│   │   ├── signin_patient_page.dart
+│   │   ├── signup_patient_page.dart
+│   │   └── tabs_page_patient.dart
+│   ├── physio_or_patient_page.dart
+│   ├── physiotherapist
+│   │   ├── add_exercise_page.dart
+│   │   ├── add_patient_page.dart
+│   │   ├── auth_physio_page.dart
+│   │   ├── chat_page_physio.dart
+│   │   ├── exercises_detail_page.dart
+│   │   ├── exercises_list_page.dart
+│   │   ├── exercises_page_physio.dart
+│   │   ├── home_physio_page.dart
+│   │   ├── message_page.dart
+│   │   ├── physio_profile_page.dart
+│   │   ├── policy_privacy_page.dart
+│   │   ├── schedule_appointment_page.dart
+│   │   ├── signin_physio_page.dart
+│   │   ├── signup_physio_page.dart
+│   │   └── tabs_page_physio.dart
+│   └── qrscanner_page.dart
+├── repositories
+│   ├── exercise_repository.dart
+│   └── relationship_repository.dart
+├── screens
+│   ├── chat
+│   │   └── components
+│   │       ├── chat_bubble.dart
+│   │       └── chat_input_field.dart
+│   └── individual_chat_screen.dart
+├── services
+│   ├── appointment
+│   │   └── appointment_service.dart
+│   ├── auth
+│   │   ├── auth.dart
+│   │   ├── auth_form.dart
+│   │   ├── patient
+│   │   │   ├── auth_patient_backend_service.dart
+│   │   │   ├── auth_patient_service.dart
+│   │   │   └── patient_endpoint.dart
+│   │   └── physio
+│   │       ├── auth_physio_backend_service.dart
+│   │       ├── auth_physio_service.dart
+│   │       └── physio_endpoint.dart
+│   ├── chat
+│   │   └── chat_controller.dart
+│   ├── chat_socket_service.dart
+│   ├── exercises
+│   │   └── physio
+│   │       ├── category_controller.dart
+│   │       ├── exercise_controller.dart
+│   │       ├── exercises_controller_component.dart
+│   │       └── exercises_controller_form.dart
+│   ├── navigation
+│   │   ├── bottom_nav_bar_controller.dart
+│   │   └── bottom_nav_bar_patient_controller.dart
+│   ├── pair_users
+│   │   ├── patient
+│   │   │   ├── pair_patient_endpoint.dart
+│   │   │   └── pair_with_physio.dart
+│   │   └── physio
+│   │       └── pair_with_patient.dart
+│   ├── profile
+│   │   ├── patient
+│   │   │   └── patient_profile_service.dart
+│   │   └── physio
+│   │       └── physio_profile_service.dart
+│   ├── schedule
+│   │   ├── schedule_appointment_controller.dart
+│   │   └── schedule_appointment_form.dart
+│   └── services.dart
+└── utils
+    ├── app_providers.dart
+    ├── app_routes.dart
+    ├── domain_connection.dart
+    ├── get_image.dart
+    ├── signup_page_form.dart
+    └── temp_globals.dart
+
+57 directories, 153 files
 
 FILE: lib/utils/temp_globals.dart
 library temp_globals;
@@ -87,7 +299,7 @@ Future<void> updateImage(BuildContext context) async {
 
     UserDataCache().saveProfileImage(bytes);
     updateProfileImage(bytes);
-  } catch (e) {
+  } catch (e) { 
     debugPrint(' -- failed to get update profile image: $e');
   }
 
@@ -164,7 +376,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 class AppProviders {
-
+  
   AppProviders._();
 
   static List<SingleChildWidget> get global => [
@@ -249,7 +461,7 @@ class ScheduleAppointmentForm with ChangeNotifier {
     notifyListeners();
   }
 
-
+  
 }
 
 FILE: lib/services/schedule/schedule_appointment_controller.dart
@@ -739,7 +951,7 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class ChatSocketService {
   StompClient? _client;
-
+  
   final Function() onConnectCallback;
   final Function(ChatMessage) onMessageReceivedCallback;
   final String userToken;
@@ -751,7 +963,7 @@ class ChatSocketService {
   });
 
   void connect() {
-    final baseUrl = DomainConnection().url;
+    final baseUrl = DomainConnection().url; 
     final wsUrl = baseUrl.replaceFirst('http', 'ws') + '/ws';
 
     _client = StompClient(
@@ -768,7 +980,7 @@ class ChatSocketService {
         },
 
         onDisconnect: (frame) => debugPrint('-- Disconnected'),
-
+        
         stompConnectHeaders: {
           'Authorization': 'Bearer $userToken',
         },
@@ -788,7 +1000,7 @@ class ChatSocketService {
 
   void subscribeToChat(String chatId) {
     final destination = '/topic/chat/$chatId';
-
+    
     _client?.subscribe(
       destination: destination,
       callback: (StompFrame frame) {
@@ -808,7 +1020,7 @@ class ChatSocketService {
 
   void sendMessage(String chatId, String text, String senderId) {
     final destination = '/app/chat/$chatId';
-
+    
     final body = jsonEncode({
       'text': text,
       'senderId': senderId,
@@ -1107,7 +1319,7 @@ class PhysioEndpoint {
       'password': password,
     };
 
-
+    
     debugPrint('-----------------------');
     debugPrint(' -- request put with id: ${currentUser?.id}');
     debugPrint(' -- request put with header: $headers');
@@ -3973,7 +4185,7 @@ class ExercisesDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final exercise = ModalRoute.of(context)!.settings.arguments! as Exercise;
-
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(exercise.name),
@@ -5354,9 +5566,9 @@ class PairedPhysioDataPage extends StatelessWidget {
 
 FILE: lib/page/patient/home_patient_page.dart
 import 'package:flutter/material.dart';
-
-import 'package:physioapp/components/patient/home/scheduled_appointments.dart';
-import 'package:physioapp/components/patient/home/view_shared_exercises_patient.dart';
+import 'package:physioapp/components/patient/home/consultation_calendar_patient.dart';
+import 'package:physioapp/components/patient/home/physio_appointment_list.dart';
+import 'package:physioapp/components/patient/home/search_physio.dart';
 import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
 
 class HomePatientPage extends StatelessWidget {
@@ -5364,96 +5576,80 @@ class HomePatientPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scaffoldKey = GlobalKey<ScaffoldState>();
     final currentUser = AuthPatientService();
-    return Scaffold(
-      key: scaffoldKey,
-      body: SafeArea(
-        child: Stack(
-          alignment: Alignment.center,
+
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        child: Column(
           children: [
-            SingleChildScrollView(
-              child: Column(
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 30),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          height: 80,
-                          child: Row(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(left: 20),
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      scaffoldKey.currentState?.openDrawer(),
-                                  child: CircleAvatar(
-                                    backgroundColor: Colors.grey,
-                                    backgroundImage: FileImage(
-                                      currentUser
-                                          .currentPatientUser!.imageProfile,
-                                    ),
-                                    minRadius: 30,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 50,
-                                padding: const EdgeInsets.only(left: 10.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Olá ${currentUser.currentPatientUser?.firstName},',
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Text(
-                                      'O que faremos hoje?',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .labelLarge
-                                            ?.color,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: () => Scaffold.of(context).openDrawer(),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.grey,
+                            backgroundImage: FileImage(
+                              currentUser.currentPatientUser!.imageProfile,
+                            ),
+                            minRadius: 30,
                           ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(right: 20),
-                          child: CircleAvatar(
-                            maxRadius: 25,
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.notifications_outlined,
-                                size: 24,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Olá ${currentUser.currentPatientUser?.firstName},',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
                             ),
                           ),
-                        )
-                      ],
+                          Text(
+                            'Como você está hoje?',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 12,
+                              color: Theme.of(context).textTheme.labelSmall?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.notifications_outlined,
+                        color: Theme.of(context).primaryColor,
+                        size: 24,
+                      ),
                     ),
                   ),
-                  const ViewSharedExercisesPatient(),
-                  const ScheduledAppointments(),
                 ],
               ),
+            ),
+            const SearchPhysio(),
+            const ConsultationCalendarPatient(),
+            const Expanded(
+              child: PhysioAppointmentList(),
             ),
           ],
         ),
       ),
-      //drawer: const AppDrawerPatient(),
     );
   }
 }
@@ -5729,7 +5925,7 @@ class _ChatListPageState extends State<ChatListPage> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<RelationshipProvider>(context);
-
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
@@ -5862,7 +6058,7 @@ class _ChatListPageState extends State<ChatListPage> {
                         ),
                       ),
                       Text(
-                        '',
+                        '', 
                         style: TextStyle(color: Colors.grey[500], fontSize: 12),
                       ),
                     ],
@@ -5989,7 +6185,7 @@ class ConnectedUser {
     }
     return const AssetImage('assets/fake_profile.jpg');
   }
-
+  
   String get initials {
     final names = fullname.trim().split(' ');
     if (names.isEmpty) return '';
@@ -6025,13 +6221,13 @@ class ChatMessage {
     debugPrint('--------------------');
     debugPrint(prettier(json));
     debugPrint('--------------------');
-
+    
     return ChatMessage(
       id: json['messageId']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       text: json['text']?.toString() ?? '',
       senderId: json['senderId']?.toString() ?? '',
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'] as String)
+      timestamp: json['timestamp'] != null 
+          ? DateTime.parse(json['timestamp'] as String) 
           : DateTime.now(),
       //isRead: json['isRead'] as bool ?? false, // TODO: isRead not returning (see chat_socket_service.dart)
       isRead: false,
@@ -6858,7 +7054,7 @@ FILE: lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
 
 class AppTheme {
-
+  
   AppTheme._();
 
   static final ThemeData light = ThemeData(
@@ -6904,7 +7100,7 @@ import 'package:physioapp/utils/domain_connection.dart';
 class ApiClient {
   final Dio _dio;
   final _storage = const FlutterSecureStorage();
-
+  
   ApiClient() : _dio = Dio(BaseOptions(
     baseUrl: DomainConnection().url,
     connectTimeout: const Duration(seconds: 10),
@@ -7615,7 +7811,7 @@ class _PatientSelectionSheetState extends State<PatientSelectionSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-
+          
           TextField(
             controller: _searchController,
             onChanged: provider.searchConnections,
@@ -7898,7 +8094,7 @@ class OtherOptionsPhysio extends StatefulWidget {
 }
 
 class _OtherOptionsPhysioState extends State<OtherOptionsPhysio> {
-
+  
 
   void _showChagePassword(BuildContext context) {
     showModalBottomSheet(
@@ -8681,7 +8877,7 @@ class BottomNavBarPhysio extends StatefulWidget {
 }
 
 class BottomNavBarPhysioState extends State<BottomNavBarPhysio> {
-
+  
   Widget _buttomIcons({
     required IconData icon,
     required int index,
@@ -9181,7 +9377,7 @@ class _VideoBoxState extends State<VideoBox> {
 
     try {
       if (kIsWeb) {
-        debugPrint('---------------- hello world ------------------');
+        debugPrint('---------------- hello world ------------------');  
         _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
         await _controller!.initialize();
       } else {
@@ -9501,7 +9697,7 @@ class SelectFormExercises extends StatefulWidget {
 class _SelectFormExercisesState extends State<SelectFormExercises> {
   @override
   Widget build(BuildContext context) {
-    return
+    return 
     Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -9931,7 +10127,7 @@ class ExerciseSteps extends StatelessWidget {
             itemCount: exercise.steps.length,
             itemBuilder: (context, index) {
               final Map<String, String> step = exercise.steps[index];
-              return StepExercise(
+              return StepExercise(  
                 indexStep: index + 1,
                 titleStep: step.keys.first ?? 'Sem Título',
                 subtitleStep: step.values.first ?? 'Sem Descrição',
@@ -11566,7 +11762,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
                 ],
               ),
               child: IconButton(
-                onPressed: () => compute(getImage, context),
+                onPressed: () => compute(getImage, context), 
                 icon: Icon(
                   Icons.camera_alt_rounded,
                   color: Theme.of(context).textTheme.labelSmall?.color,
@@ -12355,6 +12551,243 @@ class DataRetentionPatient extends StatelessWidget {
               '''Reservamo-nos o direito de atualizar esta Política de Privacidade a qualquer tempo. Alterações significativas serão comunicadas aos Usuários através do aplicativo ou do e-mail cadastrado. ''',
         ),
       ],
+    );
+  }
+}
+
+FILE: lib/components/patient/home/physio_appointment_list.dart
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+// Mock model for PhysioAppointment since we don't have a controller yet
+class PhysioAppointment {
+  final String physioName;
+  final String specialty;
+  final DateTime date;
+  final String? imagePath;
+
+  PhysioAppointment({
+    required this.physioName,
+    required this.specialty,
+    required this.date,
+    this.imagePath,
+  });
+}
+
+class PhysioAppointmentList extends StatelessWidget {
+  const PhysioAppointmentList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Mock data
+    final List<PhysioAppointment> appointments = [
+      PhysioAppointment(
+        physioName: 'Dr. Ana Silva',
+        specialty: 'Ortopedia',
+        date: DateTime.now().add(const Duration(days: 1, hours: 2)),
+      ),
+      PhysioAppointment(
+        physioName: 'Dr. Carlos Santos',
+        specialty: 'Neurologia',
+        date: DateTime.now().add(const Duration(days: 3, hours: 5)),
+      ),
+    ];
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: appointments.length,
+      itemBuilder: (context, index) => appointments.isNotEmpty
+          ? Container(
+              width: double.infinity,
+              height: 160,
+              margin: const EdgeInsets.only(right: 20, left: 20, top: 20),
+              padding: const EdgeInsets.only(right: 30, left: 30, top: 20, bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 230,
+                            child: Text(
+                              appointments[index].physioName,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 230,
+                            child: Text(
+                              appointments[index].specialty,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 13,
+                                color: Theme.of(context).textTheme.labelSmall?.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      CircleAvatar(
+                        backgroundColor: Colors.grey,
+                        // Placeholder image logic
+                        backgroundImage: appointments[index].imagePath != null
+                            ? FileImage(File(appointments[index].imagePath!))
+                            : null,
+                        minRadius: 30,
+                        child: appointments[index].imagePath == null
+                            ? const Icon(Icons.person, color: Colors.white)
+                            : null,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 160,
+                        child: Text(
+                          DateFormat.yMd().add_jms().format(
+                                appointments[index].date,
+                              ),
+                          overflow: TextOverflow.clip,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 233, 235, 240),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Ver detalhes',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            )
+          : const Text('Nenhuma consulta agendada'),
+    );
+  }
+}
+
+FILE: lib/components/patient/home/consultation_calendar_patient.dart
+import 'package:flutter/material.dart';
+import 'package:physioapp/components/physiotherapist/home/grid_day_calendar.dart';
+
+class ConsultationCalendarPatient extends StatelessWidget {
+  const ConsultationCalendarPatient({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      height: 328,
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomStart,
+          colors: [
+            Color.fromARGB(255, 223, 224, 234),
+            Color.fromARGB(255, 233, 235, 240),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Minhas Consultas',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          SizedBox(height: 15),
+          Expanded(
+            child: GridDayCalendar(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+FILE: lib/components/patient/home/search_physio.dart
+import 'package:flutter/material.dart';
+
+class SearchPhysio extends StatefulWidget {
+  const SearchPhysio({super.key});
+
+  @override
+  SearchPhysioState createState() => SearchPhysioState();
+}
+
+class SearchPhysioState extends State<SearchPhysio> {
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: const Color.fromARGB(255, 236, 236, 236),
+          ),
+          padding: const EdgeInsets.all(5.0),
+          child: TextFormField(
+            decoration: InputDecoration(
+              icon: Container(
+                margin: const EdgeInsets.only(left: 10),
+                child: Icon(
+                  Icons.search,
+                  color: Theme.of(context).textTheme.labelSmall?.color,
+                  size: 25,
+                ),
+              ),
+              border: InputBorder.none,
+              label: Text(
+                'Pesquisar Fisioterapeuta',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.labelSmall?.color,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:physioapp/components/patient/profile/data_visualization_patient.
 import 'package:physioapp/components/patient/profile/other_options_patient.dart';
 import 'package:physioapp/components/patient/profile/photo_profile_patient.dart';
 import 'package:physioapp/components/patient/profile/profile_data_patient.dart';
+import 'package:physioapp/components/physiotherapist/profile/photo_profile_physio.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/profile/patient/patient_profile_service.dart';
 import 'package:provider/provider.dart';
@@ -15,14 +16,16 @@ class PatientProfilePage extends StatefulWidget {
 }
 
 class _PatientProfilePageState extends State<PatientProfilePage> {
-  void refreshPage() {
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = UserDataCache();
     final profileProvider = Provider.of<PatientProfileService>(context);
+
+    void refreshPage() {
+      setState(() {});
+    }
+
     return Scaffold(
       body: SafeArea(
         child: SizedBox(
@@ -55,7 +58,7 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
                         child: const Stack(
                           children: [
                             Center(
-                              child: PhotoProfilePatient(),
+                              child: PhotoProfilePhysio(),
                             ),
                             Positioned(
                               right: 1,

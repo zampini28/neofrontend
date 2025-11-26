@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/utils/app_routes.dart';
+import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/auth/auth_form.dart';
 
 class PhysioOrPatientPage extends StatefulWidget {
   const PhysioOrPatientPage({super.key});
@@ -19,6 +21,9 @@ class PhysioOrPatientPageState extends State<PhysioOrPatientPage> {
 
   @override
   Widget build(BuildContext context) {
+    logout();
+    AuthFormData().reset();
+
     debugPrint('--- physioapp ---');
     return Scaffold(
       body: Container(

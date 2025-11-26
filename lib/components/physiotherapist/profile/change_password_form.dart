@@ -39,7 +39,11 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
     try {
       setState(() => _isLoading = true);
 
-      await updateUserPassword(password: _passwordController.text);
+      final result = await updateUserPassword(password: _passwordController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar sua senha!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
@@ -49,7 +53,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
     } catch (error) {
       await exception.showFailedMessageDialog(
         title: 'Erro',
-        message: 'Não foi possivel alterar sua senha! $error',
+        message: 'Não foi possivel alterar sua senha!',
         context: context,
       );
     } finally {
@@ -112,8 +116,12 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                 validator: (inputPassword) {
                   final String password = inputPassword ?? '';
 
-                  if (password.trim().length < 6) {
-                    return 'Sua senha precisa ter no mínimo 6 caracteres';
+                  if (password.length < 8) {
+                    return 'Digite uma senha com pelo menos 8 caracteres!';
+                  }
+
+                  if (password.length > 30) {
+                    return 'A senha não deve conter mais de 30 caracteres!';
                   }
                   return null;
                 },

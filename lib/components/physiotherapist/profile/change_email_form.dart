@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
@@ -30,17 +31,18 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
 
   Future<void> _submit({required BuildContext context}) async {
     final isValid = _formKey.currentState?.validate() ?? false;
-    final currentUser = AuthPhysioService();
     final exception = ChangeDataProfileException();
-
-    if (!isValid) return;
 
     if (!isValid) return;
 
     try {
       setState(() => _isLoading = true);
 
-      await updateUserEmail(email: _emailController.text);
+      final result = await updateUserEmail(email: _emailController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar seu email!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
@@ -50,7 +52,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
     } catch (error) {
       await exception.showFailedMessageDialog(
         title: 'Erro',
-        message: 'Não foi possivel atualizar o email! $error',
+        message: 'Não foi possivel atualizar o email!',
         context: context,
       );
     } finally {
@@ -63,6 +65,8 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
 
   @override
   Widget build(BuildContext context) {
+
+    debugPrint('hello');
     return Container(
       height: 300,
       decoration: BoxDecoration(
@@ -100,8 +104,8 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
                 validator: (inputEmail) {
                   final String email = inputEmail ?? '';
 
-                  if (email.trim().length < 3 || !email.contains('@')) {
-                    return 'Digite um email válido';
+                  if (!EmailValidator.validate(email)) {
+                    return 'Digite um e-mail valído!';
                   }
                   return null;
                 },

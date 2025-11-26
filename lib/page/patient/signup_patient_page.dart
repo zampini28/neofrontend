@@ -71,7 +71,7 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
       debugPrint('-- done --');
 
       Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.tabPagePhysio,
+        AppRoutes.tabPagePatient,
         (_) => false,
       );
     } catch (e) {

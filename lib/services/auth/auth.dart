@@ -178,18 +178,20 @@ Future<void> updateProfileImage(Uint8List image) async {
   }
 }
 
-Future<void> updateUserFullname({required String fullname}) async {
+Future<bool> updateUserFullname({required String fullname}) async {
   final token = await getToken();
-  if (token == null) return;
+  if (token == null) return false;
 
   final url = Uri.parse('$_base/me/fullname');
-
   final body = {'fullname': fullname};
 
   try {
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
 
@@ -199,24 +201,28 @@ Future<void> updateUserFullname({required String fullname}) async {
       final token = data['token'] as String;
       await saveToken(token);
       UserDataCache().initialize();
+      return true;
     }
   } catch (e) {
     debugPrint('Error updating user fullname: $e');
   }
+  return false;
 }
 
-Future<void> updateUserEmail({required String email}) async {
+Future<bool> updateUserEmail({required String email}) async {
   final token = await getToken();
-  if (token == null) return;
+  if (token == null) return false;
 
   final url = Uri.parse('$_base/me/email');
-
   final body = {'email': email};
 
   try {
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
 
@@ -226,35 +232,44 @@ Future<void> updateUserEmail({required String email}) async {
       final token = data['token'] as String;
       await saveToken(token);
       UserDataCache().initialize();
+      return true;
     }
   } catch (e) {
     debugPrint('Error updating user email: $e');
   }
+  return false;
 }
 
-Future<void> updateUserPassword({required String password}) async {
+Future<bool> updateUserPassword({required String password}) async {
   final token = await getToken();
-  if (token == null) return;
+  if (token == null) return false;
 
   final url = Uri.parse('$_base/me/password');
-
   final body = {'password': password};
 
   try {
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
 
     if (response.statusCode == 204) {
       debugPrint(' --- update user password successfully');
       UserDataCache().initialize();
+      return true;
+    } else {
+      debugPrint('Error updating user password: ${response.body}');
     }
   } catch (e) {
     debugPrint('Error updating user password: $e');
   }
+  return false;
 }
+
 
 Future<void> deleteAccount() async {
   final token = await getToken();

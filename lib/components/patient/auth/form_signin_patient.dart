@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
-import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
@@ -24,15 +24,24 @@ class FormSignInPatientState extends State<FormSignInPatient> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _submit() async {
-    final auth = AuthPatientService();
     final authException = AuthSignupException();
     final pageForm = Provider.of<SignUpPageForm>(context, listen: false);
     try {
       pageForm.toggleLoadingValue();
-      await auth.login(
+      final login = await authLogin(
         email: _emailController.text,
         password: _passwordController.text,
       );
+
+      if (!login) {
+        if (mounted) {
+          authException.showErrorSubmit(
+            messageError: 'Email ou senha inválidos',
+            context: context,
+          );
+        }
+        return;
+      }
 
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -43,7 +52,7 @@ class FormSignInPatientState extends State<FormSignInPatient> {
     } catch (error) {
       if (mounted) {
         authException.showErrorSubmit(
-          messageError: error.toString(),
+          messageError: 'Erro ao fazer login',
           context: context,
         );
       }

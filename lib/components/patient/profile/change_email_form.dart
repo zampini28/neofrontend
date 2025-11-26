@@ -36,7 +36,11 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
     try {
       setState(() => _isLoading = true);
 
-      await updateUserEmail(email: _emailController.text);
+      final result = await updateUserEmail(email: _emailController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar seu email!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',

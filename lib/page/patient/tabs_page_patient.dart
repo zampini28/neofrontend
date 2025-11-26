@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:physioapp/components/patient/app_drawer_patient.dart';
 import 'package:physioapp/components/patient/bottom_nav_bar_patient.dart';
 import 'package:physioapp/page/common/chat_list_page.dart';
 import 'package:physioapp/page/patient/exercises_page.dart';
 import 'package:physioapp/page/patient/home_patient_page.dart';
 import 'package:physioapp/page/patient/patient_profile_page.dart';
+import 'package:physioapp/page/physiotherapist/physio_profile_page.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -26,7 +28,7 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
     },
     {
       'title': '',
-      'screen': const PatientProfilePage(),
+      'screen': const PhysioProfilePage(patient: true),
     },
     {
       'title': '',
@@ -41,6 +43,7 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
       body: _indexScreen.elementAt(indexProvider.index)['screen']! as Widget,
       floatingActionButton: const BottomNavBarPatient(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      drawer: const AppDrawerPatient(),
     );
   }
 }

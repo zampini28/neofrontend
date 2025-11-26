@@ -8,14 +8,15 @@ import 'package:physioapp/services/profile/physio/physio_profile_service.dart';
 import 'package:provider/provider.dart';
 
 class PhysioProfilePage extends StatefulWidget {
-  const PhysioProfilePage({super.key});
+  const PhysioProfilePage({super.key, this.patient = false});
+
+  final bool patient;
 
   @override
   State<PhysioProfilePage> createState() => _PhysioProfilePageState();
 }
 
 class _PhysioProfilePageState extends State<PhysioProfilePage> {
-
   @override
   Widget build(BuildContext context) {
     final currentUser = UserDataCache();
@@ -76,11 +77,12 @@ class _PhysioProfilePageState extends State<PhysioProfilePage> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      Text(
-                        profileProvider.isVisible
-                            ? currentUser.crefito
-                            : obscureText(currentUser.crefito),
-                        style: TextStyle(
+                      if (!widget.patient)
+                        Text(
+                          profileProvider.isVisible
+                              ? currentUser.crefito
+                              : obscureText(currentUser.crefito),
+                          style: TextStyle(
                           fontWeight: FontWeight.w300,
                           color: Theme.of(context).textTheme.labelSmall?.color,
                           fontSize: 14,
@@ -91,6 +93,7 @@ class _PhysioProfilePageState extends State<PhysioProfilePage> {
                       ),
                       ProfileData(
                         refreshPage: refreshPage,
+                        patient: widget.patient,
                       ),
                     ],
                   ),
