@@ -1,0 +1,78 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:physioapp/data/exercises_mock_data.dart';
+import 'package:physioapp/model/exercises/category.dart';
+import 'package:physioapp/model/exercises/exercise.dart';
+import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
+import 'package:physioapp/utils/domain_connection.dart';
+
+class ExerciseController with ChangeNotifier {
+  final List<Exercise> _listExercises = ExercisesMockData().exercisesList;
+
+  List<Exercise> get listExercises => [..._listExercises];
+
+  List<Exercise> get listFavorites => _listExercises
+      .where(
+        (exercise) => exercise.isFavorite == true,
+      )
+      .toList();
+
+  int get itemsAcount => _listExercises.length;
+
+  CategoryId get favoriteCategory => CategoryId.favorites;
+
+  void addExercises({required ExercisesControllerForm formExercise}) {
+    final name = formExercise.mainExercise.title;
+    final description = formExercise.mainExercise.description;
+    final steps = formExercise.steps;
+
+    final newExercise = Exercise(
+      id: Random().nextDouble().toString(),
+      name: name,
+      description: description,
+      videoUrl: '',
+      videoDuration: 0,
+      steps: steps as List<Map<String, String>>,
+      categoryId: [CategoryId.personalized],
+    );
+
+    _listExercises.add(newExercise);
+    notifyListeners();
+  }
+
+  Future<void> fetchPersonalizedExercises() async {
+    final url = Uri.parse('${DomainConnection().url}/exercises');
+    final token = await getToken();
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+
+        _listExercises.removeWhere((ex) => ex.categoryId.contains(CategoryId.personalized));
+
+        final newExercises =
+            data.map((json) => Exercise.fromJson(json as Map<String, dynamic>)).toList();
+        _listExercises.addAll(newExercises);
+
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error fetching exercises: $e');
+    }
+  }
+
+  void toggleFavorite({required String exerciseId}) {
+    final exerciseLocalized = _listExercises.firstWhere((exercise) => exercise.id == exerciseId);
+    exerciseLocalized.isFavorite = !exerciseLocalized.isFavorite;
+    notifyListeners();
+  }
+}

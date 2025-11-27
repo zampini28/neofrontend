@@ -345,6 +345,11 @@ class UserDataCache {
   String get name => _cachedData?['fullname'] ?? 'Usuário Silva Sobrenome';
   String get email => _cachedData?['email'] ?? 'usuario@email.com';
   String get crefito => _cachedData?['crefito'] ?? '123456-F';
+  String get type => _cachedData?['type'] ?? 'PATIENT';
+
+  bool get isPatient => type == 'PATIENT';
+  bool get isPhysiotherapist => type == 'PHYSIO';
+
 
   ImageProvider get imageProfile {
     final String? base64String = _cachedData?['image'];
