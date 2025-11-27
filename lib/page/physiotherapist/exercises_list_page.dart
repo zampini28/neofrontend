@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/exercises_list.dart';
 import 'package:physioapp/model/exercises/category.dart';
-import 'package:physioapp/services/auth/auth.dart'; 
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/exercises/physio/exercise_controller.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -54,10 +54,17 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.tabPagePhysio,
-              (route) => false,
-            );
+            if (UserDataCache().isPatient) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.tabPagePatient,
+                (route) => false,
+              );
+            } else {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.tabPagePhysio,
+                (route) => false,
+              );
+            }
             navigationPage.toggleIndex(index: 2);
           },
           icon: const Icon(Icons.arrow_back_ios_rounded),
