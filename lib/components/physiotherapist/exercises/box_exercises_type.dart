@@ -33,10 +33,12 @@ class BoxExercisesType extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   ListTile(
-                    onTap: () => Navigator.of(context).pushNamed(
-                      AppRoutes.exercisesListPage,
-                      arguments: category,
-                    ),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AppRoutes.exercisesListPage,
+                        arguments: category,
+                      );
+                    },
                     title: Center(
                       child: Container(
                         margin: const EdgeInsets.only(top: 5),
@@ -60,8 +62,7 @@ class BoxExercisesType extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
-                            color:
-                                Theme.of(context).textTheme.labelLarge?.color,
+                            color: Theme.of(context).textTheme.labelLarge?.color,
                           ),
                           overflow: TextOverflow.fade,
                         ),

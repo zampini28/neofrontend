@@ -6,7 +6,9 @@ import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
 
 class ExercisesPagePhysio extends StatelessWidget {
-  const ExercisesPagePhysio({super.key});
+  const ExercisesPagePhysio({super.key, this.patient = false});
+
+  final bool patient;
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +43,7 @@ class ExercisesPagePhysio extends StatelessWidget {
                   child: GridViewExercises(),
                 ),
               ),
+              if (!patient)
               Container(
                 height: 50,
                 width: double.infinity,

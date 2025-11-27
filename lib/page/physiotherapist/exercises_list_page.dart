@@ -17,11 +17,9 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
   @override
   void initState() {
     super.initState();
-    // Defer the check to the next frame to access ModalRoute
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final category = ModalRoute.of(context)!.settings.arguments! as Category;
 
-      // Trigger Fetch if category is Personalized
       if (category.id == CategoryId.personalized) {
         Provider.of<ExerciseController>(context, listen: false).fetchPersonalizedExercises();
       }
@@ -33,7 +31,6 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
     final category = ModalRoute.of(context)!.settings.arguments! as Category;
     final exercisesProvider = Provider.of<ExerciseController>(context);
 
-    // Filtering Logic
     final filteredList = exercisesProvider.listExercises
         .where(
           (exe) => exe.categoryId.contains(category.id),
@@ -50,10 +47,7 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.tabPagePhysio,
-              (route) => false,
-            );
+            Navigator.of(context).pop();
             navigationPage.toggleIndex(index: 2);
           },
           icon: const Icon(Icons.arrow_back_ios_rounded),

@@ -22,6 +22,7 @@ class IndividualChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final myId = UserDataCache().id;
 
+
     return ChangeNotifierProvider(
       create: (_) => ChatController()..initChat(patientId),
       child: Scaffold(
@@ -41,7 +42,9 @@ class IndividualChatScreen extends StatelessWidget {
                 radius: 18,
                 backgroundColor: Colors.grey[300],
                 backgroundImage: patientImage,
-                child: patientImage == null ? const Icon(Icons.person, color: Colors.white, size: 20) : null,
+                child: patientImage == null
+                    ? const Icon(Icons.person, color: Colors.white, size: 20)
+                    : null,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -120,6 +123,8 @@ class IndividualChatScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final ChatMessage msg = controller.messages[index];
                       final bool isMe = msg.senderId == myId;
+
+                      debugPrint(' ----   chat buddle created with message ${msg.id}');
 
                       return ChatBubble(
                         message: msg,

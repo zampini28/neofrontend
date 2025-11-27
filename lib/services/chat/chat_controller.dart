@@ -160,7 +160,7 @@ class ChatController with ChangeNotifier {
         senderId: myId,
         timestamp: DateTime.now());
 
-    _messages.add(tempMsg);
+    //    _messages.add(tempMsg);
     notifyListeners();
 
     _socketService?.sendMessage(_activeChatId!, text, myId);
