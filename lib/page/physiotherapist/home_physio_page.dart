@@ -134,7 +134,7 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    _DailyAppointmentsList(),
+                    DailyAppointmentsList(),
 
                     const SizedBox(height: 80), // Bottom padding for FAB/Nav
                   ],

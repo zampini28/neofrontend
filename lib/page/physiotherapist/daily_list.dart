@@ -3,40 +3,113 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:physioapp/model/appointment/appointment_model.dart';
-import 'package:physioapp/page/physiotherapist/home_physio_page.dart';
-import 'package:physioapp/services/appointment/appointment_service.dart';
+import 'package:physioapp/repositories/relationship_repository.dart';
+import 'package:physioapp/services/services.dart';
+import 'package:physioapp/utils/domain_connection.dart';
 
-class _DailyAppointmentsList extends StatelessWidget {
-  const _DailyAppointmentsList();
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
-  // Helper to fetch and map data
-  Future<List<NewAppointmentModel>> _fetchData() async {
-    // Calling your existing service (assuming it returns raw list or similar)
-    // We reuse the logic from AppointmentService but map to NewAppointmentModel
-    final appointments =
-        await AppointmentService.fetchAppointments(); // Returns List<AppointmentModel>
+// 1. The Model
+class AppointmentModel {
+  final String id;
+  final DateTime dateTime;
+  final String notes;
+  final String patientName;
+  final String patientImage; // Base64 string or URL
+  final String status;
+  final int durationInMinutes;
 
-    // Convert AppointmentModel -> NewAppointmentModel to match your snippet
-    return appointments.map((_old) {
-      final old = _old as AppointmentModel;
-      return NewAppointmentModel(
-        id: old.id,
-        dateSchedule: old.dateTime,
-        symptoms: old.notes,
-        patient: NewPatientModel(
-          name: old.patientName,
-          imageProfile: old.patientImage,
-        ),
+  AppointmentModel({
+    required this.id,
+    required this.dateTime,
+    required this.notes,
+    required this.patientName,
+    required this.patientImage,
+    required this.status,
+    required this.durationInMinutes,
+  });
+}
+
+// 2. The Service Function
+Future<List<AppointmentModel>> fetchAllAppointments() async {
+  // Configuration
+  final String baseUrl = DomainConnection().url; // Replace with your actual URL
+
+  try {
+    // A. Get Token
+    final String token = await getToken() as String;
+    final Map<String, String> headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    // B. Fetch Appointments (Page 0, Size 100 to get "all" relevant)
+    // Adjust size as needed or implement loop for pagination
+    final response = await http.get(
+      Uri.parse('$baseUrl/appointments?page=0&size=100'),
+      headers: headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load appointments: ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> body =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    final List<dynamic> content =
+        body['content'] as List<dynamic>; // Spring Page<?> usually returns inside 'content'
+
+    // C. Process List & Fetch Patient Details in Parallel
+    // We map each appointment JSON to a Future<AppointmentModel>
+    final futures = content.map((apptJson) async {
+      final String patientId = apptJson['patientId'] as String;
+
+      String patientImage = "";
+
+      
+      try {
+        final patientResponse = await http.get(
+          Uri.parse('$baseUrl/users/$patientId/image'), // Or /users/$id if image is in profile
+          headers: headers,
+        );
+        if (patientResponse.statusCode == 200) {
+          final patientData = jsonDecode(patientResponse.body);
+          patientImage = patientData['image_profile'] as String? ?? "";
+        }
+      } catch (e) {
+        debugPrint("Could not fetch image for patient $patientId");
+      }
+
+      debugPrint('json: ${prettier(apptJson as Map<String, dynamic>)}');
+
+      return AppointmentModel(
+        id: apptJson['id'] as String,
+        dateTime: DateTime.parse(apptJson['dateTime'] as String),
+        notes: apptJson['notes'] as String? ?? '',
+        patientName: apptJson['patientName'] as String? ?? 'Unknown',
+        patientImage: patientImage, // From the extra fetch or default
+        status: apptJson['status'] as String,
+        durationInMinutes: apptJson['durationMinutes'] as int? ?? 60,
       );
-    }).toList(); // Returns List<AppointmentModel>
+    });
+
+    // Wait for all inner requests to complete
+    return await Future.wait(futures);
+  } catch (e) {
+    debugPrint('Error fetching appointments: $e');
+    return []; // Return empty list on error
   }
+}
+
+class DailyAppointmentsList extends StatelessWidget {
+  const DailyAppointmentsList();
 
   @override
   Widget build(BuildContext context) {
     // 1. Use FutureBuilder to handle async data
-    return FutureBuilder<List<NewAppointmentModel>>(
-      future: _fetchData(),
+    return FutureBuilder<List<AppointmentModel>>(
+      future: fetchAllAppointments(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -81,17 +154,12 @@ class _DailyAppointmentsList extends StatelessWidget {
             // 2. Handle Image: API returns Base64, snippet used FileImage
             // We switch to MemoryImage for Base64 support.
             ImageProvider bgImage;
-            if (appt.patient.imageProfile is String &&
-                (appt.patient.imageProfile as String).isNotEmpty) {
+            if (appt.patientImage is String && (appt.patientImage as String).isNotEmpty) {
               try {
-                bgImage = MemoryImage(base64Decode(appt.patient.imageProfile as String));
+                bgImage = MemoryImage(base64Decode(appt.patientImage as String));
               } catch (_) {
                 bgImage = const AssetImage('assets/fake_profile.jpg');
               }
-            } else if (appt.patient.imageProfile is File) {
-              bgImage = FileImage(appt.patient.imageProfile as File);
-            } else {
-              bgImage = const AssetImage('assets/fake_profile.jpg');
             }
 
             return Container(
@@ -115,7 +183,7 @@ class _DailyAppointmentsList extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        DateFormat('HH:mm').format(appt.dateSchedule),
+                        DateFormat('HH:mm').format(appt.dateTime),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -138,7 +206,9 @@ class _DailyAppointmentsList extends StatelessWidget {
                   CircleAvatar(
                     radius: 26,
                     backgroundColor: Colors.grey[200],
-                    backgroundImage: bgImage, // Updated
+                    backgroundImage: appt.patientImage.isNotEmpty
+                        ? MemoryImage(base64Decode(appt.patientImage))
+                        : const AssetImage('assets/fake_profile.jpg'),
                   ),
                   const SizedBox(width: 16),
                   // Info
@@ -147,7 +217,7 @@ class _DailyAppointmentsList extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          appt.patient.name,
+                          appt.patientName,
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
@@ -163,7 +233,7 @@ class _DailyAppointmentsList extends StatelessWidget {
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
-                                appt.symptoms,
+                                appt.notes,
                                 style: TextStyle(
                                   color: Colors.grey[500],
                                   fontSize: 13,
