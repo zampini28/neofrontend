@@ -24,7 +24,6 @@ void main() {
 
   testWidgets('Deve trocar de Paciente para Fisioterapeuta ao tocar no seletor',
       (WidgetTester tester) async {
-        
     await tester.binding.setSurfaceSize(telaDeTeste);
 
     await tester.pumpWidget(
@@ -47,7 +46,6 @@ void main() {
   testWidgets(
     'Fluxo Fisioterapeuta: Deve navegar da Auth -> Signup -> Signin',
     (WidgetTester tester) async {
-      
       void verificarTelaAuth() {
         expect(find.text('Junte-se a nós \n& atenda com Confiança'), findsOneWidget);
         expect(find.text('Entre com email e senha'), findsOneWidget);
@@ -74,7 +72,7 @@ void main() {
 
       void verificarTelaSignin() {
         expect(find.text('Entrar'), findsNWidgets(2), reason: 'Não encontrou 2 "Entrar"');
-        
+
         final expectedTexts = [
           'Email',
           'Senha',
@@ -91,7 +89,7 @@ void main() {
       await tester.pumpWidget(const PhysioApp());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Paciente'));
+      await tester.tap(find.text('Fisioterapeuta'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Próximo'));
       await tester.pumpAndSettle();

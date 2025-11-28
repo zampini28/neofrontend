@@ -87,7 +87,7 @@ Future<void> updateImage(BuildContext context) async {
 
     UserDataCache().saveProfileImage(bytes);
     updateProfileImage(bytes);
-  } catch (e) {
+  } catch (e) { 
     debugPrint(' -- failed to get update profile image: $e');
   }
 
@@ -164,7 +164,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 class AppProviders {
-
+  
   AppProviders._();
 
   static List<SingleChildWidget> get global => [
@@ -249,7 +249,7 @@ class ScheduleAppointmentForm with ChangeNotifier {
     notifyListeners();
   }
 
-
+  
 }
 
 FILE: lib/services/schedule/schedule_appointment_controller.dart
@@ -257,17 +257,28 @@ import 'package:flutter/widgets.dart';
 import 'package:physioapp/model/schedule/schedule.dart';
 import 'package:physioapp/model/user/patient/patient_user.dart';
 
-class ScheduleAppointmentController with ChangeNotifier{
+class ScheduleAppointmentController with ChangeNotifier {
   bool _whenSelected = false;
   PatientUser? _patientSelected;
+  DateTime _selectedDate = DateTime.now();
+  DateTime _focusedDay = DateTime.now();
 
   bool get whenSelected => _whenSelected;
 
   PatientUser? get patientSelected => _patientSelected;
 
+  DateTime get selectedDate => _selectedDate;
+  DateTime get focusedDay => _focusedDay;
+
   final List<Schedule> _listSchedule = [];
 
   List<Schedule> get listSchedule => [..._listSchedule];
+
+  List<Schedule> get appointmentsForSelectedDate {
+    return _listSchedule.where((schedule) {
+      return isSameDay(schedule.dateSchedule, _selectedDate);
+    }).toList();
+  }
 
   void whenSelectPatient({required PatientUser patient}) {
     _patientSelected = patient;
@@ -279,7 +290,29 @@ class ScheduleAppointmentController with ChangeNotifier{
     _listSchedule.add(schedule);
     notifyListeners();
   }
+
+  void onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    if (!isSameDay(_selectedDate, selectedDay)) {
+      _selectedDate = selectedDay;
+      _focusedDay = focusedDay;
+      notifyListeners();
+    }
+  }
+
+  void updateFocusedDay(DateTime focusedDay) {
+    _focusedDay = focusedDay;
+    notifyListeners();
+  }
+
+  bool isSameDay(DateTime? a, DateTime? b) {
+    if (a == null || b == null) {
+      return false;
+    }
+
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 }
+
 FILE: lib/services/profile/physio/physio_profile_service.dart
 import 'package:flutter/material.dart';
 
@@ -640,10 +673,8 @@ class ExercisesControllerComponent with ChangeNotifier {
 }
 FILE: lib/services/exercises/physio/exercise_controller.dart
 import 'dart:convert';
-import 'dart:math';
-
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'package:physioapp/data/exercises_mock_data.dart';
 import 'package:physioapp/model/exercises/category.dart';
 import 'package:physioapp/model/exercises/exercise.dart';
@@ -652,40 +683,16 @@ import 'package:physioapp/services/exercises/physio/exercises_controller_form.da
 import 'package:physioapp/utils/domain_connection.dart';
 
 class ExerciseController with ChangeNotifier {
-
-
   final List<Exercise> _listExercises = ExercisesMockData().exercisesList;
 
   List<Exercise> get listExercises => [..._listExercises];
 
-  List<Exercise> get listFavorites => _listExercises
-      .where(
-        (exercise) => exercise.isFavorite == true,
-      )
-      .toList();
+  List<Exercise> get listFavorites =>
+      _listExercises.where((exercise) => exercise.isFavorite == true).toList();
 
   int get itemsAcount => _listExercises.length;
 
   CategoryId get favoriteCategory => CategoryId.favorites;
-
-    void addExercises({required ExercisesControllerForm formExercise}) {
-    final name = formExercise.mainExercise.title;
-    final description = formExercise.mainExercise.description;
-    final steps = formExercise.steps;
-
-    final newExercise = Exercise(
-      id: Random().nextDouble().toString(),
-      name: name,
-      description: description,
-      videoUrl: '',
-      videoDuration: 0,
-      steps: steps as List<Map<String, String>> ,
-      categoryId: [CategoryId.personalized],
-    );
-
-    _listExercises.add(newExercise);
-    notifyListeners();
-  }
 
   Future<void> fetchPersonalizedExercises() async {
     final url = Uri.parse('${DomainConnection().url}/exercises');
@@ -698,19 +705,74 @@ class ExerciseController with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
-
-        _listExercises.removeWhere((ex) => ex.categoryId.contains(CategoryId.personalized));
-
-        final newExercises = data.map((json) => Exercise.fromJson(json as Map<String, dynamic>)).toList();
-        _listExercises.addAll(newExercises);
-
-        notifyListeners();
+        _processExercisesResponse(response.body);
       }
     } catch (e) {
-      debugPrint('Error fetching exercises: $e');
+      debugPrint('Error fetching physio exercises: $e');
     }
   }
+
+  Future<void> fetchPatientExercises() async {
+    final baseUrl = DomainConnection().url;
+    final token = await getToken();
+
+    try {
+      final relResponse = await http.get(
+        Uri.parse('$baseUrl/api/relationships'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (relResponse.statusCode != 200) {
+        debugPrint('Failed to fetch relationships: ${relResponse.statusCode}');
+        return;
+      }
+
+      final List<dynamic> relationships = jsonDecode(relResponse.body) as List<dynamic>;
+
+      final physioIds = relationships
+          .where((r) => (r['type'] ?? '').toString().toUpperCase() == 'PHYSIO')
+          .map((r) => r['id'].toString())
+          .toList();
+
+      if (physioIds.isEmpty) {
+        debugPrint('No connected physiotherapists found.');
+        return;
+      }
+
+      final List<Exercise> allPatientExercises = [];
+
+      for (final physioId in physioIds) {
+        final exResponse = await http.get(
+          Uri.parse('$baseUrl/exercises/physiotherapist/$physioId'),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+
+        if (exResponse.statusCode == 200) {
+          final List<dynamic> data = jsonDecode(exResponse.body) as List<dynamic>;
+          final exercises =
+              data.map((json) => Exercise.fromJson(json as Map<String, dynamic>)).toList();
+          allPatientExercises.addAll(exercises);
+        }
+      }
+
+      _listExercises.removeWhere((ex) => ex.categoryId.contains(CategoryId.personalized));
+      _listExercises.addAll(allPatientExercises);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching patient exercises: $e');
+    }
+  }
+
+  void _processExercisesResponse(String body) {
+    final List<dynamic> data = jsonDecode(body) as List<dynamic>;
+    _listExercises.removeWhere((ex) => ex.categoryId.contains(CategoryId.personalized));
+    final newExercises =
+        data.map((json) => Exercise.fromJson(json as Map<String, dynamic>)).toList();
+    _listExercises.addAll(newExercises);
+    notifyListeners();
+  }
+
+  void addExercises({required ExercisesControllerForm formExercise}) {}
 
   void toggleFavorite({required String exerciseId}) {
     final exerciseLocalized = _listExercises.firstWhere((exercise) => exercise.id == exerciseId);
@@ -739,7 +801,7 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 
 class ChatSocketService {
   StompClient? _client;
-
+  
   final Function() onConnectCallback;
   final Function(ChatMessage) onMessageReceivedCallback;
   final String userToken;
@@ -751,7 +813,7 @@ class ChatSocketService {
   });
 
   void connect() {
-    final baseUrl = DomainConnection().url;
+    final baseUrl = DomainConnection().url; 
     final wsUrl = baseUrl.replaceFirst('http', 'ws') + '/ws';
 
     _client = StompClient(
@@ -768,7 +830,7 @@ class ChatSocketService {
         },
 
         onDisconnect: (frame) => debugPrint('-- Disconnected'),
-
+        
         stompConnectHeaders: {
           'Authorization': 'Bearer $userToken',
         },
@@ -788,7 +850,7 @@ class ChatSocketService {
 
   void subscribeToChat(String chatId) {
     final destination = '/topic/chat/$chatId';
-
+    
     _client?.subscribe(
       destination: destination,
       callback: (StompFrame frame) {
@@ -808,7 +870,7 @@ class ChatSocketService {
 
   void sendMessage(String chatId, String text, String senderId) {
     final destination = '/app/chat/$chatId';
-
+    
     final body = jsonEncode({
       'text': text,
       'senderId': senderId,
@@ -989,7 +1051,7 @@ class ChatController with ChangeNotifier {
         senderId: myId,
         timestamp: DateTime.now());
 
-    _messages.add(tempMsg);
+    //    _messages.add(tempMsg);
     notifyListeners();
 
     _socketService?.sendMessage(_activeChatId!, text, myId);
@@ -1107,7 +1169,7 @@ class PhysioEndpoint {
       'password': password,
     };
 
-
+    
     debugPrint('-----------------------');
     debugPrint(' -- request put with id: ${currentUser?.id}');
     debugPrint(' -- request put with header: $headers');
@@ -1841,18 +1903,20 @@ Future<void> updateProfileImage(Uint8List image) async {
   }
 }
 
-Future<void> updateUserFullname({required String fullname}) async {
+Future<bool> updateUserFullname({required String fullname}) async {
   final token = await getToken();
-  if (token == null) return;
+  if (token == null) return false;
 
   final url = Uri.parse('$_base/me/fullname');
-
   final body = {'fullname': fullname};
 
   try {
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
 
@@ -1862,24 +1926,28 @@ Future<void> updateUserFullname({required String fullname}) async {
       final token = data['token'] as String;
       await saveToken(token);
       UserDataCache().initialize();
+      return true;
     }
   } catch (e) {
     debugPrint('Error updating user fullname: $e');
   }
+  return false;
 }
 
-Future<void> updateUserEmail({required String email}) async {
+Future<bool> updateUserEmail({required String email}) async {
   final token = await getToken();
-  if (token == null) return;
+  if (token == null) return false;
 
   final url = Uri.parse('$_base/me/email');
-
   final body = {'email': email};
 
   try {
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
 
@@ -1889,35 +1957,44 @@ Future<void> updateUserEmail({required String email}) async {
       final token = data['token'] as String;
       await saveToken(token);
       UserDataCache().initialize();
+      return true;
     }
   } catch (e) {
     debugPrint('Error updating user email: $e');
   }
+  return false;
 }
 
-Future<void> updateUserPassword({required String password}) async {
+Future<bool> updateUserPassword({required String password}) async {
   final token = await getToken();
-  if (token == null) return;
+  if (token == null) return false;
 
   final url = Uri.parse('$_base/me/password');
-
   final body = {'password': password};
 
   try {
     final response = await http.put(
       url,
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
       body: jsonEncode(body),
     );
 
     if (response.statusCode == 204) {
       debugPrint(' --- update user password successfully');
       UserDataCache().initialize();
+      return true;
+    } else {
+      debugPrint('Error updating user password: ${response.body}');
     }
   } catch (e) {
     debugPrint('Error updating user password: $e');
   }
+  return false;
 }
+
 
 Future<void> deleteAccount() async {
   final token = await getToken();
@@ -1993,6 +2070,11 @@ class UserDataCache {
   String get name => _cachedData?['fullname'] ?? 'Usuário Silva Sobrenome';
   String get email => _cachedData?['email'] ?? 'usuario@email.com';
   String get crefito => _cachedData?['crefito'] ?? '123456-F';
+  String get type => _cachedData?['type'] ?? 'PATIENT';
+
+  bool get isPatient => type == 'PATIENT';
+  bool get isPhysiotherapist => type == 'PHYSIO';
+
 
   ImageProvider get imageProfile {
     final String? base64String = _cachedData?['image'];
@@ -2183,6 +2265,7 @@ class IndividualChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final myId = UserDataCache().id;
 
+
     return ChangeNotifierProvider(
       create: (_) => ChatController()..initChat(patientId),
       child: Scaffold(
@@ -2202,7 +2285,9 @@ class IndividualChatScreen extends StatelessWidget {
                 radius: 18,
                 backgroundColor: Colors.grey[300],
                 backgroundImage: patientImage,
-                child: patientImage == null ? const Icon(Icons.person, color: Colors.white, size: 20) : null,
+                child: patientImage == null
+                    ? const Icon(Icons.person, color: Colors.white, size: 20)
+                    : null,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -2281,6 +2366,8 @@ class IndividualChatScreen extends StatelessWidget {
                     itemBuilder: (context, index) {
                       final ChatMessage msg = controller.messages[index];
                       final bool isMe = msg.senderId == myId;
+
+                      debugPrint(' ----   chat buddle created with message ${msg.id}');
 
                       return ChatBubble(
                         message: msg,
@@ -2458,7 +2545,7 @@ class ChatBubble extends StatelessWidget {
                 ),
                 if (isMe) ...[
                   const SizedBox(width: 4),
-                  Icon(
+                  const Icon(
                     Icons.done_all,
                     size: 14,
                     color: Colors.white70,
@@ -3565,14 +3652,15 @@ import 'package:physioapp/services/profile/physio/physio_profile_service.dart';
 import 'package:provider/provider.dart';
 
 class PhysioProfilePage extends StatefulWidget {
-  const PhysioProfilePage({super.key});
+  const PhysioProfilePage({super.key, this.patient = false});
+
+  final bool patient;
 
   @override
   State<PhysioProfilePage> createState() => _PhysioProfilePageState();
 }
 
 class _PhysioProfilePageState extends State<PhysioProfilePage> {
-
   @override
   Widget build(BuildContext context) {
     final currentUser = UserDataCache();
@@ -3633,11 +3721,12 @@ class _PhysioProfilePageState extends State<PhysioProfilePage> {
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      Text(
-                        profileProvider.isVisible
-                            ? currentUser.crefito
-                            : obscureText(currentUser.crefito),
-                        style: TextStyle(
+                      if (!widget.patient)
+                        Text(
+                          profileProvider.isVisible
+                              ? currentUser.crefito
+                              : obscureText(currentUser.crefito),
+                          style: TextStyle(
                           fontWeight: FontWeight.w300,
                           color: Theme.of(context).textTheme.labelSmall?.color,
                           fontSize: 14,
@@ -3648,6 +3737,7 @@ class _PhysioProfilePageState extends State<PhysioProfilePage> {
                       ),
                       ProfileData(
                         refreshPage: refreshPage,
+                        patient: widget.patient,
                       ),
                     ],
                   ),
@@ -3727,11 +3817,9 @@ class HomePhysioPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    //final _scaffoldKey = GlobalKey<ScaffoldState>();
     final currentUser = UserDataCache();
 
     return Container(
-      //key: _scaffoldKey,
       child: SafeArea(
         child: SizedBox(
           height: MediaQuery.of(context).size.height,
@@ -3794,16 +3882,11 @@ class HomePhysioPage extends StatelessWidget {
                   ],
                 ),
               ),
-              const SearchPatient(),
-              const ConsultationCalendar(),
-              const Expanded(
-                child: PatientAppointmentList(),
-              ),
+              // widgets here
             ],
           ),
         ),
       ),
-      //drawer: const AppDrawer(),
     );
   }
 }
@@ -3817,7 +3900,9 @@ import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
 
 class ExercisesPagePhysio extends StatelessWidget {
-  const ExercisesPagePhysio({super.key});
+  const ExercisesPagePhysio({super.key, this.patient = false});
+
+  final bool patient;
 
   @override
   Widget build(BuildContext context) {
@@ -3852,6 +3937,7 @@ class ExercisesPagePhysio extends StatelessWidget {
                   child: GridViewExercises(),
                 ),
               ),
+              if (!patient)
               Container(
                 height: 50,
                 width: double.infinity,
@@ -3885,6 +3971,7 @@ FILE: lib/page/physiotherapist/exercises_list_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/exercises_list.dart';
 import 'package:physioapp/model/exercises/category.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/exercises/physio/exercise_controller.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -3901,13 +3988,17 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
   @override
   void initState() {
     super.initState();
-    // Defer the check to the next frame to access ModalRoute
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final category = ModalRoute.of(context)!.settings.arguments! as Category;
 
-      // Trigger Fetch if category is Personalized
       if (category.id == CategoryId.personalized) {
-        Provider.of<ExerciseController>(context, listen: false).fetchPersonalizedExercises();
+        final controller = Provider.of<ExerciseController>(context, listen: false);
+
+        if (UserDataCache().isPatient) {
+          controller.fetchPatientExercises();
+        } else {
+          controller.fetchPersonalizedExercises();
+        }
       }
     });
   }
@@ -3917,7 +4008,6 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
     final category = ModalRoute.of(context)!.settings.arguments! as Category;
     final exercisesProvider = Provider.of<ExerciseController>(context);
 
-    // Filtering Logic
     final filteredList = exercisesProvider.listExercises
         .where(
           (exe) => exe.categoryId.contains(category.id),
@@ -3934,10 +4024,17 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
       appBar: AppBar(
         leading: IconButton(
           onPressed: () {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              AppRoutes.tabPagePhysio,
-              (route) => false,
-            );
+            if (UserDataCache().isPatient) {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.tabPagePatient,
+                (route) => false,
+              );
+            } else {
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                AppRoutes.tabPagePhysio,
+                (route) => false,
+              );
+            }
             navigationPage.toggleIndex(index: 2);
           },
           icon: const Icon(Icons.arrow_back_ios_rounded),
@@ -3973,7 +4070,7 @@ class ExercisesDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final exercise = ModalRoute.of(context)!.settings.arguments! as Exercise;
-
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(exercise.name),
@@ -4490,6 +4587,8 @@ class _AddExercisePageState extends State<AddExercisePage> {
 FILE: lib/page/physio_or_patient_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/utils/app_routes.dart';
+import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/auth/auth_form.dart';
 
 class PhysioOrPatientPage extends StatefulWidget {
   const PhysioOrPatientPage({super.key});
@@ -4509,6 +4608,9 @@ class PhysioOrPatientPageState extends State<PhysioOrPatientPage> {
 
   @override
   Widget build(BuildContext context) {
+    logout();
+    AuthFormData().reset();
+
     debugPrint('--- physioapp ---');
     return Scaffold(
       body: Container(
@@ -4699,11 +4801,14 @@ class RoleToggleSwitch extends StatelessWidget {
 
 FILE: lib/page/patient/tabs_page_patient.dart
 import 'package:flutter/material.dart';
+import 'package:physioapp/components/patient/app_drawer_patient.dart';
 import 'package:physioapp/components/patient/bottom_nav_bar_patient.dart';
 import 'package:physioapp/page/common/chat_list_page.dart';
 import 'package:physioapp/page/patient/exercises_page.dart';
 import 'package:physioapp/page/patient/home_patient_page.dart';
 import 'package:physioapp/page/patient/patient_profile_page.dart';
+import 'package:physioapp/page/physiotherapist/exercises_page_physio.dart';
+import 'package:physioapp/page/physiotherapist/physio_profile_page.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:provider/provider.dart';
 
@@ -4726,11 +4831,11 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
     },
     {
       'title': '',
-      'screen': const PatientProfilePage(),
+      'screen': const PhysioProfilePage(patient: true),
     },
     {
       'title': '',
-      'screen': const ExercisesPage(),
+      'screen': const ExercisesPagePhysio(patient: true),
     }
   ];
 
@@ -4741,6 +4846,7 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
       body: _indexScreen.elementAt(indexProvider.index)['screen']! as Widget,
       floatingActionButton: const BottomNavBarPatient(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      drawer: const AppDrawerPatient(),
     );
   }
 }
@@ -4819,7 +4925,7 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
       debugPrint('-- done --');
 
       Navigator.of(context).pushNamedAndRemoveUntil(
-        AppRoutes.tabPagePhysio,
+        AppRoutes.tabPagePatient,
         (_) => false,
       );
     } catch (e) {
@@ -5071,7 +5177,7 @@ class SigninPatientPage extends StatelessWidget {
 
 FILE: lib/page/patient/policy_privacy_patient_page.dart
 import 'package:flutter/material.dart';
-import 'package:physioapp/components/patient/policy_privacy/data_retention_patient.dart';
+import 'package:physioapp/components/physiotherapist/policy_privacy/data_retention.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:provider/provider.dart';
@@ -5118,7 +5224,7 @@ class PolicyPrivacyPatientPage extends StatelessWidget {
               ),
               child: const Column(
                 children: [
-                  DataRetentionPatient(),
+                  DataRetention(),
                 ],
               )),
         ),
@@ -5133,6 +5239,7 @@ import 'package:physioapp/components/patient/profile/data_visualization_patient.
 import 'package:physioapp/components/patient/profile/other_options_patient.dart';
 import 'package:physioapp/components/patient/profile/photo_profile_patient.dart';
 import 'package:physioapp/components/patient/profile/profile_data_patient.dart';
+import 'package:physioapp/components/physiotherapist/profile/photo_profile_physio.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/profile/patient/patient_profile_service.dart';
 import 'package:provider/provider.dart';
@@ -5145,14 +5252,16 @@ class PatientProfilePage extends StatefulWidget {
 }
 
 class _PatientProfilePageState extends State<PatientProfilePage> {
-  void refreshPage() {
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = UserDataCache();
     final profileProvider = Provider.of<PatientProfileService>(context);
+
+    void refreshPage() {
+      setState(() {});
+    }
+
     return Scaffold(
       body: SafeArea(
         child: SizedBox(
@@ -5185,7 +5294,7 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
                         child: const Stack(
                           children: [
                             Center(
-                              child: PhotoProfilePatient(),
+                              child: PhotoProfilePhysio(),
                             ),
                             Positioned(
                               right: 1,
@@ -5354,106 +5463,88 @@ class PairedPhysioDataPage extends StatelessWidget {
 
 FILE: lib/page/patient/home_patient_page.dart
 import 'package:flutter/material.dart';
-
-import 'package:physioapp/components/patient/home/scheduled_appointments.dart';
-import 'package:physioapp/components/patient/home/view_shared_exercises_patient.dart';
-import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
+import 'package:physioapp/components/patient/home/consultation_calendar_patient.dart';
+import 'package:physioapp/components/patient/home/physio_appointment_list.dart';
+import 'package:physioapp/components/patient/home/search_physio.dart';
+import 'package:physioapp/services/auth/auth.dart';
 
 class HomePatientPage extends StatelessWidget {
   const HomePatientPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scaffoldKey = GlobalKey<ScaffoldState>();
-    final currentUser = AuthPatientService();
-    return Scaffold(
-      key: scaffoldKey,
-      body: SafeArea(
-        child: Stack(
-          alignment: Alignment.center,
+    final currentUser = UserDataCache();
+
+    return SafeArea(
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height,
+        child: Column(
           children: [
-            SingleChildScrollView(
-              child: Column(
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 30),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        SizedBox(
-                          height: 80,
-                          child: Row(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(left: 20),
-                                child: GestureDetector(
-                                  onTap: () =>
-                                      scaffoldKey.currentState?.openDrawer(),
-                                  child: CircleAvatar(
-                                    backgroundColor: Colors.grey,
-                                    backgroundImage: FileImage(
-                                      currentUser
-                                          .currentPatientUser!.imageProfile,
-                                    ),
-                                    minRadius: 30,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 50,
-                                padding: const EdgeInsets.only(left: 10.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Olá ${currentUser.currentPatientUser?.firstName},',
-                                      style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Text(
-                                      'O que faremos hoje?',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .textTheme
-                                            .labelLarge
-                                            ?.color,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                  Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: GestureDetector(
+                          onTap: () => Scaffold.of(context).openDrawer(),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.grey,
+                            backgroundImage: currentUser.imageProfile,
+                            minRadius: 30,
                           ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(right: 20),
-                          child: CircleAvatar(
-                            maxRadius: 25,
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.notifications_outlined,
-                                size: 24,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Olá ${currentUser.firstName},',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
                             ),
                           ),
-                        )
-                      ],
+                          Text(
+                            'Como você está hoje?',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 12,
+                              color: Theme.of(context).textTheme.labelSmall?.color,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(50),
+                    ),
+                    child: IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.notifications_outlined,
+                        color: Theme.of(context).primaryColor,
+                        size: 24,
+                      ),
                     ),
                   ),
-                  const ViewSharedExercisesPatient(),
-                  const ScheduledAppointments(),
                 ],
               ),
+            ),
+            const SearchPhysio(),
+            const ConsultationCalendarPatient(),
+            const Expanded(
+              child: PhysioAppointmentList(),
             ),
           ],
         ),
       ),
-      //drawer: const AppDrawerPatient(),
     );
   }
 }
@@ -5617,9 +5708,172 @@ import 'package:flutter/material.dart';
 import 'package:physioapp/components/patient/add_physio/list_physio_item.dart';
 import 'package:physioapp/services/pair_users/patient/pair_with_physio.dart';
 import 'package:provider/provider.dart';
+import 'package:physioapp/page/qrscanner_page.dart';
+import 'package:physioapp/repositories/relationship_repository.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
-class AddPhysioPage extends StatelessWidget {
+class AddPhysioPage extends StatefulWidget {
   const AddPhysioPage({super.key});
+
+  @override
+  State<AddPhysioPage> createState() => _AddPhysioPageState();
+}
+
+class _AddPhysioPageState extends State<AddPhysioPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<RelationshipProvider>(context, listen: false).loadMyQrCode();
+    });
+  }
+
+  void _openScanner() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const QrScannerPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final relationshipProvider = Provider.of<RelationshipProvider>(context);
+    final qrData = relationshipProvider.myQrCodeLink;
+    final isLoading = relationshipProvider.isLoading;
+    final hasError = relationshipProvider.error != null;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Adicionar Fisioterapeuta'),
+        centerTitle: true,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 20),
+              Text(
+                'Seu QR Code',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontFamily: Theme.of(context).textTheme.displayLarge?.fontFamily,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Peça para seu fisioterapeuta escanear este código para conectar-se a você.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 40),
+              Container(
+                padding: const EdgeInsets.all(24.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.15),
+                      spreadRadius: 5,
+                      blurRadius: 15,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    if (isLoading && qrData == null)
+                      const SizedBox(
+                        height: 260,
+                        width: 260,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (hasError)
+                      SizedBox(
+                        height: 260,
+                        width: 260,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.error_outline, color: Colors.red, size: 40),
+                            const SizedBox(height: 10),
+                            Text('Erro ao carregar.\n${relationshipProvider.error}',
+                                textAlign: TextAlign.center),
+                            TextButton(
+                              onPressed: () => relationshipProvider.loadMyQrCode(),
+                              child: const Text('Tentar Novamente'),
+                            )
+                          ],
+                        ),
+                      )
+                    else
+                      QrImageView(
+                        data: qrData ?? 'error',
+                        version: QrVersions.auto,
+                        size: 260,
+                        backgroundColor: Colors.white,
+                        eyeStyle: QrEyeStyle(
+                          eyeShape: QrEyeShape.square,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        dataModuleStyle: QrDataModuleStyle(
+                          dataModuleShape: QrDataModuleShape.square,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 60),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: _openScanner,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 4,
+                  ),
+                  icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                  label: const Text(
+                    'Escanear QR de Paciente',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+
+class _AddPhysioPage extends StatelessWidget {
+  const _AddPhysioPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -5729,7 +5983,7 @@ class _ChatListPageState extends State<ChatListPage> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<RelationshipProvider>(context);
-
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
@@ -5862,7 +6116,7 @@ class _ChatListPageState extends State<ChatListPage> {
                         ),
                       ),
                       Text(
-                        '',
+                        '', 
                         style: TextStyle(color: Colors.grey[500], fontSize: 12),
                       ),
                     ],
@@ -5989,7 +6243,7 @@ class ConnectedUser {
     }
     return const AssetImage('assets/fake_profile.jpg');
   }
-
+  
   String get initials {
     final names = fullname.trim().split(' ');
     if (names.isEmpty) return '';
@@ -6025,13 +6279,13 @@ class ChatMessage {
     debugPrint('--------------------');
     debugPrint(prettier(json));
     debugPrint('--------------------');
-
+    
     return ChatMessage(
       id: json['messageId']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
       text: json['text']?.toString() ?? '',
       senderId: json['senderId']?.toString() ?? '',
-      timestamp: json['timestamp'] != null
-          ? DateTime.parse(json['timestamp'] as String)
+      timestamp: json['timestamp'] != null 
+          ? DateTime.parse(json['timestamp'] as String) 
           : DateTime.now(),
       //isRead: json['isRead'] as bool ?? false, // TODO: isRead not returning (see chat_socket_service.dart)
       isRead: false,
@@ -6369,6 +6623,42 @@ class Category {
     required this.subtitle,
     required this.color,
   });
+}
+
+FILE: lib/model/appointment/appointment_model.dart
+class AppointmentModel {
+  final String id;
+  final String patientName;
+  final String patientImage;
+  final DateTime dateTime;
+  final int duration;
+  final String status;
+  final String notes;
+
+  AppointmentModel({
+    required this.id,
+    required this.patientName,
+    required this.patientImage,
+    required this.dateTime,
+    required this.duration,
+    required this.status,
+    required this.notes,
+  });
+
+  factory AppointmentModel.fromJson(Map<String, dynamic> json) {
+    final patient = json['patient'] ?? {};
+
+    return AppointmentModel(
+      id: json['id']?.toString() ?? '',
+      patientName: patient['fullname'] as String? ?? 'Paciente Desconhecido',
+      patientImage: patient['profileImage'] as String? ?? '',
+      dateTime:
+          json['dateTime'] != null ? DateTime.parse(json['dateTime'] as String) : DateTime.now(),
+      duration: json['durationMinutes'] as int? ?? 60,
+      status: json['status'] as String? ?? 'SCHEDULED',
+      notes: json['notes'] as String? ?? '',
+    );
+  }
 }
 
 FILE: lib/main.dart
@@ -6858,7 +7148,7 @@ FILE: lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
 
 class AppTheme {
-
+  
   AppTheme._();
 
   static final ThemeData light = ThemeData(
@@ -6904,7 +7194,7 @@ import 'package:physioapp/utils/domain_connection.dart';
 class ApiClient {
   final Dio _dio;
   final _storage = const FlutterSecureStorage();
-
+  
   ApiClient() : _dio = Dio(BaseOptions(
     baseUrl: DomainConnection().url,
     connectTimeout: const Duration(seconds: 10),
@@ -7615,7 +7905,7 @@ class _PatientSelectionSheetState extends State<PatientSelectionSheet> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-
+          
           TextField(
             controller: _searchController,
             onChanged: provider.searchConnections,
@@ -7745,6 +8035,7 @@ class ListTileComponent extends StatelessWidget {
 FILE: lib/components/physiotherapist/profile/profile_data.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/profile/change_email_form.dart';
+import 'package:physioapp/components/physiotherapist/profile/change_name_form.dart';
 import 'package:physioapp/components/physiotherapist/profile/change_password_form.dart';
 import 'package:physioapp/components/physiotherapist/profile/profile_option_tile.dart';
 import 'package:physioapp/services/auth/auth.dart';
@@ -7753,7 +8044,8 @@ import 'package:provider/provider.dart';
 
 class ProfileData extends StatelessWidget {
   final void Function() refreshPage;
-  const ProfileData({super.key, required this.refreshPage});
+  final bool patient;
+  const ProfileData({super.key, required this.refreshPage, this.patient = false});
   Widget _listTileData({
     required IconData icon,
     required String title,
@@ -7792,6 +8084,18 @@ class ProfileData extends StatelessWidget {
         });
   }
 
+  void _showChangNameForm({
+    required BuildContext context,
+  }) {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return ChangeNameForm(
+            refreshPage: refreshPage,
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentUser = UserDataCache();
@@ -7799,6 +8103,15 @@ class ProfileData extends StatelessWidget {
 
     return Column(
       children: [
+        if (patient)
+         _listTileData(
+          context: context,
+          icon: Icons.person,
+          title: 'Nome',
+          fn: (context) => _showChangNameForm(context: context),
+          subtitle:
+              profileProvider.isVisible ? currentUser.name :  obscureText(currentUser.name),
+        ),
         _listTileData(
           context: context,
           icon: Icons.mail,
@@ -7898,7 +8211,7 @@ class OtherOptionsPhysio extends StatefulWidget {
 }
 
 class _OtherOptionsPhysioState extends State<OtherOptionsPhysio> {
-
+  
 
   void _showChagePassword(BuildContext context) {
     showModalBottomSheet(
@@ -8042,7 +8355,11 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
     try {
       setState(() => _isLoading = true);
 
-      await updateUserPassword(password: _passwordController.text);
+      final result = await updateUserPassword(password: _passwordController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar sua senha!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
@@ -8052,7 +8369,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
     } catch (error) {
       await exception.showFailedMessageDialog(
         title: 'Erro',
-        message: 'Não foi possivel alterar sua senha! $error',
+        message: 'Não foi possivel alterar sua senha!',
         context: context,
       );
     } finally {
@@ -8115,8 +8432,12 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
                 validator: (inputPassword) {
                   final String password = inputPassword ?? '';
 
-                  if (password.trim().length < 6) {
-                    return 'Sua senha precisa ter no mínimo 6 caracteres';
+                  if (password.length < 8) {
+                    return 'Digite uma senha com pelo menos 8 caracteres!';
+                  }
+
+                  if (password.length > 30) {
+                    return 'A senha não deve conter mais de 30 caracteres!';
                   }
                   return null;
                 },
@@ -8191,6 +8512,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
 FILE: lib/components/physiotherapist/profile/change_name_form.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
 
 class ChangeNameForm extends StatefulWidget {
@@ -8219,19 +8541,19 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
   }
 
   Future<void> _submit({required BuildContext context}) async {
-    final currentUser = AuthPhysioService();
-    final exception = ChangeDataProfileException();
     final isValid = _formKey.currentState?.validate() ?? false;
+    final exception = ChangeDataProfileException();
 
     if (!isValid) return;
 
     try {
       setState(() => _isLoading = true);
 
-      await currentUser.updateUser(
-        currentUser: currentUser.currentPhysioUser,
-        name: _nameController.text,
-      );
+      final result = await updateUserFullname(fullname: _nameController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar seu nome!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
@@ -8241,7 +8563,7 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
     } catch (error) {
       await exception.showFailedMessageDialog(
         title: 'Erro',
-        message: 'Não foi possivel atualizar o nome! $error',
+        message: 'Não foi possivel atualizar o nome!',
         context: context,
       );
     } finally {
@@ -8288,11 +8610,16 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
                   border: OutlineInputBorder(borderSide: BorderSide.none),
                 ),
                 keyboardType: TextInputType.name,
-                validator: (inputName) {
-                  final String name = inputName ?? '';
+                validator: (_name) {
+                 final String fname = _name ?? '';
 
-                  if (name.trim().length < 6) {
-                    return 'Digite seu nome completo';
+                  if (fname.isEmpty || !fname.contains(' ')) {
+                    return 'Digite seu nome completo!';
+                  }
+
+                  final RegExp nameRegex = RegExp(r'^[a-zA-ZÀ-ÖØ-öø-ÿ\s]+$');
+                  if (!nameRegex.hasMatch(fname)) {
+                    return 'Nome completo não deve conter números ou caracteres especiais!';
                   }
                   return null;
                 },
@@ -8332,6 +8659,7 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
 }
 
 FILE: lib/components/physiotherapist/profile/change_email_form.dart
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
@@ -8364,17 +8692,18 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
 
   Future<void> _submit({required BuildContext context}) async {
     final isValid = _formKey.currentState?.validate() ?? false;
-    final currentUser = AuthPhysioService();
     final exception = ChangeDataProfileException();
-
-    if (!isValid) return;
 
     if (!isValid) return;
 
     try {
       setState(() => _isLoading = true);
 
-      await updateUserEmail(email: _emailController.text);
+      final result = await updateUserEmail(email: _emailController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar seu email!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
@@ -8384,7 +8713,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
     } catch (error) {
       await exception.showFailedMessageDialog(
         title: 'Erro',
-        message: 'Não foi possivel atualizar o email! $error',
+        message: 'Não foi possivel atualizar o email!',
         context: context,
       );
     } finally {
@@ -8397,6 +8726,8 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
 
   @override
   Widget build(BuildContext context) {
+
+    debugPrint('hello');
     return Container(
       height: 300,
       decoration: BoxDecoration(
@@ -8434,8 +8765,8 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
                 validator: (inputEmail) {
                   final String email = inputEmail ?? '';
 
-                  if (email.trim().length < 3 || !email.contains('@')) {
-                    return 'Digite um email válido';
+                  if (!EmailValidator.validate(email)) {
+                    return 'Digite um e-mail valído!';
                   }
                   return null;
                 },
@@ -8681,7 +9012,7 @@ class BottomNavBarPhysio extends StatefulWidget {
 }
 
 class BottomNavBarPhysioState extends State<BottomNavBarPhysio> {
-
+  
   Widget _buttomIcons({
     required IconData icon,
     required int index,
@@ -8918,183 +9249,181 @@ class PatientAppointmentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheduleProvider =
-        Provider.of<ScheduleAppointmentController>(context);
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: scheduleProvider.listSchedule.length,
-      itemBuilder: (context, index) => scheduleProvider.listSchedule.isNotEmpty
-          ? Container(
-              width: double.infinity,
-              height: 160,
-              margin: const EdgeInsets.only(right: 20, left: 20, top: 20),
-              padding: const EdgeInsets.only(
-                  right: 30, left: 30, top: 20, bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 230,
-                            child: Text(
-                              scheduleProvider.listSchedule
-                                  .elementAt(index)
-                                  .patient
-                                  .name,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 18,
+    final scheduleProvider = Provider.of<ScheduleAppointmentController>(context);
+    final appointments = scheduleProvider.appointmentsForSelectedDate;
+
+    return appointments.isNotEmpty
+        ? ListView.builder(
+            shrinkWrap: true,
+            itemCount: appointments.length,
+            itemBuilder: (context, index) {
+              final appointment = appointments[index];
+              return Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(right: 20, left: 20, top: 20),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 200,
+                              child: Text(
+                                appointment.patient.name,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 18,
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 230,
-                            child: Text(
-                              scheduleProvider.listSchedule
-                                  .elementAt(index)
-                                  .symptoms,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontWeight: FontWeight.normal,
-                                fontSize: 13,
-                                color: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
-                                    ?.color,
+                            SizedBox(
+                              width: 200,
+                              child: Text(
+                                appointment.symptoms,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 13,
+                                  color: Theme.of(context).textTheme.labelSmall?.color,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      CircleAvatar(
-                        backgroundColor: Colors.grey,
-                        backgroundImage: FileImage(
-                          File(
-                            scheduleProvider.listSchedule
-                                .elementAt(index)
-                                .patient
-                                .imageProfile
-                                .path,
-                          ),
+                          ],
                         ),
-                        minRadius: 30,
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: 160,
-                        child: Text(
-                          DateFormat.yMd().add_jms().format(
-                                scheduleProvider.listSchedule
-                                    .elementAt(index)
-                                    .dateSchedule,
-                              ),
-                          overflow: TextOverflow.clip,
+                        CircleAvatar(
+                          backgroundColor: Colors.grey,
+                          backgroundImage: FileImage(
+                            File(appointment.patient.imageProfile.path),
+                          ),
+                          minRadius: 30,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          DateFormat.jm().format(appointment.dateSchedule),
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                             color: Theme.of(context).colorScheme.tertiary,
                           ),
                         ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 233, 235, 240),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, size: 20),
+                              onPressed: () {
+                                // TODO: Implement edit logic
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, size: 20),
+                              onPressed: () {
+                                // TODO: Implement cancel logic
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color.fromARGB(255, 233, 235, 240),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Ver prontuário',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 13,
+                                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: Text(
-                          'Ver prontuário',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 13,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                      )
-                    ],
-                  )
-                ],
+                      ],
+                    )
+                  ],
+                ),
+              );
+            },
+          )
+        : Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                'Nenhum paciente agendado para ${DateFormat.yMd().format(scheduleProvider.selectedDate)}',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.labelSmall?.color,
+                ),
               ),
-            )
-          : const Text('Nenhum paciente cadastrado'),
-    );
-  }
-}
-
-FILE: lib/components/physiotherapist/home/grid_day_calendar.dart
-import 'package:flutter/material.dart';
-
-class GridDayCalendar extends StatefulWidget {
-  const GridDayCalendar({super.key});
-
-  @override
-  GridDayCalendarState createState() => GridDayCalendarState();
-}
-
-class GridDayCalendarState extends State<GridDayCalendar> {
-  final now = DateTime.now();
-  int get daysInMonth => DateTime(now.year, now.month + 1, 0).day;
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.builder(
-      itemCount: daysInMonth,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7,
-        childAspectRatio: 1,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-      ),
-      itemBuilder: (context, index) => Container(
-        height: 40,
-        width: 40,
-        decoration: BoxDecoration(
-          color: Theme.of(context).primaryColor,
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: Center(
-          child: Text(
-            '${index + 1}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.normal,
-              fontSize: 14,
             ),
-          ),
-        ),
-      ),
-    );
+          );
   }
 }
 
 FILE: lib/components/physiotherapist/home/consultation_calendar.dart
 import 'package:flutter/material.dart';
-import 'package:physioapp/components/physiotherapist/home/grid_day_calendar.dart';
+import 'package:physioapp/services/schedule/schedule_appointment_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:table_calendar/table_calendar.dart';
 
-class ConsultationCalendar extends StatelessWidget {
+class ConsultationCalendar extends StatefulWidget {
   const ConsultationCalendar({super.key});
 
   @override
+  State<ConsultationCalendar> createState() => _ConsultationCalendarState();
+}
+
+class _ConsultationCalendarState extends State<ConsultationCalendar> {
+  /// Page controller that holds the three week‑pages.
+  late final PageController _pageCtrl;
+
+  /// Index of the page that currently displays the *focused* week.
+  /// 0 = previous week, 1 = current week, 2 = next week
+  int _currentPage = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageCtrl = PageController(initialPage: _currentPage);
+  }
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+    super.dispose();
+  }
+
+  /// Returns the first day of the week that should be displayed for a
+  /// given page index.
+  DateTime _firstDayOfWeek(int pageIndex) {
+    final now = DateTime.now();
+    // Find the Monday (or whatever start‑day you prefer) of the current week.
+    final thisMonday = now.subtract(Duration(days: now.weekday - 1));
+    // Shift by -1, 0, +1 weeks depending on the page.
+    return thisMonday.add(Duration(days: 7 * (pageIndex - 1)));
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final scheduleProvider = Provider.of<ScheduleAppointmentController>(context);
+
     return Container(
-      width: double.infinity,
-      height: 328,
       margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -9108,27 +9437,81 @@ class ConsultationCalendar extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(30),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'Consultas por dia',
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
             ),
           ),
-          // Text(
-          //   '9 de 12 completas',
-          //   style: TextStyle(
-          //     fontWeight: FontWeight.w400,
-          //     fontSize: 12,
-          //     color: Theme.of(context).textTheme.labelSmall?.color,
-          //   ),
-          // ),
-          SizedBox(height: 15),
-          Expanded(
-            child: GridDayCalendar(),
+          const SizedBox(height: 15),
+          // -----------------------------------------------------------------
+          // PageView that holds three TableCalendars (prev, current, next)
+          // -----------------------------------------------------------------
+          SizedBox(
+            height: 350, // enough height for a week view + header
+            child: PageView.builder(
+              controller: _pageCtrl,
+              itemCount: 3,
+              onPageChanged: (index) {
+                setState(() => _currentPage = index);
+                // When the user swipes to another week we also update the
+                // controller's focusedDay so the rest of the app stays in sync.
+                final newFocused = _firstDayOfWeek(index).add(const Duration(days: 3));
+                scheduleProvider.updateFocusedDay(newFocused);
+              },
+              itemBuilder: (context, index) {
+                final firstDay = _firstDayOfWeek(index);
+                final lastDay = firstDay.add(const Duration(days: 6));
+
+                return TableCalendar(
+                  firstDay: firstDay,
+                  lastDay: lastDay,
+                  focusedDay: scheduleProvider.focusedDay,
+                  selectedDayPredicate: (day) => isSameDay(scheduleProvider.selectedDate, day),
+                  onDaySelected: (selected, focused) {
+                    scheduleProvider.onDaySelected(selected, focused);
+                  },
+                  calendarFormat: CalendarFormat.week,
+                  headerStyle: const HeaderStyle(
+                    formatButtonVisible: false,
+                    titleCentered: true,
+                    titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  calendarStyle: CalendarStyle(
+                    selectedDecoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    todayDecoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // -----------------------------------------------------------------
+          // Optional indicator showing which week is displayed
+          // -----------------------------------------------------------------
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(3, (i) {
+              return Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: i == _currentPage ? Theme.of(context).primaryColor : Colors.grey[400],
+                ),
+              );
+            }),
           ),
         ],
       ),
@@ -9181,7 +9564,7 @@ class _VideoBoxState extends State<VideoBox> {
 
     try {
       if (kIsWeb) {
-        debugPrint('---------------- hello world ------------------');
+        debugPrint('---------------- hello world ------------------');  
         _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
         await _controller!.initialize();
       } else {
@@ -9501,7 +9884,7 @@ class SelectFormExercises extends StatefulWidget {
 class _SelectFormExercisesState extends State<SelectFormExercises> {
   @override
   Widget build(BuildContext context) {
-    return
+    return 
     Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -9931,7 +10314,7 @@ class ExerciseSteps extends StatelessWidget {
             itemCount: exercise.steps.length,
             itemBuilder: (context, index) {
               final Map<String, String> step = exercise.steps[index];
-              return StepExercise(
+              return StepExercise(  
                 indexStep: index + 1,
                 titleStep: step.keys.first ?? 'Sem Título',
                 subtitleStep: step.values.first ?? 'Sem Descrição',
@@ -10205,10 +10588,12 @@ class BoxExercisesType extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   ListTile(
-                    onTap: () => Navigator.of(context).pushNamed(
-                      AppRoutes.exercisesListPage,
-                      arguments: category,
-                    ),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        AppRoutes.exercisesListPage,
+                        arguments: category,
+                      );
+                    },
                     title: Center(
                       child: Container(
                         margin: const EdgeInsets.only(top: 5),
@@ -10232,8 +10617,7 @@ class BoxExercisesType extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 12,
-                            color:
-                                Theme.of(context).textTheme.labelLarge?.color,
+                            color: Theme.of(context).textTheme.labelLarge?.color,
                           ),
                           overflow: TextOverflow.fade,
                         ),
@@ -11522,7 +11906,7 @@ class ProfileDataPatient extends StatelessWidget {
 FILE: lib/components/patient/profile/photo_profile_patient.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/get_image.dart';
 
 class PhotoProfilePatient extends StatefulWidget {
@@ -11535,7 +11919,7 @@ class PhotoProfilePatient extends StatefulWidget {
 class PhotoProfilePatientState extends State<PhotoProfilePatient> {
   @override
   Widget build(BuildContext context) {
-    final currentUser = AuthPatientService();
+    final currentUser = UserDataCache();
     return SizedBox(
       height: 110,
       width: 110,
@@ -11543,8 +11927,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
         children: [
           CircleAvatar(
             backgroundColor: Colors.grey,
-            backgroundImage:
-                FileImage(currentUser.currentPatientUser!.imageProfile),
+            backgroundImage:currentUser.imageProfile,
             maxRadius: 50,
           ),
           Positioned(
@@ -11558,7 +11941,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
                 borderRadius: BorderRadius.circular(50),
                 boxShadow: const [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Colors.black12,  
                     offset: Offset(1, 1),
                     blurRadius: 4,
                     spreadRadius: 2,
@@ -11566,7 +11949,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
                 ],
               ),
               child: IconButton(
-                onPressed: () => compute(getImage, context),
+                onPressed: () => compute(getImage, context), 
                 icon: Icon(
                   Icons.camera_alt_rounded,
                   color: Theme.of(context).textTheme.labelSmall?.color,
@@ -12068,7 +12451,11 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
     try {
       setState(() => _isLoading = true);
 
-      await updateUserEmail(email: _emailController.text);
+      final result = await updateUserEmail(email: _emailController.text);
+
+      if (!result) {
+        throw Exception('Não foi possivel alterar seu email!');
+      }
 
       await exception.showSucessMessageDialog(
         title: 'Sucesso',
@@ -12469,6 +12856,53 @@ class _SharedExerciseItemPatientState extends State<SharedExerciseItemPatient> {
   }
 }
 
+FILE: lib/components/patient/home/search_physio.dart
+import 'package:flutter/material.dart';
+
+class SearchPhysio extends StatefulWidget {
+  const SearchPhysio({super.key});
+
+  @override
+  SearchPhysioState createState() => SearchPhysioState();
+}
+
+class SearchPhysioState extends State<SearchPhysio> {
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8, left: 20, right: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: const Color.fromARGB(255, 236, 236, 236),
+          ),
+          padding: const EdgeInsets.all(5.0),
+          child: TextFormField(
+            decoration: InputDecoration(
+              icon: Container(
+                margin: const EdgeInsets.only(left: 10),
+                child: Icon(
+                  Icons.search,
+                  color: Theme.of(context).textTheme.labelSmall?.color,
+                  size: 25,
+                ),
+              ),
+              border: InputBorder.none,
+              label: Text(
+                'Pesquisar Fisioterapeuta',
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.labelSmall?.color,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 FILE: lib/components/patient/home/scheduled_appointments_item.dart
 import 'package:flutter/material.dart';
 
@@ -12595,6 +13029,212 @@ class ScheduledAppointments extends StatelessWidget {
             itemBuilder: (context, index) {
               return const ScheduledAppointmentsItem();
             },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+FILE: lib/components/patient/home/physio_appointment_list.dart
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+// Mock model for PhysioAppointment since we don't have a controller yet
+class PhysioAppointment {
+  final String physioName;
+  final String specialty;
+  final DateTime date;
+  final String? imagePath;
+
+  PhysioAppointment({
+    required this.physioName,
+    required this.specialty,
+    required this.date,
+    this.imagePath,
+  });
+}
+
+class PhysioAppointmentList extends StatelessWidget {
+  const PhysioAppointmentList({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Mock data
+    final List<PhysioAppointment> appointments = [
+      PhysioAppointment(
+        physioName: 'Dr. Ana Silva',
+        specialty: 'Ortopedia',
+        date: DateTime.now().add(const Duration(days: 1, hours: 2)),
+      ),
+      PhysioAppointment(
+        physioName: 'Dr. Carlos Santos',
+        specialty: 'Neurologia',
+        date: DateTime.now().add(const Duration(days: 3, hours: 5)),
+      ),
+    ];
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: appointments.length,
+      itemBuilder: (context, index) => appointments.isNotEmpty
+          ? Container(
+              width: double.infinity,
+              height: 160,
+              margin: const EdgeInsets.only(right: 20, left: 20, top: 20),
+              padding: const EdgeInsets.only(right: 30, left: 30, top: 20, bottom: 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: 230,
+                            child: Text(
+                              appointments[index].physioName,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 230,
+                            child: Text(
+                              appointments[index].specialty,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 13,
+                                color: Theme.of(context).textTheme.labelSmall?.color,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      CircleAvatar(
+                        backgroundColor: Colors.grey,
+                        // Placeholder image logic
+                        backgroundImage: appointments[index].imagePath != null
+                            ? FileImage(File(appointments[index].imagePath!))
+                            : null,
+                        minRadius: 30,
+                        child: appointments[index].imagePath == null
+                            ? const Icon(Icons.person, color: Colors.white)
+                            : null,
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: 160,
+                        child: Text(
+                          DateFormat.yMd().add_jms().format(
+                                appointments[index].date,
+                              ),
+                          overflow: TextOverflow.clip,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: Theme.of(context).colorScheme.tertiary,
+                          ),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 233, 235, 240),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Ver detalhes',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                      )
+                    ],
+                  )
+                ],
+              ),
+            )
+          : const Text('Nenhuma consulta agendada'),
+    );
+  }
+}
+
+FILE: lib/components/patient/home/consultation_calendar_patient.dart
+import 'package:flutter/material.dart';
+import 'package:table_calendar/table_calendar.dart';
+
+class ConsultationCalendarPatient extends StatelessWidget {
+  const ConsultationCalendarPatient({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: AlignmentDirectional.topStart,
+          end: AlignmentDirectional.bottomStart,
+          colors: [
+            Color.fromARGB(255, 223, 224, 234),
+            Color.fromARGB(255, 233, 235, 240),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Minhas Consultas',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 15),
+          TableCalendar(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: DateTime.now(),
+            calendarFormat: CalendarFormat.week,
+            headerStyle: const HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+              titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            calendarStyle: CalendarStyle(
+              selectedDecoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                shape: BoxShape.circle,
+              ),
+              todayDecoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
         ],
       ),
@@ -12904,7 +13544,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
 FILE: lib/components/patient/auth/form_signin_patient.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
-import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
+import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
@@ -12928,15 +13568,24 @@ class FormSignInPatientState extends State<FormSignInPatient> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _submit() async {
-    final auth = AuthPatientService();
     final authException = AuthSignupException();
     final pageForm = Provider.of<SignUpPageForm>(context, listen: false);
     try {
       pageForm.toggleLoadingValue();
-      await auth.login(
+      final login = await authLogin(
         email: _emailController.text,
         password: _passwordController.text,
       );
+
+      if (!login) {
+        if (mounted) {
+          authException.showErrorSubmit(
+            messageError: 'Email ou senha inválidos',
+            context: context,
+          );
+        }
+        return;
+      }
 
       if (mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -12947,7 +13596,7 @@ class FormSignInPatientState extends State<FormSignInPatient> {
     } catch (error) {
       if (mounted) {
         authException.showErrorSubmit(
-          messageError: error.toString(),
+          messageError: 'Erro ao fazer login',
           context: context,
         );
       }
@@ -13100,6 +13749,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -13110,20 +13760,17 @@ class AppDrawerPatient extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentUser = AuthPatientService();
+    final currentUser = UserDataCache();
     final currentPage = Provider.of<BottomNavBarPatientController>(context);
 
-    Widget userComponentDrawer({
-      required String name,
-      required String email,
-      required File imageProfile,
-    }) {
+    Widget userComponentDrawer(
+        {required String name, required String email, required ImageProvider imageProfile}) {
       return Container(
         padding: const EdgeInsets.all(8.0),
         child: ListTile(
           leading: CircleAvatar(
             backgroundColor: Colors.grey,
-            backgroundImage: FileImage(imageProfile),
+            backgroundImage: imageProfile,
             maxRadius: 30,
           ),
           title: Text(
@@ -13146,18 +13793,24 @@ class AppDrawerPatient extends StatelessWidget {
       return ListTile(
         leading: Icon(icon),
         title: Text(title),
-        onTap: function,
+        onTap: () {
+          Navigator.of(context).pop();
+          function();
+        },
       );
     }
 
-    return SafeArea(
+    return Container(
       child: Drawer(
         child: Column(
           children: [
+            const SizedBox(
+              height: 45,
+            ),
             userComponentDrawer(
-              name: currentUser.currentPatientUser!.userName,
-              email: currentUser.currentPatientUser!.email,
-              imageProfile: currentUser.currentPatientUser!.imageProfile,
+              name: currentUser.userName,
+              email: currentUser.email,
+              imageProfile: currentUser.imageProfile,
             ),
             Divider(
               color: Colors.grey[300],
@@ -13182,6 +13835,7 @@ class AppDrawerPatient extends StatelessWidget {
                 title: 'Sair',
                 function: () async {
                   await logout();
+                  AuthFormData().reset();
                   Navigator.of(context).pushNamedAndRemoveUntil(
                     AppRoutes.initial,
                     (_) => false,
