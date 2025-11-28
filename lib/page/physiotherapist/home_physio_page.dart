@@ -64,22 +64,22 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                   children: [
                     const SizedBox(height: 10),
 
-                    // 2. Next Appointment Card
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        'Próximo Atendimento',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2D3142),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _NextAppointmentCard(appointment: nextAppointment),
-
-                    const SizedBox(height: 24),
+                    // // 2. Next Appointment Card
+                    // const Padding(
+                    //   padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    //   child: Text(
+                    //     'Próximo Atendimento',
+                    //     style: TextStyle(
+                    //       fontSize: 18,
+                    //       fontWeight: FontWeight.bold,
+                    //       color: Color(0xFF2D3142),
+                    //     ),
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 12),
+                    // _NextAppointmentCard(appointment: nextAppointment),
+//
+                    // const SizedBox(height: 24),
 
                     // 3. Calendar Strip (Past, Current, Next Week)
                     Padding(
@@ -184,7 +184,9 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Vamos cuidar dos seus pacientes?',
+                UserDataCache().isPatient
+                    ? 'O que faremos hoje?'
+                    : 'Vamos cuidar dos seus pacientes?',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[600],
@@ -395,7 +397,6 @@ class _InfoBadge extends StatelessWidget {
   }
 }
 
-
 class _Old_CalendarStrip extends StatelessWidget {
   final DateTime selectedDate;
   final Function(DateTime) onDateSelected;
@@ -415,11 +416,11 @@ class _Old_CalendarStrip extends StatelessWidget {
 
     return SizedBox(
       height: 90,
-      width: double.infinity,               // <-- give the list a finite width
+      width: double.infinity, // <-- give the list a finite width
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        primary: false,                     // <-- do NOT use the parent’s primary controller
+        primary: false, // <-- do NOT use the parent’s primary controller
         itemCount: dates.length,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemBuilder: (context, index) {
@@ -434,19 +435,15 @@ class _Old_CalendarStrip extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 6),
               width: 60,
               decoration: BoxDecoration(
-                color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : Colors.white,
+                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
                 borderRadius: BorderRadius.circular(18),
                 border: isToday && !isSelected
-                    ? Border.all(
-                        color: Theme.of(context).primaryColor, width: 2)
+                    ? Border.all(color: Theme.of(context).primaryColor, width: 2)
                     : null,
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color:
-                              Theme.of(context).primaryColor.withOpacity(0.4),
+                          color: Theme.of(context).primaryColor.withOpacity(0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         )
@@ -463,15 +460,11 @@ class _Old_CalendarStrip extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat('EEE', 'pt_BR')
-                        .format(date)
-                        .toUpperCase()
-                        .replaceAll('.', ''),
+                    DateFormat('EEE', 'pt_BR').format(date).toUpperCase().replaceAll('.', ''),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color:
-                          isSelected ? Colors.white : Colors.grey[400],
+                      color: isSelected ? Colors.white : Colors.grey[400],
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -480,9 +473,7 @@ class _Old_CalendarStrip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFF2D3142),
+                      color: isSelected ? Colors.white : const Color(0xFF2D3142),
                     ),
                   ),
                 ],
@@ -592,14 +583,10 @@ class _CalendarStrip extends StatelessWidget {
   }
 }
 
-
-
-
-
 class NewAppointmentModel {
   final String id;
   final DateTime dateSchedule; // Maps to 'dateTime'
-  final String symptoms;       // Maps to 'notes'
+  final String symptoms; // Maps to 'notes'
   final NewPatientModel patient;
 
   NewAppointmentModel({
@@ -613,9 +600,8 @@ class NewAppointmentModel {
     return NewAppointmentModel(
       id: json['id']?.toString() ?? '',
       // Map API 'dateTime' to 'dateSchedule'
-      dateSchedule: json['dateTime'] != null 
-          ? DateTime.parse(json['dateTime'] as String) 
-          : DateTime.now(),
+      dateSchedule:
+          json['dateTime'] != null ? DateTime.parse(json['dateTime'] as String) : DateTime.now(),
       // Map API 'notes' to 'symptoms'
       symptoms: json['notes'] as String? ?? 'Sem descrição',
       // Map nested patient
@@ -632,9 +618,9 @@ class NewPatientModel {
 
   factory NewPatientModel.fromJson(Map<String, dynamic> json) {
     final base64String = json['profileImage'];
-    
-    // Logic: If we have base64, we decode it. 
-    // Ideally we return Bytes, but your UI uses FileImage. 
+
+    // Logic: If we have base64, we decode it.
+    // Ideally we return Bytes, but your UI uses FileImage.
     // We will handle this in the UI to be safe.
     return NewPatientModel(
       name: json['fullname'] as String? ?? 'Paciente',
@@ -642,4 +628,3 @@ class NewPatientModel {
     );
   }
 }
-

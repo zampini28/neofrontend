@@ -6,6 +6,7 @@ import 'package:physioapp/page/patient/exercises_page.dart';
 import 'package:physioapp/page/patient/home_patient_page.dart';
 import 'package:physioapp/page/patient/patient_profile_page.dart';
 import 'package:physioapp/page/physiotherapist/exercises_page_physio.dart';
+import 'package:physioapp/page/physiotherapist/home_physio_page.dart';
 import 'package:physioapp/page/physiotherapist/physio_profile_page.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:provider/provider.dart';
@@ -21,7 +22,7 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
   final List<Map<String, Object>> _indexScreen = [
     {
       'title': '',
-      'screen': const HomePatientPage(),
+      'screen': const HomePhysioPage(),
     },
     {
       'title': 'Chat',
