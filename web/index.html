@@ -107,6 +107,25 @@
       <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
   </picture>
   
+  <script>
+
+    function isDevicePreview() {
+      if (typeof URLSearchParams === 'function') {
+        return new URLSearchParams(window.location.search).has('device_preview');
+      }
+      return /\bdevice_preview\b/.test(window.location.search);
+    }
+
+    function isRunningAsPWA() {
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        return true;
+      }
+      if (window.navigator.standalone) {
+        return true;
+      }
+      return false;
+    }
+  </script>
   
   <script src="flutter_bootstrap.js" async=""></script>
 
