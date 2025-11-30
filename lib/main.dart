@@ -30,8 +30,7 @@ Future<void> main() async {
     kDebugMode || (kIsWeb && kReleaseMode && isDevicePreview())
         ? DevicePreview(enabled: true, builder: (_) => const PhysioApp())
         : (kIsWeb && kReleaseMode && !isRunningAsPWA())
-            // ? const InstallPwa()
-            ? const PhysioApp()
+            ? const InstallPwa()
             : const PhysioApp()
   );
 }
