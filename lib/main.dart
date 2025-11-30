@@ -6,7 +6,7 @@ import 'package:physioapp/core/theme/app_theme.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_providers.dart';
 import 'package:physioapp/utils/app_routes.dart';
-import 'package:physioapp/utils/javascript.dart';
+import 'package:physioapp/web_only/js_bridge.dart';
 import 'package:physioapp/pwa/pwa_install.dart';
 import 'package:provider/provider.dart';
 
@@ -23,18 +23,13 @@ Future<void> main() async {
   // TODO: REMOVE THIS
   logout();
 
-  final bool device_preview = isDevicePreview();
-  print("device preview: $device_preview");
-
-  final bool running_pwa = isRunningAsPWA();
-  print("running as pwa: $running_pwa");
-
-  if (kIsWeb && kReleaseMode && !isRunningAsPWA()) {
+  final releaseWeb = kIsWeb && kReleaseMode;
+  if (releaseWeb && !isRunningAsPWA()) {
     runApp(const InstallPwa());
     return;
   }
 
-  if (kDebugMode) {
+  if (kDebugMode || (releaseWeb && isDevicePreview())) {
     runApp(
       DevicePreview(
         enabled: true,
@@ -43,17 +38,6 @@ Future<void> main() async {
     );
     return;
   }
-
-  if (kReleaseMode && kIsWeb && isDevicePreview()) {
-    runApp(
-      DevicePreview(
-        enabled: true,
-        builder: (_) => const PhysioApp(),
-      ),
-    );
-    return;
-  }
-
   
   runApp(const PhysioApp());
 }

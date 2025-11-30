@@ -5,3 +5,4 @@ external bool isDevicePreview();
 
 @JS('isRunningAsPWA')
 external bool isRunningAsPWA();
+
