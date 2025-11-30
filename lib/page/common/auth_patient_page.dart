@@ -13,8 +13,7 @@ class AuthPatientPage extends StatelessWidget {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            colorFilter: ColorFilter.mode(
-                Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
+            colorFilter: ColorFilter.mode(Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
             filterQuality: FilterQuality.high,
             opacity: 0.9,
             image: AssetImage(
@@ -49,15 +48,13 @@ class AuthPatientPage extends StatelessWidget {
                     Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                onPressed: () => Navigator.of(context)
-                    .pushNamed(AppRoutes.signInPatientPage),
+                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signInPatientPage),
                 label: Text(
                   'Entre com email e senha',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
-                    fontFamily:
-                        Theme.of(context).textTheme.titleLarge?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -76,24 +73,19 @@ class AuthPatientPage extends StatelessWidget {
                   Text(
                     'Não possui conta? ',
                     style: TextStyle(
-                      fontFamily:
-                          Theme.of(context).textTheme.labelLarge?.fontFamily,
+                      fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
                       color: Theme.of(context).textTheme.labelLarge?.color,
-                      fontSize:
-                          Theme.of(context).textTheme.labelLarge?.fontSize,
+                      fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(AppRoutes.signUpPatientPage),
+                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.signUpPatientPage),
                     child: Text(
                       'Cadastre-se agora!',
                       style: TextStyle(
-                        fontFamily:
-                            Theme.of(context).textTheme.bodyLarge?.fontFamily,
-                        fontSize:
-                            Theme.of(context).textTheme.bodyLarge?.fontSize,
+                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
                         fontWeight: FontWeight.w700,
                         color: Theme.of(context).colorScheme.primary,
                         decoration: TextDecoration.underline,

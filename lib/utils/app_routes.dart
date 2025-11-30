@@ -5,8 +5,10 @@ class AppRoutes {
   AppRoutes._();
 
   static const String initial = '/';
-  static const String authPhysioPage = '/auth-physio-page';
-  static const String authPatientPage = '/auth-patient-page';
+
+  static const String welcomePhysioPage = '/wecolme-physio-page';
+  static const String welcomePatientPage = '/wecolme-patient-page';
+
   static const String signInPhysioPage = '/signin-physio-page';
   static const String signUpPhysioPage = '/signup-physio-page';
   static const String signInPatientPage = '/signin-patient-page';
@@ -25,9 +27,11 @@ class AppRoutes {
   static const String pairedPhysioDataPage = 'paired-physio-data-page';
 
   static Map<String, WidgetBuilder> get map => {
-    initial: (_) => const PhysioOrPatientPage(),
-    authPhysioPage: (_) => const AuthPhysioPage(),
-    authPatientPage: (_) => const AuthPatientPage(),
+    initial: (_) => const InitialPage(),
+
+    welcomePhysioPage: (_) => const WelcomePage(kind: WelcomePageKind.physio),
+    welcomePatientPage: (_) => const WelcomePage(kind: WelcomePageKind.patient),
+
     signInPhysioPage: (_) => const SigninPhysioPage(),
     signUpPhysioPage: (_) => const SignupPhysioPage(),
     signInPatientPage: (_) => const SigninPatientPage(),

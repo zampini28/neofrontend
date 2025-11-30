@@ -1,45 +1,35 @@
 import 'package:device_preview/device_preview.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:physioapp/core/theme/app_theme.dart';
+import 'package:physioapp/pwa/pwa_install.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_providers.dart';
 import 'package:physioapp/utils/app_routes.dart';
 import 'package:physioapp/web_only/js_bridge.dart';
-import 'package:physioapp/pwa/pwa_install.dart';
 import 'package:provider/provider.dart';
 
 // TODO: create an export files for pages (maybe same for services)
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp, 
-    DeviceOrientation.portraitDown, 
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
   ]);
 
   // TODO: REMOVE THIS
   logout();
 
-  final releaseWeb = kIsWeb && kReleaseMode;
-  if (releaseWeb && !isRunningAsPWA()) {
-    runApp(const InstallPwa());
-    return;
-  }
-
-  if (kDebugMode || (releaseWeb && isDevicePreview())) {
-    runApp(
-      DevicePreview(
-        enabled: true,
-        builder: (_) => const PhysioApp(),
-      ),
-    );
-    return;
-  }
-  
-  runApp(const PhysioApp());
+  runApp(
+    kDebugMode || (kIsWeb && kReleaseMode && isDevicePreview())
+        ? DevicePreview(enabled: true, builder: (_) => const PhysioApp())
+        : (kIsWeb && kReleaseMode && !isRunningAsPWA())
+            ? const InstallPwa()
+            : const PhysioApp()
+  );
 }
 
 class PhysioApp extends StatelessWidget {
@@ -55,7 +45,7 @@ class PhysioApp extends StatelessWidget {
         theme: AppTheme.light,
         initialRoute: AppRoutes.initial,
         routes: AppRoutes.map,
-      )
+      ),
     );
   }
 }

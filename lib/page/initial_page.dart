@@ -1,30 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:physioapp/utils/app_routes.dart';
-import 'package:physioapp/services/auth/auth.dart';
-import 'package:physioapp/services/auth/auth_form.dart';
 
-class PhysioOrPatientPage extends StatefulWidget {
-  const PhysioOrPatientPage({super.key});
+class InitialPage extends StatefulWidget {
+  const InitialPage({super.key});
 
   @override
-  PhysioOrPatientPageState createState() => PhysioOrPatientPageState();
+  State<InitialPage> createState() => _InitialPageState();
 }
 
-class PhysioOrPatientPageState extends State<PhysioOrPatientPage> {
+class _InitialPageState extends State<InitialPage> {
 
   bool _isPhysioSelected = false;
 
-  void _navigateToAuth() {
-    final route = _isPhysioSelected ? AppRoutes.authPhysioPage : AppRoutes.authPatientPage;
-    Navigator.of(context).pushNamed(route);
-  }
-
   @override
   Widget build(BuildContext context) {
-    logout();
-    AuthFormData().reset();
-
-    debugPrint('--- physioapp ---');
     return Scaffold(
       body: Container(
         height: double.infinity,
@@ -103,7 +92,9 @@ class PhysioOrPatientPageState extends State<PhysioOrPatientPage> {
         ),
       ),
       floatingActionButton: TextButton(
-        onPressed: _navigateToAuth,
+        onPressed: () =>Navigator.of(context).pushNamed(
+          _isPhysioSelected ? AppRoutes.welcomePhysioPage : AppRoutes.welcomePatientPage
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

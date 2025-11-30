@@ -6,7 +6,6 @@ class AuthPhysioPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('---- AuthPhysioPage -----');
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 236, 236, 236),
       body: Container(

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:physioapp/main.dart';
-import 'package:physioapp/page/physio_or_patient_page.dart';
+import 'package:physioapp/page/initial_page.dart';
 
 void main() {
   const Size telaDeTeste = Size(400, 900);
 
-  testWidgets('Teste estático da PhysioOrPatientPage', (WidgetTester tester) async {
+  testWidgets('Teste estático da InitialPage', (WidgetTester tester) async {
     await tester.binding.setSurfaceSize(telaDeTeste);
 
     await tester.pumpWidget(
       const MaterialApp(
-        home: PhysioOrPatientPage(),
+        home: InitialPage(),
       ),
     );
     await tester.pumpAndSettle();
@@ -28,7 +28,7 @@ void main() {
 
     await tester.pumpWidget(
       const MaterialApp(
-        home: PhysioOrPatientPage(),
+        home: InitialPage(),
       ),
     );
     await tester.pumpAndSettle();

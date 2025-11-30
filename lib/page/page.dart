@@ -1,5 +1,4 @@
 export 'patient/add_physio_page.dart';
-export 'patient/auth_patient_page.dart';
 export 'patient/chat_patient_page.dart';
 export 'patient/exercises_page.dart';
 export 'patient/home_patient_page.dart';
@@ -9,10 +8,8 @@ export 'patient/policy_privacy_patient_page.dart';
 export 'patient/signin_patient_page.dart';
 export 'patient/signup_patient_page.dart';
 export 'patient/tabs_page_patient.dart';
-export 'physio_or_patient_page.dart';
 export 'physiotherapist/add_exercise_page.dart';
 export 'physiotherapist/add_patient_page.dart';
-export 'physiotherapist/auth_physio_page.dart';
 export 'physiotherapist/chat_page_physio.dart';
 export 'physiotherapist/exercises_detail_page.dart';
 export 'physiotherapist/exercises_list_page.dart';
@@ -25,3 +22,6 @@ export 'physiotherapist/schedule_appointment_page.dart';
 export 'physiotherapist/signin_physio_page.dart';
 export 'physiotherapist/signup_physio_page.dart';
 export 'physiotherapist/tabs_page_physio.dart';
+
+export 'initial_page.dart';
+export 'common/welcome_page.dart';
