@@ -47,8 +47,8 @@ class ExerciseSteps extends StatelessWidget {
               final Map<String, String> step = exercise.steps[index];
               return StepExercise(  
                 indexStep: index + 1,
-                titleStep: step.keys.first ?? 'Sem Título',
-                subtitleStep: step.values.first ?? 'Sem Descrição',
+                titleStep: step.values.first ?? 'Sem Título',
+                subtitleStep: step.values.last ?? 'Sem Descrição',
               );
             },
           ),

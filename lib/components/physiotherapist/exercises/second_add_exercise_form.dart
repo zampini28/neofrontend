@@ -14,8 +14,13 @@ class SecondAddExerciseForm extends StatefulWidget {
 }
 
 class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
+  bool _isLoading = false;
+
   Future<void> _submitFormAddExercise({required ExercisesControllerForm formExercise}) async {
+    setState(() => _isLoading = true);
+
     if (!formExercise.videoSelected) {
+      setState(() => _isLoading = false);
       return AuthSignupException().showErrorValidate(
         message: 'Selecione um vídeo.',
         context: context,
@@ -25,6 +30,7 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
     final bool isUpdated = await updateExerciseToServer(formExercise: formExercise);
 
     if (!isUpdated) {
+      setState(() => _isLoading = false);
       return AuthSignupException().showErrorValidate(
         message: 'Erro ao atualizar o exercício.',
         context: context,
@@ -34,6 +40,7 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
     formExercise.resetSteps();
     formExercise.toggleSecondForm();
 
+    setState(() => _isLoading = false);
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.tabPagePhysio,
       (_) => false,
@@ -94,7 +101,16 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
                   _submitFormAddExercise(formExercise: exercisesFormProvider);
                 }
               },
-              child: const Text(
+              child: _isLoading
+              ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+              : const Text(
                 'Adicionar Exercício',
                 style: TextStyle(
                   color: Colors.white,

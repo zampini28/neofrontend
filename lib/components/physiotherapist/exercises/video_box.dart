@@ -42,7 +42,6 @@ class _VideoBoxState extends State<VideoBox> {
 
     try {
       if (kIsWeb) {
-        debugPrint('---------------- hello world ------------------');  
         _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
         await _controller!.initialize();
       } else {

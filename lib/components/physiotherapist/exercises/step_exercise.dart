@@ -26,11 +26,11 @@ class StepExercise extends StatelessWidget {
               child: Text(
                 indexStep.toString(),
                 style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    fontFamily:
-                        Theme.of(context).textTheme.labelLarge?.fontFamily,
-                    color: Theme.of(context).colorScheme.primary),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             ),
             Column(
@@ -74,7 +74,7 @@ class StepExercise extends StatelessWidget {
       subtitle: Text(
         subtitleStep,
         style: Theme.of(context).textTheme.labelMedium,
-        textAlign: TextAlign.justify,
+        textAlign: TextAlign.start,
       ),
     );
   }
