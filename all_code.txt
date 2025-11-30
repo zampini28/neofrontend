@@ -1,4 +1,32 @@
 
+
+FILE: lib/web_only/web_js.dart
+import 'dart:js_interop';
+
+@JS('isDevicePreview')
+external bool isDevicePreview();
+
+@JS('isRunningAsPWA')
+external bool isRunningAsPWA();
+
+
+
+FILE: lib/web_only/stub_js.dart
+bool isDevicePreview() =>
+  throw UnsupportedError('isDevicePreview is only avaliable on web.');
+
+bool isRunningAsPWA() =>
+  throw UnsupportedError('isRunningAsPWA is only avaliable on web.');
+
+
+
+FILE: lib/web_only/js_bridge.dart
+// ignore_for_file: unused_import
+import 'package:physioapp/web_only/stub_js.dart' if (dart.library.js_interop) 'web_js.dart';
+
+export 'stub_js.dart' if (dart.library.js_interop) 'web_js.dart';
+
+
 FILE: lib/utils/temp_globals.dart
 library temp_globals;
 
@@ -9,6 +37,7 @@ void clearGlobals() {
   globalSelectedPatientId = null;
   globalSelectedPatientName = null;
 }
+
 
 FILE: lib/utils/signup_page_form.dart
 import 'package:flutter/material.dart';
@@ -41,6 +70,7 @@ class SignUpPageForm with ChangeNotifier {
     notifyListeners();
   }
 }
+
 
 FILE: lib/utils/get_image.dart
 import 'dart:convert';
@@ -93,6 +123,7 @@ Future<void> updateImage(BuildContext context) async {
 
 }
 
+
 FILE: lib/utils/domain_connection.dart
 class DomainConnection {
   // static const String _url = 'http://10.8.121.9:8080';
@@ -105,6 +136,7 @@ class DomainConnection {
   String get url => _url;
 }
 
+
 FILE: lib/utils/app_routes.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/page/page.dart';
@@ -113,8 +145,10 @@ class AppRoutes {
   AppRoutes._();
 
   static const String initial = '/';
-  static const String authPhysioPage = '/auth-physio-page';
-  static const String authPatientPage = '/auth-patient-page';
+
+  static const String welcomePhysioPage = '/wecolme-physio-page';
+  static const String welcomePatientPage = '/wecolme-patient-page';
+
   static const String signInPhysioPage = '/signin-physio-page';
   static const String signUpPhysioPage = '/signup-physio-page';
   static const String signInPatientPage = '/signin-patient-page';
@@ -133,9 +167,11 @@ class AppRoutes {
   static const String pairedPhysioDataPage = 'paired-physio-data-page';
 
   static Map<String, WidgetBuilder> get map => {
-    initial: (_) => const PhysioOrPatientPage(),
-    authPhysioPage: (_) => const AuthPhysioPage(),
-    authPatientPage: (_) => const AuthPatientPage(),
+    initial: (_) => const InitialPage(),
+
+    welcomePhysioPage: (_) => const WelcomePage(kind: WelcomePageKind.physio),
+    welcomePatientPage: (_) => const WelcomePage(kind: WelcomePageKind.patient),
+
     signInPhysioPage: (_) => const SigninPhysioPage(),
     signUpPhysioPage: (_) => const SignupPhysioPage(),
     signInPatientPage: (_) => const SigninPatientPage(),
@@ -154,6 +190,7 @@ class AppRoutes {
     pairedPhysioDataPage: (_) => const PairedPhysioDataPage(),
   };
 }
+
 
 
 FILE: lib/utils/app_providers.dart
@@ -185,6 +222,7 @@ class AppProviders {
   ];
 }
 
+
 FILE: lib/services/services.dart
 export 'auth/auth.dart';
 export 'auth/auth_form.dart';
@@ -208,6 +246,7 @@ export 'profile/physio/physio_profile_service.dart';
 export 'schedule/schedule_appointment_controller.dart';
 export 'schedule/schedule_appointment_form.dart';
 export 'services.dart';
+
 
 FILE: lib/services/schedule/schedule_appointment_form.dart
 import 'package:flutter/material.dart';
@@ -251,6 +290,7 @@ class ScheduleAppointmentForm with ChangeNotifier {
 
   
 }
+
 
 FILE: lib/services/schedule/schedule_appointment_controller.dart
 import 'package:flutter/widgets.dart';
@@ -313,6 +353,7 @@ class ScheduleAppointmentController with ChangeNotifier {
   }
 }
 
+
 FILE: lib/services/profile/physio/physio_profile_service.dart
 import 'package:flutter/material.dart';
 
@@ -326,6 +367,7 @@ class PhysioProfileService with ChangeNotifier{
     notifyListeners();
   }
 }
+
 FILE: lib/services/profile/patient/patient_profile_service.dart
 import 'package:flutter/material.dart';
 
@@ -339,6 +381,7 @@ class PatientProfileService with ChangeNotifier{
     notifyListeners();
   }
 }
+
 FILE: lib/services/pair_users/physio/pair_with_patient.dart
 import 'dart:io';
 
@@ -381,6 +424,7 @@ class PairWithPatient with ChangeNotifier {
     notifyListeners();
   }
 }
+
 
 FILE: lib/services/pair_users/patient/pair_with_physio.dart
 import 'dart:convert';
@@ -464,6 +508,7 @@ class PairWithPhysio with ChangeNotifier {
   }
 }
 
+
 FILE: lib/services/pair_users/patient/pair_patient_endpoint.dart
 import 'package:http/http.dart' as http;
 import 'package:physioapp/utils/domain_connection.dart';
@@ -484,6 +529,7 @@ class PairPatientEndpoint {
   }
 }
 
+
 FILE: lib/services/navigation/bottom_nav_bar_patient_controller.dart
 import 'package:flutter/material.dart';
 
@@ -497,6 +543,7 @@ class BottomNavBarPatientController with ChangeNotifier{
     notifyListeners();
   }
 }
+
 FILE: lib/services/navigation/bottom_nav_bar_controller.dart
 import 'package:flutter/material.dart';
 
@@ -510,6 +557,7 @@ class BottomNavBarPhysioController with ChangeNotifier{
     notifyListeners();
   }
 }
+
 
 FILE: lib/services/exercises/physio/exercises_controller_form.dart
 import 'package:flutter/material.dart';
@@ -657,6 +705,7 @@ class StepModel {
   }
 }
 
+
 FILE: lib/services/exercises/physio/exercises_controller_component.dart
 import 'package:flutter/material.dart';
 
@@ -671,6 +720,7 @@ class ExercisesControllerComponent with ChangeNotifier {
     notifyListeners();
   }
 }
+
 FILE: lib/services/exercises/physio/exercise_controller.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -781,6 +831,7 @@ class ExerciseController with ChangeNotifier {
   }
 }
 
+
 FILE: lib/services/exercises/physio/category_controller.dart
 import 'package:physioapp/data/exercises_mock_data.dart';
 import 'package:physioapp/model/exercises/category.dart';
@@ -791,6 +842,7 @@ class CategoryController {
   List<Category> get listCategory => [..._listCategory];
   int get itemsCount => _listCategory.length;
 }
+
 FILE: lib/services/chat_socket_service.dart
 import 'dart:async';
 import 'dart:convert';
@@ -887,6 +939,7 @@ class ChatSocketService {
     _client?.deactivate();
   }
 }
+
 
 FILE: lib/services/chat/chat_controller.dart
 import 'dart:convert';
@@ -1064,6 +1117,7 @@ class ChatController with ChangeNotifier {
   }
 }
 
+
 FILE: lib/services/auth/physio/physio_endpoint.dart
 import 'dart:convert';
 
@@ -1188,6 +1242,7 @@ class PhysioEndpoint {
   }
 }
 
+
 FILE: lib/services/auth/physio/auth_physio_service.dart
 import 'dart:io';
 
@@ -1224,6 +1279,7 @@ abstract class AuthPhysioService {
     return AuthPhysioBackendService();
   }
 }
+
 
 FILE: lib/services/auth/physio/auth_physio_backend_service.dart
 import 'dart:convert';
@@ -1378,6 +1434,7 @@ class AuthPhysioBackendService implements AuthPhysioService {
   }
 }
 
+
 FILE: lib/services/auth/patient/patient_endpoint.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -1469,6 +1526,7 @@ class PatientEndpoint {
   }
 }
 
+
 FILE: lib/services/auth/patient/auth_patient_service.dart
 import 'dart:io';
 
@@ -1504,6 +1562,7 @@ abstract class AuthPatientService {
     return AuthPatientBackendService();
   }
 }
+
 
 FILE: lib/services/auth/patient/auth_patient_backend_service.dart
 import 'dart:convert';
@@ -1665,6 +1724,7 @@ class AuthPatientBackendService implements AuthPatientService {
   }
 }
 
+
 FILE: lib/services/auth/auth_form.dart
 import 'package:flutter/material.dart';
 
@@ -1721,6 +1781,7 @@ class AuthFormData with ChangeNotifier {
     currentRadioValue = RadioButton.physioOption;
   }
 }
+
 
 FILE: lib/services/auth/auth.dart
 import 'dart:convert';
@@ -2190,15 +2251,50 @@ Future<void> makeAppointment() async {
   debugPrint(' -- makeAppointment');
 }
 
+
 FILE: lib/services/appointment/appointment_service.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:physioapp/model/appointment/appointment_model.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/domain_connection.dart';
 
 class AppointmentService {
   AppointmentService._();
+
+  static Future<List<AppointmentModel>> fetchAppointments() async {
+    final token = await getToken();
+    final url = Uri.parse('${DomainConnection().url}/appointments');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        List<dynamic> list = [];
+
+        if (decoded is Map && decoded.containsKey('content')) {
+          list = decoded['content'] as List<dynamic>; 
+        } else if (decoded is List) {
+          list = decoded;
+        }
+
+        return list.map((json) => AppointmentModel.fromJson(json as Map<String, dynamic>)).toList();
+        
+      } else {
+        debugPrint('Failed to load appointments: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('Error fetching appointments: $e');
+      return [];
+    }
+  }
+
   static Future<bool> createAppointment({
     required String patientId,
     required String dateTimeIso,
@@ -2239,6 +2335,7 @@ class AppointmentService {
     }
   }
 }
+
 
 FILE: lib/screens/individual_chat_screen.dart
 import 'package:flutter/material.dart';
@@ -2392,6 +2489,7 @@ class IndividualChatScreen extends StatelessWidget {
   }
 }
 
+
 FILE: lib/screens/chat/components/chat_input_field.dart
 import 'package:flutter/material.dart';
 
@@ -2479,6 +2577,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
   }
 }
 
+
 FILE: lib/screens/chat/components/chat_bubble.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -2559,6 +2658,7 @@ class ChatBubble extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/repositories/relationship_repository.dart
 import 'dart:convert';
@@ -2725,6 +2825,7 @@ class RelationshipProvider with ChangeNotifier {
   }
 }
 
+
 FILE: lib/repositories/exercise_repository.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/core/network/api_client.dart';
@@ -2760,6 +2861,103 @@ class ExerciseProvider with ChangeNotifier {
     }
   }
 }
+
+
+FILE: lib/pwa/pwa_install.dart
+import 'package:flutter/material.dart';
+
+class InstallPwa extends StatelessWidget {
+  const InstallPwa({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const InstallPwaScreen(),
+    );
+  }
+}
+
+class InstallPwaScreen extends StatelessWidget {
+  const InstallPwaScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.blue[900],
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            margin: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.0),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'icons/Icon-192.png',
+                  width: 80,
+                  height: 80,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Install Our App',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'For the best experience, please add this application to your home screen.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+                const Text(
+                  'Instructions:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 16),
+                _buildInstructionStep(
+                  '1. Tap the \'Share\' icon',
+                  'On iOS, it\'s at the bottom. On Android, find it in the browser menu.',
+                  Theme.of(context).platform == TargetPlatform.iOS
+                      ? Icons.ios_share
+                      : Icons.more_vert,
+                ),
+                const SizedBox(height: 16),
+                _buildInstructionStep(
+                  '2. Select \'Add to Home Screen\'',
+                  'You may need to scroll to find it.',
+                  Icons.add_to_home_screen,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInstructionStep(String title, String subtitle, IconData icon) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.blue, size: 32),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(subtitle),
+    );
+  }
+}
+
 
 FILE: lib/page/qrscanner_page.dart
 import 'package:flutter/material.dart';
@@ -2915,6 +3113,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
   }
 }
 
+
 FILE: lib/page/physiotherapist/tabs_page_physio.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/navigation/app_drawer.dart';
@@ -2969,6 +3168,7 @@ class _TabsPagePhysioState extends State<TabsPagePhysio> {
     );
   }
 }
+
 
 FILE: lib/page/physiotherapist/signup_physio_page.dart
 import 'package:flutter/material.dart';
@@ -3261,6 +3461,7 @@ class _SignupPhysioPageState extends State<SignupPhysioPage> {
   }
 }
 
+
 FILE: lib/page/physiotherapist/signin_physio_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/auth/form_signin.dart';
@@ -3387,6 +3588,7 @@ class SigninPhysioPage extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/page/physiotherapist/schedule_appointment_page.dart
 import 'package:flutter/material.dart';
@@ -3583,6 +3785,7 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
   }
 }
 
+
 FILE: lib/page/physiotherapist/policy_privacy_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/policy_privacy/data_retention.dart';
@@ -3640,6 +3843,7 @@ class PolicyPrivacyPage extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/page/physiotherapist/physio_profile_page.dart
 import 'package:flutter/material.dart';
@@ -3785,6 +3989,7 @@ class _PhysioProfilePageState extends State<PhysioProfilePage> {
   }
 }
 
+
 FILE: lib/page/physiotherapist/message_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/chat/message_bubble.dart';
@@ -3804,92 +4009,642 @@ class MessagePage extends StatelessWidget {
   }
 }
 
+
+FILE: lib/page/physiotherapist/master_view.dart
+
+
 FILE: lib/page/physiotherapist/home_physio_page.dart
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:physioapp/components/physiotherapist/home/consultation_calendar.dart';
-import 'package:physioapp/components/physiotherapist/home/patient_appointment_list.dart';
-import 'package:physioapp/components/physiotherapist/home/search_patient.dart';
+import 'package:intl/intl.dart';
+import 'package:physioapp/model/appointment/appointment_model.dart';
+import 'package:physioapp/model/schedule/schedule.dart';
+import 'package:physioapp/services/appointment/appointment_service.dart';
 import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/schedule/schedule_appointment_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:physioapp/page/physiotherapist/daily_list.dart';
 
-class HomePhysioPage extends StatelessWidget {
+class HomePhysioPage extends StatefulWidget {
   const HomePhysioPage({super.key});
+
+  @override
+  State<HomePhysioPage> createState() => _HomePhysioPageState();
+}
+
+class _HomePhysioPageState extends State<HomePhysioPage> {
+  // We initialize the selected date to today
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    // Ensure the controller has the correct initial date
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ScheduleAppointmentController>(context, listen: false)
+          .onDaySelected(DateTime.now(), DateTime.now());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final currentUser = UserDataCache();
+    final scheduleController = Provider.of<ScheduleAppointmentController>(context);
+    final appointments = scheduleController.listSchedule;
 
-    return Container(
-      child: SafeArea(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    // Logic to find the next appointment relative to now
+    Schedule? nextAppointment;
+    final now = DateTime.now();
+    final futureAppointments = appointments.where((appt) => appt.dateSchedule.isAfter(now)).toList()
+      ..sort((a, b) => a.dateSchedule.compareTo(b.dateSchedule));
+
+    if (futureAppointments.isNotEmpty) {
+      nextAppointment = futureAppointments.first;
+    }
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA), // Light grey/blue background
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 1. Header Section
+            _buildHeader(context, currentUser),
+
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: GestureDetector(
-                            onTap: () => Scaffold.of(context).openDrawer(),
-                            child: CircleAvatar(
-                              backgroundColor: Colors.grey,
-                              backgroundImage: currentUser.imageProfile,
-                              minRadius: 30,
+                    const SizedBox(height: 10),
+
+                    // // 2. Next Appointment Card
+                    // const Padding(
+                    //   padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    //   child: Text(
+                    //     'Próximo Atendimento',
+                    //     style: TextStyle(
+                    //       fontSize: 18,
+                    //       fontWeight: FontWeight.bold,
+                    //       color: Color(0xFF2D3142),
+                    //     ),
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 12),
+                    // _NextAppointmentCard(appointment: nextAppointment),
+//
+                    // const SizedBox(height: 24),
+
+                    // 3. Calendar Strip (Past, Current, Next Week)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Agenda',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D3142),
                             ),
                           ),
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Olá ${currentUser.firstName},',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 20,
-                              ),
+                          Text(
+                            DateFormat('MMMM yyyy', 'pt_BR').format(_selectedDate).toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[500],
                             ),
-                            Text(
-                              'O que vamos fazer hoje?',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w400,
-                                fontSize: 12,
-                                color: Theme.of(context).textTheme.labelSmall?.color,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                      child: IconButton(
-                        onPressed: () {},
-                        icon: Icon(
-                          Icons.notifications_outlined,
-                          color: Theme.of(context).primaryColor,
-                          size: 24,
-                        ),
+                          ),
+                        ],
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    _CalendarStrip(
+                      selectedDate: _selectedDate,
+                      onDateSelected: (date) {
+                        setState(() {
+                          _selectedDate = date;
+                        });
+                        scheduleController.onDaySelected(date, date);
+                      },
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // 4. Appointment List for Selected Date
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Text(
+                        _isSameDay(_selectedDate, DateTime.now())
+                            ? 'Hoje'
+                            : DateFormat('EEEE, d', 'pt_BR').format(_selectedDate),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF9C9EB9),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DailyAppointmentsList(),
+
+                    const SizedBox(height: 80), // Bottom padding for FAB/Nav
                   ],
                 ),
               ),
-              // widgets here
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _buildHeader(BuildContext context, UserDataCache user) {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          GestureDetector(
+            onTap: () => Scaffold.of(context).openDrawer(),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).primaryColor,
+                  width: 2,
+                ),
+              ),
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Colors.grey[300],
+                backgroundImage: user.imageProfile,
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Olá, ${user.firstName}',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D3142),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                UserDataCache().isPatient
+                    ? 'O que faremos hoje?'
+                    : 'Vamos cuidar dos seus pacientes?',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 }
+
+// ---------------------------------------------------------------------------
+// Custom Widgets (Internal)
+// ---------------------------------------------------------------------------
+
+class _NextAppointmentCard extends StatelessWidget {
+  final Schedule? appointment;
+
+  const _NextAppointmentCard({this.appointment});
+
+  @override
+  Widget build(BuildContext context) {
+    if (appointment == null) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.calendar_today_rounded, color: Colors.grey),
+            ),
+            const SizedBox(width: 16),
+            const Text(
+              'Nenhuma consulta próxima.',
+              style: TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final appt = appointment!;
+    final timeStr = DateFormat('HH:mm').format(appt.dateSchedule);
+    const durationStr = '1h'; // Assuming default, or fetch from model if available
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).colorScheme.primary.withOpacity(0.8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Background decoration
+          Positioned(
+            right: -20,
+            top: -20,
+            child: CircleAvatar(
+              radius: 60,
+              backgroundColor: Colors.white.withOpacity(0.1),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.white24,
+                        backgroundImage: FileImage(appt.patient.imageProfile),
+                        onBackgroundImageError: (_, __) => const Icon(Icons.person),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            appt.patient.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              appt.symptoms.isNotEmpty ? appt.symptoms : 'Consulta de rotina',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      children: [
+                        const Icon(Icons.access_time_filled, color: Colors.white70, size: 16),
+                        const SizedBox(height: 4),
+                        Text(
+                          timeStr,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _InfoBadge(icon: Icons.monitor_weight_outlined, label: '${appt.weight}kg'),
+                    _InfoBadge(icon: Icons.height, label: '${appt.height}m'),
+                    _InfoBadge(icon: Icons.cake_outlined, label: '${appt.age} anos'),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoBadge extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _InfoBadge({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.white70, size: 16),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        ),
+      ],
+    );
+  }
+}
+
+class _Old_CalendarStrip extends StatelessWidget {
+  final DateTime selectedDate;
+  final Function(DateTime) onDateSelected;
+
+  const _Old_CalendarStrip({
+    super.key,
+    required this.selectedDate,
+    required this.onDateSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // 21‑day window centered on today
+    final now = DateTime.now();
+    final startDate = now.subtract(const Duration(days: 10));
+    final dates = List.generate(21, (i) => startDate.add(Duration(days: i)));
+
+    return SizedBox(
+      height: 90,
+      width: double.infinity, // <-- give the list a finite width
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        primary: false, // <-- do NOT use the parent’s primary controller
+        itemCount: dates.length,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemBuilder: (context, index) {
+          final date = dates[index];
+          final isSelected = _isSameDay(date, selectedDate);
+          final isToday = _isSameDay(date, now);
+
+          return GestureDetector(
+            onTap: () => onDateSelected(date),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              width: 60,
+              decoration: BoxDecoration(
+                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: isToday && !isSelected
+                    ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: Theme.of(context).primaryColor.withOpacity(0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    DateFormat('EEE', 'pt_BR').format(date).toUpperCase().replaceAll('.', ''),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : Colors.grey[400],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    date.day.toString(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : const Color(0xFF2D3142),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+class _CalendarStrip extends StatelessWidget {
+  // this is the original one
+  final DateTime selectedDate;
+  final Function(DateTime) onDateSelected;
+
+  const _CalendarStrip({
+    required this.selectedDate,
+    required this.onDateSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Generate dates: 7 days past, today, 7 days future = 15 days total
+    // Or strictly "Past, Current, Next week" = 21 days roughly.
+    // Let's do a 21-day window centered on today.
+    final now = DateTime.now();
+    final startDate = now.subtract(const Duration(days: 3)); // Start of "Past week" roughly
+    final dates = List.generate(21, (index) => startDate.add(Duration(days: index)));
+
+    return SizedBox(
+      height: 90,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: dates.length,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        // Scroll to center initially? (Requires ScrollController, skipped for simplicity)
+        itemBuilder: (context, index) {
+          final date = dates[index];
+          final isSelected = _isSameDay(date, selectedDate);
+          final isToday = _isSameDay(date, now);
+
+          return GestureDetector(
+            onTap: () => onDateSelected(date),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              width: 60,
+              decoration: BoxDecoration(
+                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: isToday && !isSelected
+                    ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: Theme.of(context).primaryColor.withOpacity(0.4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
+                        )
+                      ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    DateFormat('EEE', 'pt_BR').format(date).toUpperCase().replaceAll('.', ''),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : Colors.grey[400],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    date.day.toString(),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : const Color(0xFF2D3142),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+}
+
+class NewAppointmentModel {
+  final String id;
+  final DateTime dateSchedule; // Maps to 'dateTime'
+  final String symptoms; // Maps to 'notes'
+  final NewPatientModel patient;
+
+  NewAppointmentModel({
+    required this.id,
+    required this.dateSchedule,
+    required this.symptoms,
+    required this.patient,
+  });
+
+  factory NewAppointmentModel.fromJson(Map<String, dynamic> json) {
+    return NewAppointmentModel(
+      id: json['id']?.toString() ?? '',
+      // Map API 'dateTime' to 'dateSchedule'
+      dateSchedule:
+          json['dateTime'] != null ? DateTime.parse(json['dateTime'] as String) : DateTime.now(),
+      // Map API 'notes' to 'symptoms'
+      symptoms: json['notes'] as String? ?? 'Sem descrição',
+      // Map nested patient
+      patient: NewPatientModel.fromJson(json['patient'] as Map<String, dynamic>? ?? {}),
+    );
+  }
+}
+
+class NewPatientModel {
+  final String name;
+  final dynamic imageProfile; // Dynamic to handle File or Bytes
+
+  NewPatientModel({required this.name, required this.imageProfile});
+
+  factory NewPatientModel.fromJson(Map<String, dynamic> json) {
+    final base64String = json['profileImage'];
+
+    // Logic: If we have base64, we decode it.
+    // Ideally we return Bytes, but your UI uses FileImage.
+    // We will handle this in the UI to be safe.
+    return NewPatientModel(
+      name: json['fullname'] as String? ?? 'Paciente',
+      imageProfile: base64String, // Store string to decode in UI
+    );
+  }
+}
+
 
 FILE: lib/page/physiotherapist/exercises_page_physio.dart
 import 'package:flutter/material.dart';
@@ -3966,6 +4721,7 @@ class ExercisesPagePhysio extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/page/physiotherapist/exercises_list_page.dart
 import 'package:flutter/material.dart';
@@ -4057,6 +4813,7 @@ class _ExercisesListPageState extends State<ExercisesListPage> {
   }
 }
 
+
 FILE: lib/page/physiotherapist/exercises_detail_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/exercises_detail.dart';
@@ -4097,6 +4854,284 @@ class ExercisesDetailPage extends StatelessWidget {
     );
   }
 }
+
+
+FILE: lib/page/physiotherapist/daily_list.dart
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:physioapp/page/physiotherapist/appointment_details_page.dart';
+import 'package:physioapp/repositories/relationship_repository.dart';
+import 'package:physioapp/services/services.dart';
+import 'package:physioapp/utils/domain_connection.dart';
+
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class AppointmentModel {
+  final String id;
+  final DateTime dateTime;
+  final String notes;
+  final String patientName;
+  final String patientImage;
+  final String status;
+  final int durationInMinutes;
+
+  AppointmentModel({
+    required this.id,
+    required this.dateTime,
+    required this.notes,
+    required this.patientName,
+    required this.patientImage,
+    required this.status,
+    required this.durationInMinutes,
+  });
+}
+
+Future<List<AppointmentModel>> fetchAllAppointments() async {
+  final String baseUrl = DomainConnection().url; 
+
+  try {
+    final String token = await getToken() as String;
+    final Map<String, String> headers = {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/appointments?page=0&size=100'),
+      headers: headers,
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to load appointments: ${response.statusCode}');
+    }
+
+    final Map<String, dynamic> body =
+        jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+    final List<dynamic> content =
+        body['content'] as List<dynamic>; 
+
+    final futures = content.map((apptJson) async {
+      final String patientId = apptJson['patientId'] as String;
+
+      final patient = await http.get(
+      Uri.parse('$baseUrl/api/relationships/$patientId'),
+      headers: headers,
+    );
+
+
+    final Map<String, dynamic> patientBody =
+        jsonDecode(utf8.decode(patient.bodyBytes)) as Map<String, dynamic>;
+    final String patientImage = patientBody['profileImage'] as String? ?? "";
+
+
+      
+      
+
+      debugPrint('json: ${prettier(apptJson as Map<String, dynamic>)}');
+
+      return AppointmentModel(
+        id: apptJson['id'] as String,
+        dateTime: DateTime.parse(apptJson['dateTime'] as String),
+        notes: apptJson['notes'] as String? ?? '',
+        patientName: apptJson['patientName'] as String? ?? 'Unknown',
+        patientImage: patientImage,
+        status: apptJson['status'] as String,
+        durationInMinutes: apptJson['durationMinutes'] as int? ?? 60,
+      );
+    });
+
+    return await Future.wait(futures);
+  } catch (e) {
+    debugPrint('Error fetching appointments: $e');
+    return [];
+  }
+}
+
+class DailyAppointmentsList extends StatelessWidget {
+  const DailyAppointmentsList();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<AppointmentModel>>(
+      future: fetchAllAppointments(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+              child: Padding(
+            padding: EdgeInsets.all(20),
+            child: CircularProgressIndicator(),
+          ));
+        }
+
+        final appointments = snapshot.data ?? [];
+
+        if (appointments.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Column(
+                children: [
+                  Icon(Icons.event_busy_rounded, size: 48, color: Colors.grey[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Sem consultas para este dia',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: appointments.length,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemBuilder: (context, index) {
+            final appt = appointments[index];
+
+            ImageProvider bgImage;
+            if (appt.patientImage is String && (appt.patientImage as String).isNotEmpty) {
+              try {
+                bgImage = MemoryImage(base64Decode(appt.patientImage as String));
+              } catch (_) {
+                bgImage = const AssetImage('assets/fake_profile.jpg');
+              }
+            }
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Time Column
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        DateFormat('HH:mm').format(appt.dateTime),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFF2D3142),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 4,
+                        height: 25,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.tertiary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  // Profile Image
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Colors.grey[200],
+                    backgroundImage: appt.patientImage.isNotEmpty
+                        ? MemoryImage(base64Decode(appt.patientImage))
+                        : const AssetImage('assets/fake_profile.jpg'),
+                  ),
+                  const SizedBox(width: 16),
+                  // Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          appt.patientName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            color: Color(0xFF2D3142),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            // Icon(Icons.description_outlined, size: 14, color: Colors.grey[500]),
+                            // const SizedBox(width: 4),
+                            // Expanded(
+                            //   child: Text(
+                            //     appt.notes,
+                            //     style: TextStyle(
+                            //       color: Colors.grey[500],
+                            //       fontSize: 13,
+                            //     ),
+                            //     maxLines: 1,
+                            //     overflow: TextOverflow.ellipsis,
+                            //   ),
+                            // ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Action Button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      onPressed: () {
+                        debugPrint('Appointment tapped: ${appt.id}');
+                        debugPrint('Appointment json: ${appt.notes}');
+
+
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AppointmentDetailsPage(
+                              appointment: appt,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
 
 FILE: lib/page/physiotherapist/chat_page_physio.dart
 import 'dart:io';
@@ -4192,101 +5227,177 @@ class _ChatPagePhysioState extends State<ChatPagePhysio> {
   }
 }
 
-FILE: lib/page/physiotherapist/auth_physio_page.dart
-import 'package:flutter/material.dart';
-import 'package:physioapp/utils/app_routes.dart';
 
-class AuthPhysioPage extends StatelessWidget {
-  const AuthPhysioPage({super.key});
+FILE: lib/page/physiotherapist/appointment_details_page.dart
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:physioapp/page/physiotherapist/daily_list.dart';
+
+class AppointmentDetailsPage extends StatelessWidget {
+  final AppointmentModel appointment;
+
+  const AppointmentDetailsPage({super.key, required this.appointment});
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('---- AuthPhysioPage -----');
+    ImageProvider? imageProvider;
+    if (appointment.patientImage.isNotEmpty) {
+      try {
+        imageProvider = MemoryImage(base64Decode(appointment.patientImage));
+      } catch (e) {
+        imageProvider = null;
+      }
+    }
+
+    final dateStr = DateFormat("d 'de' MMMM 'de' yyyy", 'pt_BR').format(appointment.dateTime);
+    final timeStr = DateFormat('HH:mm').format(appointment.dateTime);
+
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 236, 236, 236),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            colorFilter: ColorFilter.mode(Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
-            filterQuality: FilterQuality.high,
-            opacity: 0.9,
-            image: AssetImage(
-              'assets/images/background_image_auth_physio.png',
-            ),
-            fit: BoxFit.cover,
-          ),
-        ),
+      backgroundColor: const Color(0xFFF5F7FA),
+      appBar: AppBar(
+        title: const Text('Detalhes da Consulta'),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF2D3142),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Container(
-              margin: const EdgeInsets.only(bottom: 40),
-              child: Text(
-                'Junte-se a nós \n& atenda com Confiança',
-                style: Theme.of(context).textTheme.displayMedium,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Container(
-              height: 60,
-              width: double.infinity,
-              margin: const EdgeInsets.only(
-                top: 20,
-                right: 16,
-                left: 16,
-                bottom: 60,
-              ),
-              child: ElevatedButton.icon(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(
-                    Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signInPhysioPage),
-                label: Text(
-                  'Entre com email e senha',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
-                    fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                icon: const Icon(
-                  Icons.mail_outline_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 100),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            const SizedBox(height: 20),
+            // Header Profile
+            Center(
+              child: Column(
                 children: [
-                  Text(
-                    'Não possui conta? ',
-                    style: TextStyle(
-                      fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
-                      color: Theme.of(context).textTheme.labelLarge?.color,
-                      fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
-                      fontWeight: FontWeight.w400,
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Theme.of(context).primaryColor, width: 3),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        )
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: imageProvider,
+                      child: imageProvider == null
+                          ? Icon(Icons.person, size: 50, color: Colors.grey[400])
+                          : null,
                     ),
                   ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.signUpPhysioPage),
+                  const SizedBox(height: 16),
+                  Text(
+                    appointment.patientName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D3142),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(appointment.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     child: Text(
-                      'Cadastre-se agora!',
+                      _translateStatus(appointment.status),
                       style: TextStyle(
-                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
-                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Theme.of(context).colorScheme.primary,
+                        color: _getStatusColor(appointment.status),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 30),
+
+            // Info Cards
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  // Time & Duration
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildInfoItem(Icons.calendar_today_rounded, dateStr, 'Data'),
+                        Container(height: 40, width: 1, color: Colors.grey[200]),
+                        _buildInfoItem(Icons.access_time_rounded, timeStr, 'Horário'),
+                        Container(height: 40, width: 1, color: Colors.grey[200]),
+                        _buildInfoItem(Icons.timer_outlined, '${appointment.durationInMinutes} min',
+                            'Duração'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Notes / Description
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.02),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.notes_rounded, color: Theme.of(context).primaryColor),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Observações / Queixa',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2D3142),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          appointment.notes.isNotEmpty
+                              ? appointment.notes
+                              : 'Nenhuma observação registrada.',
+                          style: TextStyle(
+                            fontSize: 15,
+                            height: 1.5,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -4295,18 +5406,95 @@ class AuthPhysioPage extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: IconButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+      // bottomNavigationBar: Container(
+      //   padding: const EdgeInsets.all(20),
+      //   decoration: BoxDecoration(
+      //     color: Colors.white,
+      //     boxShadow: [
+      //       BoxShadow(
+      //         color: Colors.black.withOpacity(0.05),
+      //         blurRadius: 10,
+      //         offset: const Offset(0, -5),
+      //       ),
+      //     ],
+      //   ),
+      //   child: ElevatedButton(
+      //     onPressed: () {
+      //       // Action to start consultation or edit
+      //     },
+      //     style: ElevatedButton.styleFrom(
+      //       backgroundColor: Theme.of(context).primaryColor,
+      //       padding: const EdgeInsets.symmetric(vertical: 16),
+      //       shape: RoundedRectangleBorder(
+      //         borderRadius: BorderRadius.circular(16),
+      //       ),
+      //       elevation: 0,
+      //     ),
+      //     child: const Text(
+      //       'Iniciar Atendimento',
+      //       style: TextStyle(
+      //         fontSize: 16,
+      //         fontWeight: FontWeight.bold,
+      //         color: Colors.white,
+      //       ),
+      //     ),
+      //   ),
+      // ),
     );
   }
+
+  Widget _buildInfoItem(IconData icon, String value, String label) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.grey[400], size: 24),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: Color(0xFF2D3142),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[500],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'SCHEDULED':
+        return Colors.blue;
+      case 'COMPLETED':
+        return Colors.green;
+      case 'CANCELLED':
+        return Colors.red;
+      default:
+        return Colors.orange;
+    }
+  }
+
+  String _translateStatus(String status) {
+    switch (status.toUpperCase()) {
+      case 'SCHEDULED':
+        return 'Agendado';
+      case 'COMPLETED':
+        return 'Concluído';
+      case 'CANCELLED':
+        return 'Cancelado';
+      default:
+        return status;
+    }
+  }
 }
+
 
 FILE: lib/page/physiotherapist/add_patient_page.dart
 import 'package:flutter/material.dart';
@@ -4473,6 +5661,7 @@ class _AddPatientPageState extends State<AddPatientPage> {
   }
 }
 
+
 FILE: lib/page/physiotherapist/add_exercise_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/first_add_exercise_form.dart';
@@ -4584,220 +5773,6 @@ class _AddExercisePageState extends State<AddExercisePage> {
   }
 }
 
-FILE: lib/page/physio_or_patient_page.dart
-import 'package:flutter/material.dart';
-import 'package:physioapp/utils/app_routes.dart';
-import 'package:physioapp/services/auth/auth.dart';
-import 'package:physioapp/services/auth/auth_form.dart';
-
-class PhysioOrPatientPage extends StatefulWidget {
-  const PhysioOrPatientPage({super.key});
-
-  @override
-  PhysioOrPatientPageState createState() => PhysioOrPatientPageState();
-}
-
-class PhysioOrPatientPageState extends State<PhysioOrPatientPage> {
-
-  bool _isPhysioSelected = false;
-
-  void _navigateToAuth() {
-    final route = _isPhysioSelected ? AppRoutes.authPhysioPage : AppRoutes.authPatientPage;
-    Navigator.of(context).pushNamed(route);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    logout();
-    AuthFormData().reset();
-
-    debugPrint('--- physioapp ---');
-    return Scaffold(
-      body: Container(
-        height: double.infinity,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              const Color.fromARGB(127, 255, 255, 255),
-              const Color.fromARGB(127, 255, 255, 255),
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      children: [
-                        const Spacer(flex: 1),
-
-                        // logo
-                        Image.asset(
-                          'assets/images/logotipo.png',
-                          width: 300,
-                          height: 300,
-                          fit: BoxFit.contain,
-                        ),
-
-                        const Spacer(flex: 1),
-
-                        // text
-                        Text(
-                          'Bem Vindo!',
-                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // description
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: Text(
-                            'Bem vindo a plataforma PhysioApp, '
-                            'facilite e agilize suas consultas, '
-                            'seja como paciente ou fisioterapeuta.',
-                            style: Theme.of(context).textTheme.labelMedium,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-
-                        const Spacer(flex: 2),
-
-                        // toggle switch
-                        RoleToggleSwitch(
-                            isPhysioSelected: _isPhysioSelected,
-                            onChanged: (val) => setState(() => _isPhysioSelected = val),
-                          ),
-                        const Spacer(flex: 3),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
-      floatingActionButton: TextButton(
-        onPressed: _navigateToAuth,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Próximo',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 19,
-                fontStyle: Theme.of(context).textTheme.labelLarge?.fontStyle,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.primary),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-class RoleToggleSwitch extends StatelessWidget {
-  final bool isPhysioSelected;
-  final ValueChanged<bool> onChanged;
-  final double width;
-
-  const RoleToggleSwitch({
-    super.key,
-    required this.isPhysioSelected,
-    required this.onChanged,
-    this.width = 310,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const double height = 56;
-    const double padding = 4;
-    final double toggleWidth = (width / 2) - padding;
-
-    return Container(
-      width: width,
-      height: height,
-      padding: const EdgeInsets.all(padding),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(height / 2),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-        ),
-      ),
-      child: Stack(
-        children: [
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            left: isPhysioSelected ? toggleWidth : 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: toggleWidth,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(height / 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              _buildLabel(context, 'Paciente', !isPhysioSelected),
-              _buildLabel(context, 'Fisioterapeuta', isPhysioSelected),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLabel(BuildContext context, String text, bool isSelected) {
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => onChanged(text == 'Fisioterapeuta'),
-        child: Center(
-          child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              fontSize: 16,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.onPrimary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            child: Text(text),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 FILE: lib/page/patient/tabs_page_patient.dart
 import 'package:flutter/material.dart';
@@ -4808,6 +5783,7 @@ import 'package:physioapp/page/patient/exercises_page.dart';
 import 'package:physioapp/page/patient/home_patient_page.dart';
 import 'package:physioapp/page/patient/patient_profile_page.dart';
 import 'package:physioapp/page/physiotherapist/exercises_page_physio.dart';
+import 'package:physioapp/page/physiotherapist/home_physio_page.dart';
 import 'package:physioapp/page/physiotherapist/physio_profile_page.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:provider/provider.dart';
@@ -4823,7 +5799,7 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
   final List<Map<String, Object>> _indexScreen = [
     {
       'title': '',
-      'screen': const HomePatientPage(),
+      'screen': const HomePhysioPage(),
     },
     {
       'title': 'Chat',
@@ -4850,6 +5826,7 @@ class _TabsPagePatientState extends State<TabsPagePatient> {
     );
   }
 }
+
 
 FILE: lib/page/patient/signup_patient_page.dart
 import 'package:flutter/material.dart';
@@ -5046,6 +6023,7 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
   }
 }
 
+
 FILE: lib/page/patient/signin_patient_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/patient/auth/form_signin_patient.dart';
@@ -5175,6 +6153,7 @@ class SigninPatientPage extends StatelessWidget {
   }
 }
 
+
 FILE: lib/page/patient/policy_privacy_patient_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/policy_privacy/data_retention.dart';
@@ -5232,6 +6211,7 @@ class PolicyPrivacyPatientPage extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/page/patient/patient_profile_page.dart
 import 'package:flutter/material.dart';
@@ -5365,6 +6345,7 @@ class _PatientProfilePageState extends State<PatientProfilePage> {
   }
 }
 
+
 FILE: lib/page/patient/paired_physio_data_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/model/user/physio/physio_user.dart';
@@ -5461,6 +6442,7 @@ class PairedPhysioDataPage extends StatelessWidget {
   }
 }
 
+
 FILE: lib/page/patient/home_patient_page.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/patient/home/consultation_calendar_patient.dart';
@@ -5549,6 +6531,7 @@ class HomePatientPage extends StatelessWidget {
   }
 }
 
+
 FILE: lib/page/patient/exercises_page.dart
 import 'package:flutter/material.dart';
 
@@ -5565,6 +6548,7 @@ class ExercisesPage extends StatelessWidget {
   }
 }
 
+
 FILE: lib/page/patient/chat_patient_page.dart
 import 'package:flutter/material.dart';
 
@@ -5577,128 +6561,6 @@ class ChatPatientPage extends StatelessWidget {
       body: Center(
         child: Text('Chat Patient'),
       ),
-    );
-  }
-}
-FILE: lib/page/patient/auth_patient_page.dart
-import 'package:flutter/material.dart';
-import 'package:physioapp/utils/app_routes.dart';
-
-class AuthPatientPage extends StatelessWidget {
-  const AuthPatientPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 236, 236, 236),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            colorFilter: ColorFilter.mode(
-                Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
-            filterQuality: FilterQuality.high,
-            opacity: 0.9,
-            image: AssetImage(
-              'assets/images/background_image_auth_patient.jpg',
-            ),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(bottom: 70),
-              child: Text(
-                'O seu\natendimento\ndireto no celular',
-                style: Theme.of(context).textTheme.displayMedium,
-                textAlign: TextAlign.justify,
-              ),
-            ),
-            Container(
-              height: 60,
-              width: double.infinity,
-              margin: const EdgeInsets.only(
-                top: 20,
-                right: 16,
-                left: 16,
-                bottom: 60,
-              ),
-              child: ElevatedButton.icon(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(
-                    Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                onPressed: () => Navigator.of(context)
-                    .pushNamed(AppRoutes.signInPatientPage),
-                label: Text(
-                  'Entre com email e senha',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
-                    fontFamily:
-                        Theme.of(context).textTheme.titleLarge?.fontFamily,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                icon: const Icon(
-                  Icons.mail_outline_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 100),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Não possui conta? ',
-                    style: TextStyle(
-                      fontFamily:
-                          Theme.of(context).textTheme.labelLarge?.fontFamily,
-                      color: Theme.of(context).textTheme.labelLarge?.color,
-                      fontSize:
-                          Theme.of(context).textTheme.labelLarge?.fontSize,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context)
-                        .pushNamed(AppRoutes.signUpPatientPage),
-                    child: Text(
-                      'Cadastre-se agora!',
-                      style: TextStyle(
-                        fontFamily:
-                            Theme.of(context).textTheme.bodyLarge?.fontFamily,
-                        fontSize:
-                            Theme.of(context).textTheme.bodyLarge?.fontSize,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: IconButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
     );
   }
 }
@@ -5926,9 +6788,9 @@ class _AddPhysioPage extends StatelessWidget {
   }
 }
 
+
 FILE: lib/page/page.dart
 export 'patient/add_physio_page.dart';
-export 'patient/auth_patient_page.dart';
 export 'patient/chat_patient_page.dart';
 export 'patient/exercises_page.dart';
 export 'patient/home_patient_page.dart';
@@ -5938,10 +6800,8 @@ export 'patient/policy_privacy_patient_page.dart';
 export 'patient/signin_patient_page.dart';
 export 'patient/signup_patient_page.dart';
 export 'patient/tabs_page_patient.dart';
-export 'physio_or_patient_page.dart';
 export 'physiotherapist/add_exercise_page.dart';
 export 'physiotherapist/add_patient_page.dart';
-export 'physiotherapist/auth_physio_page.dart';
 export 'physiotherapist/chat_page_physio.dart';
 export 'physiotherapist/exercises_detail_page.dart';
 export 'physiotherapist/exercises_list_page.dart';
@@ -5954,6 +6814,360 @@ export 'physiotherapist/schedule_appointment_page.dart';
 export 'physiotherapist/signin_physio_page.dart';
 export 'physiotherapist/signup_physio_page.dart';
 export 'physiotherapist/tabs_page_physio.dart';
+
+export 'initial_page.dart';
+export 'common/welcome_page.dart';
+
+
+FILE: lib/page/initial_page.dart
+import 'package:flutter/material.dart';
+import 'package:physioapp/utils/app_routes.dart';
+
+class InitialPage extends StatefulWidget {
+  const InitialPage({super.key});
+
+  @override
+  State<InitialPage> createState() => _InitialPageState();
+}
+
+class _InitialPageState extends State<InitialPage> {
+
+  bool _isPhysioSelected = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.primary,
+              const Color.fromARGB(127, 255, 255, 255),
+              const Color.fromARGB(127, 255, 255, 255),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      children: [
+                        const Spacer(flex: 1),
+
+                        // logo
+                        Image.asset(
+                          'assets/images/logotipo.png',
+                          width: 300,
+                          height: 300,
+                          fit: BoxFit.contain,
+                        ),
+
+                        const Spacer(flex: 1),
+
+                        // text
+                        Text(
+                          'Bem Vindo!',
+                          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // description
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            'Bem vindo a plataforma PhysioApp, '
+                            'facilite e agilize suas consultas, '
+                            'seja como paciente ou fisioterapeuta.',
+                            style: Theme.of(context).textTheme.labelMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+
+                        const Spacer(flex: 2),
+
+                        // toggle switch
+                        RoleToggleSwitch(
+                            isPhysioSelected: _isPhysioSelected,
+                            onChanged: (val) => setState(() => _isPhysioSelected = val),
+                          ),
+                        const Spacer(flex: 3),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+      floatingActionButton: TextButton(
+        onPressed: () =>Navigator.of(context).pushNamed(
+          _isPhysioSelected ? AppRoutes.welcomePhysioPage : AppRoutes.welcomePatientPage
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Próximo',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 19,
+                fontStyle: Theme.of(context).textTheme.labelLarge?.fontStyle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.primary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+class RoleToggleSwitch extends StatelessWidget {
+  final bool isPhysioSelected;
+  final ValueChanged<bool> onChanged;
+  final double width;
+
+  const RoleToggleSwitch({
+    super.key,
+    required this.isPhysioSelected,
+    required this.onChanged,
+    this.width = 310,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const double height = 56;
+    const double padding = 4;
+    final double toggleWidth = (width / 2) - padding;
+
+    return Container(
+      width: width,
+      height: height,
+      padding: const EdgeInsets.all(padding),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(height / 2),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Stack(
+        children: [
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
+            left: isPhysioSelected ? toggleWidth : 0,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: toggleWidth,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(height / 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              _buildLabel(context, 'Paciente', !isPhysioSelected),
+              _buildLabel(context, 'Fisioterapeuta', isPhysioSelected),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLabel(BuildContext context, String text, bool isSelected) {
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => onChanged(text == 'Fisioterapeuta'),
+        child: Center(
+          child: AnimatedDefaultTextStyle(
+            duration: const Duration(milliseconds: 200),
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              fontSize: 16,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            child: Text(text),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+FILE: lib/page/common/welcome_page.dart
+import 'package:flutter/material.dart';
+import 'package:physioapp/utils/app_routes.dart';
+
+enum WelcomePageKind { patient, physio }
+
+class WelcomePage extends StatelessWidget {
+  const WelcomePage({
+    super.key,
+    required this.kind,
+  });
+
+  final WelcomePageKind kind;
+
+  String get _backgroundAsset => switch (kind) {
+        WelcomePageKind.patient => 'assets/images/background_image_auth_patient.jpg',
+        WelcomePageKind.physio => 'assets/images/background_image_auth_physio.png',
+      };
+
+  String get _title => switch (kind) {
+        WelcomePageKind.patient => 'O seu\natendimento\ndireto no celular',
+        WelcomePageKind.physio => 'Junte-se a nós \n& atenda com Confiança',
+      };
+
+  TextAlign get _titleAlign => switch (kind) {
+        WelcomePageKind.patient => TextAlign.justify,
+        WelcomePageKind.physio => TextAlign.center,
+      };
+
+  double get _titleBottomMargin => switch (kind) {
+        WelcomePageKind.patient => 70,
+        WelcomePageKind.physio => 40,
+      };
+
+  String get _signInRoute => switch (kind) {
+        WelcomePageKind.patient => AppRoutes.signInPatientPage,
+        WelcomePageKind.physio => AppRoutes.signInPhysioPage,
+      };
+
+  String get _signUpRoute => switch (kind) {
+        WelcomePageKind.patient => AppRoutes.signUpPatientPage,
+        WelcomePageKind.physio => AppRoutes.signUpPhysioPage,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 236, 236, 236),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            colorFilter: const ColorFilter.mode(
+              Color.fromARGB(78, 255, 255, 255),
+              BlendMode.colorDodge,
+            ),
+            filterQuality: FilterQuality.high,
+            opacity: 0.9,
+            image: AssetImage(_backgroundAsset),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              margin: EdgeInsets.only(bottom: _titleBottomMargin),
+              child: Text(
+                _title,
+                style: theme.textTheme.displayMedium,
+                textAlign: _titleAlign,
+              ),
+            ),
+            Container(
+              height: 60,
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              child: ElevatedButton.icon(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(primary),
+                ),
+                onPressed: () => Navigator.of(context).pushNamed(_signInRoute),
+                icon: const Icon(Icons.mail_outline_outlined,
+                    color: Colors.white, size: 24),
+                label: Text(
+                  'Entre com email e senha',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: theme.textTheme.titleLarge?.fontSize,
+                    fontFamily: theme.textTheme.titleLarge?.fontFamily,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 100),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Não possui conta? ',
+                    style: TextStyle(
+                      fontFamily: theme.textTheme.labelLarge?.fontFamily,
+                      color: theme.textTheme.labelLarge?.color,
+                      fontSize: theme.textTheme.labelLarge?.fontSize,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pushNamed(_signUpRoute),
+                    child: Text(
+                      'Cadastre-se agora!',
+                      style: TextStyle(
+                        fontFamily: theme.textTheme.bodyLarge?.fontFamily,
+                        fontSize: theme.textTheme.bodyLarge?.fontSize,
+                        fontWeight: FontWeight.w700,
+                        color: primary,
+                        decoration: TextDecoration.underline,
+                        decorationColor: primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: IconButton(
+        onPressed: () => Navigator.of(context).pop(),
+        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+    );
+  }
+}
+
 
 FILE: lib/page/common/chat_list_page.dart
 import 'package:flutter/material.dart';
@@ -6159,6 +7373,239 @@ class _ChatListPageState extends State<ChatListPage> {
   }
 }
 
+
+FILE: lib/page/common/auth_physio_page.dart
+import 'package:flutter/material.dart';
+import 'package:physioapp/utils/app_routes.dart';
+
+class AuthPhysioPage extends StatelessWidget {
+  const AuthPhysioPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 236, 236, 236),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            colorFilter: ColorFilter.mode(Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
+            filterQuality: FilterQuality.high,
+            opacity: 0.9,
+            image: AssetImage(
+              'assets/images/background_image_auth_physio.png',
+            ),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(bottom: 40),
+              child: Text(
+                'Junte-se a nós \n& atenda com Confiança',
+                style: Theme.of(context).textTheme.displayMedium,
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Container(
+              height: 60,
+              width: double.infinity,
+              margin: const EdgeInsets.only(
+                top: 20,
+                right: 16,
+                left: 16,
+                bottom: 60,
+              ),
+              child: ElevatedButton.icon(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signInPhysioPage),
+                label: Text(
+                  'Entre com email e senha',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+                    fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                icon: const Icon(
+                  Icons.mail_outline_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 100),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Não possui conta? ',
+                    style: TextStyle(
+                      fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
+                      color: Theme.of(context).textTheme.labelLarge?.color,
+                      fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.signUpPhysioPage),
+                    child: Text(
+                      'Cadastre-se agora!',
+                      style: TextStyle(
+                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: IconButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+    );
+  }
+}
+
+
+FILE: lib/page/common/auth_patient_page.dart
+import 'package:flutter/material.dart';
+import 'package:physioapp/utils/app_routes.dart';
+
+class AuthPatientPage extends StatelessWidget {
+  const AuthPatientPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 236, 236, 236),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            colorFilter: ColorFilter.mode(Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
+            filterQuality: FilterQuality.high,
+            opacity: 0.9,
+            image: AssetImage(
+              'assets/images/background_image_auth_patient.jpg',
+            ),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(bottom: 70),
+              child: Text(
+                'O seu\natendimento\ndireto no celular',
+                style: Theme.of(context).textTheme.displayMedium,
+                textAlign: TextAlign.justify,
+              ),
+            ),
+            Container(
+              height: 60,
+              width: double.infinity,
+              margin: const EdgeInsets.only(
+                top: 20,
+                right: 16,
+                left: 16,
+                bottom: 60,
+              ),
+              child: ElevatedButton.icon(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signInPatientPage),
+                label: Text(
+                  'Entre com email e senha',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
+                    fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                icon: const Icon(
+                  Icons.mail_outline_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsets.only(bottom: 100),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Não possui conta? ',
+                    style: TextStyle(
+                      fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
+                      color: Theme.of(context).textTheme.labelLarge?.color,
+                      fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.signUpPatientPage),
+                    child: Text(
+                      'Cadastre-se agora!',
+                      style: TextStyle(
+                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
+                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).colorScheme.primary,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: IconButton(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        icon: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+    );
+  }
+}
+
+
 FILE: lib/models/conversation_preview.dart
 class ConversationPreview {
   final String patientId;
@@ -6178,6 +7625,7 @@ class ConversationPreview {
   });
 }
 
+
 FILE: lib/models/chat_message.dart
 class ChatMessage {
   final String messageId;
@@ -6192,6 +7640,7 @@ class ChatMessage {
     required this.timestamp,
   });
 }
+
 
 FILE: lib/models/chat/connected_user.dart
 import 'dart:convert';
@@ -6252,6 +7701,7 @@ class ConnectedUser {
   }
 }
 
+
 FILE: lib/models/chat/chat_message.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -6301,6 +7751,7 @@ class ChatMessage {
     };
   }
 }
+
 
 FILE: lib/model/user/physio/physio_user.dart
 import 'dart:io';
@@ -6387,6 +7838,7 @@ class PhysioUser {
 
 }
 
+
 FILE: lib/model/user/patient/patient_user.dart
 import 'dart:io';
 
@@ -6459,6 +7911,7 @@ class PatientUser {
 
 }
 
+
 FILE: lib/model/schedule/schedule_form_data.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -6512,6 +7965,7 @@ class ScheduleFormData {
   }
 }
 
+
 FILE: lib/model/schedule/schedule.dart
 import 'package:physioapp/model/user/patient/patient_user.dart';
 
@@ -6534,6 +7988,7 @@ class Schedule {
     required this.height,
   });
 }
+
 
 FILE: lib/model/exercises/exercise.dart
 import 'package:flutter/material.dart';
@@ -6599,6 +8054,7 @@ class Exercise with ChangeNotifier {
   }
 }
 
+
 FILE: lib/model/exercises/category.dart
 import 'package:flutter/material.dart';
 
@@ -6625,7 +8081,17 @@ class Category {
   });
 }
 
+
 FILE: lib/model/appointment/appointment_model.dart
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+
+
+String prettier(Map<String, dynamic> jsonMap) =>
+    const JsonEncoder.withIndent('  ').convert(jsonMap);
+
+
 class AppointmentModel {
   final String id;
   final String patientName;
@@ -6646,12 +8112,14 @@ class AppointmentModel {
   });
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
+    debugPrint('json: ${prettier(json)}');
+    
     final patient = json['patient'] ?? {};
 
     return AppointmentModel(
       id: json['id']?.toString() ?? '',
       patientName: patient['fullname'] as String? ?? 'Paciente Desconhecido',
-      patientImage: patient['profileImage'] as String? ?? '',
+      patientImage: patient['profile_image'] as String? ?? '',
       dateTime:
           json['dateTime'] != null ? DateTime.parse(json['dateTime'] as String) : DateTime.now(),
       duration: json['durationMinutes'] as int? ?? 60,
@@ -6661,34 +8129,39 @@ class AppointmentModel {
   }
 }
 
+
 FILE: lib/main.dart
 import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:physioapp/core/theme/app_theme.dart';
+import 'package:physioapp/pwa/pwa_install.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_providers.dart';
 import 'package:physioapp/utils/app_routes.dart';
+import 'package:physioapp/web_only/js_bridge.dart';
 import 'package:provider/provider.dart';
 
 // TODO: create an export files for pages (maybe same for services)
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp, 
-    DeviceOrientation.portraitDown, 
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
   ]);
 
   // TODO: REMOVE THIS
   logout();
 
   runApp(
-    DevicePreview(
-      enabled: true,
-      builder: (_) => const PhysioApp(),
-    ),
+    kDebugMode || (kIsWeb && kReleaseMode && isDevicePreview())
+        ? DevicePreview(enabled: true, builder: (_) => const PhysioApp())
+        : (kIsWeb && kReleaseMode && !isRunningAsPWA())
+            ? const InstallPwa()
+            : const PhysioApp()
   );
 }
 
@@ -6705,10 +8178,11 @@ class PhysioApp extends StatelessWidget {
         theme: AppTheme.light,
         initialRoute: AppRoutes.initial,
         routes: AppRoutes.map,
-      )
+      ),
     );
   }
 }
+
 
 FILE: lib/exception/profile/change_data_profile_exception.dart
 import 'package:flutter/material.dart';
@@ -6784,6 +8258,7 @@ class ChangeDataProfileException {
         });
   }
 }
+
 
 FILE: lib/exception/auth_signup_exception.dart
 import 'package:flutter/material.dart';
@@ -6861,6 +8336,7 @@ class AuthSignupException {
   }
 }
 
+
 FILE: lib/data/paired_users_data.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/model/user/physio/physio_user.dart';
@@ -6877,6 +8353,7 @@ class PairedUsersData with ChangeNotifier {
 
   static List<Map<String, Object>> pairedUsers = [];
 }
+
 
 FILE: lib/data/exercises_mock_data.dart
 import 'package:flutter/material.dart';
@@ -7144,6 +8621,7 @@ class ExercisesMockData {
   ];
 }
 
+
 FILE: lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
 
@@ -7186,6 +8664,7 @@ class AppTheme {
   static const Color _grey = Color.fromARGB(255, 110, 125, 162);
 }
 
+
 FILE: lib/core/network/api_client.dart
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -7218,6 +8697,7 @@ class ApiClient {
   Dio get client => _dio;
 }
 
+
 FILE: lib/components/shared/gradient_background.dart
 import 'package:flutter/material.dart';
 
@@ -7242,6 +8722,7 @@ class GradientBackground extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/schedule_appointment/show_patients_appoinments.dart
 import 'package:flutter/material.dart';
@@ -7277,6 +8758,7 @@ class _ShowPatientsAppoinmentsState extends State<ShowPatientsAppoinments> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/schedule_appointment/select_form.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_form.dart';
@@ -7310,6 +8792,7 @@ class _SelectFormState extends State<SelectForm> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/schedule_appointment/second_form_schedule_appointment.dart
 import 'package:flutter/material.dart';
@@ -7587,6 +9070,7 @@ class _SecondFormScheduleAppointmentState extends State<SecondFormScheduleAppoin
   }
 }
 
+
 FILE: lib/components/physiotherapist/schedule_appointment/preview_map.dart
 import 'package:flutter/material.dart';
 
@@ -7617,6 +9101,7 @@ class _PreviewMapState extends State<PreviewMap> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/schedule_appointment/patient_selected.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/model/user/patient/patient_user.dart';
@@ -7641,6 +9126,7 @@ class PatientSelected extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/schedule_appointment/patient_item_appointment.dart
 import 'package:flutter/material.dart';
@@ -7675,6 +9161,7 @@ class PatientItemAppointment extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/schedule_appointment/first_form_schedule_appointment.dart
 import 'package:flutter/material.dart';
@@ -7966,6 +9453,7 @@ class _PatientSelectionSheetState extends State<PatientSelectionSheet> {
     );
   }
 }
+
 FILE: lib/components/physiotherapist/profile/profile_option_tile.dart
 import 'package:flutter/material.dart';
 
@@ -8031,6 +9519,7 @@ class ListTileComponent extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/profile/profile_data.dart
 import 'package:flutter/material.dart';
@@ -8133,6 +9622,7 @@ class ProfileData extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/physiotherapist/profile/photo_profile_physio.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/auth.dart';
@@ -8196,6 +9686,7 @@ class PhotoProfilePhysioState extends State<PhotoProfilePhysio> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/profile/other_options_physio.dart
 import 'package:flutter/material.dart';
@@ -8285,6 +9776,7 @@ class _OtherOptionsPhysioState extends State<OtherOptionsPhysio> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/profile/data_visualization_physio.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/profile/physio/physio_profile_service.dart';
@@ -8312,6 +9804,7 @@ class _DataVisualizationState extends State<DataVisualizationPhysio> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/profile/change_password_form.dart
 import 'package:flutter/material.dart';
@@ -8509,6 +10002,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/profile/change_name_form.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
@@ -8657,6 +10151,7 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/profile/change_email_form.dart
 import 'package:email_validator/email_validator.dart';
@@ -8807,6 +10302,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/profile/alert_delete_account.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/auth.dart';
@@ -8862,6 +10358,7 @@ class _AlertDeleteAccountState extends State<AlertDeleteAccount> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/policy_privacy/data_retention.dart
 import 'package:flutter/material.dart';
@@ -8997,6 +10494,7 @@ class DataRetention extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/physiotherapist/navigation/bottom_nav_bar_physio.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_controller.dart';
@@ -9086,6 +10584,7 @@ class BottomNavBarPhysioState extends State<BottomNavBarPhysio> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/navigation/app_drawer.dart
 import 'package:flutter/material.dart';
@@ -9189,6 +10688,7 @@ class AppDrawer extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/physiotherapist/home/search_patient.dart
 import 'package:flutter/material.dart';
 
@@ -9235,6 +10735,7 @@ class SearchPatientState extends State<SearchPatient> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/home/patient_appointment_list.dart
 import 'dart:io';
@@ -9375,6 +10876,7 @@ class PatientAppointmentList extends StatelessWidget {
           );
   }
 }
+
 
 FILE: lib/components/physiotherapist/home/consultation_calendar.dart
 import 'package:flutter/material.dart';
@@ -9518,6 +11020,7 @@ class _ConsultationCalendarState extends State<ConsultationCalendar> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/exercises/video_box.dart
 import 'dart:io';
@@ -9685,6 +11188,7 @@ class _VideoBoxState extends State<VideoBox> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/time_input_formatter.dart
 import 'package:flutter/services.dart';
 
@@ -9717,6 +11221,7 @@ class TimeInputFormatter extends TextInputFormatter {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/exercises/step_exercise.dart
 import 'dart:math' as math;
@@ -9801,6 +11306,7 @@ class StepExercise extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/shared_exercises_view.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_component.dart';
@@ -9869,6 +11375,7 @@ class _SharedExercisesViewState extends State<SharedExercisesView> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/select_form_exercises.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
@@ -9904,6 +11411,7 @@ class _SelectFormExercisesState extends State<SelectFormExercises> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/exercises/second_add_exercise_form.dart
 import 'package:flutter/material.dart';
@@ -10018,6 +11526,7 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/list_steps_exercises.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_form.dart';
@@ -10099,6 +11608,7 @@ class StepExercise extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/grid_view_exercises.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/box_exercises_type.dart';
@@ -10124,6 +11634,7 @@ class GridViewExercises extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/exercises/first_add_exercise_form.dart
 import 'package:flutter/material.dart';
@@ -10266,6 +11777,7 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/exercises_steps.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/physiotherapist/exercises/step_exercise.dart';
@@ -10326,6 +11838,7 @@ class ExerciseSteps extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/exercises/exercises_list.dart
 import 'package:flutter/material.dart';
@@ -10447,6 +11960,7 @@ class ExercisesList extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/exercises_detail.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/model/exercises/exercise.dart';
@@ -10512,6 +12026,7 @@ class ExercisesDetail extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/physiotherapist/exercises/box_view_exercises_shared.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/exercises/physio/exercises_controller_component.dart';
@@ -10551,6 +12066,7 @@ class BoxViewExercisesShared extends StatelessWidget {
           );
   }
 }
+
 
 FILE: lib/components/physiotherapist/exercises/box_exercises_type.dart
 import 'package:flutter/material.dart';
@@ -10642,6 +12158,7 @@ class BoxExercisesType extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/exercises/add_video_box.dart
 import 'package:flutter/foundation.dart';
@@ -10819,6 +12336,7 @@ class _AddVideoBoxState extends State<AddVideoBox> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/chat/select_patient_photo.dart
 import 'dart:io';
 
@@ -10862,6 +12380,7 @@ class SelectPatientPhoto extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/chat/search_patient.dart
 import 'package:flutter/material.dart';
@@ -10926,6 +12445,7 @@ class _SearchPatientState extends State<SearchPatient> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/chat/message_bubble.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -10976,6 +12496,7 @@ class MessageBubble extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/chat/list_patient.dart
 import 'package:flutter/material.dart';
@@ -11060,6 +12581,7 @@ class ListPatient extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/auth/second_form_signup.dart
 import 'package:email_validator/email_validator.dart';
@@ -11300,6 +12822,7 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/auth/image_picker_widget.dart
 import 'dart:convert';
 
@@ -11350,6 +12873,7 @@ class ImagePicketState extends State<ImagePicket> {
     );
   }
 }
+
 
 FILE: lib/components/physiotherapist/auth/form_signin.dart
 import 'package:flutter/material.dart';
@@ -11558,6 +13082,7 @@ class FormSignInState extends State<FormSignIn> {
   }
 }
 
+
 FILE: lib/components/physiotherapist/auth/first_form_signup.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11759,6 +13284,7 @@ class UpperCaseTextFormatter extends TextInputFormatter {
   }
 }
 
+
 FILE: lib/components/patient/profile/profile_option_tile.dart
 import 'package:flutter/material.dart';
 
@@ -11824,6 +13350,7 @@ class ListTileComponent extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/patient/profile/profile_data_patient.dart
 import 'package:flutter/material.dart';
@@ -11903,6 +13430,7 @@ class ProfileDataPatient extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/patient/profile/photo_profile_patient.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -11962,6 +13490,7 @@ class PhotoProfilePatientState extends State<PhotoProfilePatient> {
     );
   }
 }
+
 
 FILE: lib/components/patient/profile/other_options_patient.dart
 import 'package:flutter/material.dart';
@@ -12049,6 +13578,7 @@ class _OtherOptionsPatientState extends State<OtherOptionsPatient> {
   }
 }
 
+
 FILE: lib/components/patient/profile/data_visualization_patient.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/profile/patient/patient_profile_service.dart';
@@ -12076,6 +13606,7 @@ class _DataVisualizationPatientState extends State<DataVisualizationPatient> {
     );
   }
 }
+
 
 FILE: lib/components/patient/profile/change_password_form.dart
 import 'package:flutter/material.dart';
@@ -12269,6 +13800,7 @@ class _ChangePasswordFormState extends State<ChangePasswordForm> {
   }
 }
 
+
 FILE: lib/components/patient/profile/change_name_form.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/profile/change_data_profile_exception.dart';
@@ -12411,6 +13943,7 @@ class _ChangeNameFormState extends State<ChangeNameForm> {
     );
   }
 }
+
 
 FILE: lib/components/patient/profile/change_email_form.dart
 import 'package:flutter/material.dart';
@@ -12557,6 +14090,7 @@ class _ChangeEmailFormState extends State<ChangeEmailForm> {
   }
 }
 
+
 FILE: lib/components/patient/profile/alert_delete_account.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
@@ -12614,6 +14148,7 @@ class _AlertDeleteAccountState extends State<AlertDeleteAccount> {
     );
   }
 }
+
 
 FILE: lib/components/patient/policy_privacy/data_retention_patient.dart
 import 'package:flutter/material.dart';
@@ -12746,6 +14281,7 @@ class DataRetentionPatient extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/patient/home/view_shared_exercises_patient.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/patient/home/shared_exercise_item_patient.dart';
@@ -12793,6 +14329,7 @@ class _ViewSharedExercisesPatientState
     );
   }
 }
+
 
 FILE: lib/components/patient/home/shared_exercise_item_patient.dart
 import 'package:flutter/material.dart';
@@ -12856,6 +14393,7 @@ class _SharedExerciseItemPatientState extends State<SharedExerciseItemPatient> {
   }
 }
 
+
 FILE: lib/components/patient/home/search_physio.dart
 import 'package:flutter/material.dart';
 
@@ -12902,6 +14440,7 @@ class SearchPhysioState extends State<SearchPhysio> {
     );
   }
 }
+
 
 FILE: lib/components/patient/home/scheduled_appointments_item.dart
 import 'package:flutter/material.dart';
@@ -13001,6 +14540,7 @@ class ScheduledAppointmentsItem extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/patient/home/scheduled_appointments.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/patient/home/scheduled_appointments_item.dart';
@@ -13035,6 +14575,7 @@ class ScheduledAppointments extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/patient/home/physio_appointment_list.dart
 import 'dart:io';
@@ -13181,6 +14722,7 @@ class PhysioAppointmentList extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/patient/home/consultation_calendar_patient.dart
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -13241,6 +14783,7 @@ class ConsultationCalendarPatient extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/patient/bottom_nav_bar_patient.dart
 import 'package:flutter/material.dart';
@@ -13324,6 +14867,7 @@ class BottomNavBarPatientState extends State<BottomNavBarPatient> {
     );
   }
 }
+
 
 FILE: lib/components/patient/auth/form_signup_patient.dart
 import 'package:flutter/material.dart';
@@ -13541,6 +15085,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
   }
 }
 
+
 FILE: lib/components/patient/auth/form_signin_patient.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
@@ -13744,6 +15289,7 @@ class FormSignInPatientState extends State<FormSignInPatient> {
   }
 }
 
+
 FILE: lib/components/patient/app_drawer_patient.dart
 import 'dart:io';
 
@@ -13848,6 +15394,7 @@ class AppDrawerPatient extends StatelessWidget {
   }
 }
 
+
 FILE: lib/components/patient/add_physio/list_physio_item.dart
 import 'package:flutter/material.dart';
 import 'package:physioapp/model/user/physio/physio_user.dart';
@@ -13898,6 +15445,7 @@ class ListPhysioItem extends StatelessWidget {
     );
   }
 }
+
 
 FILE: lib/components/form_components.dart
 import 'package:flutter/material.dart';

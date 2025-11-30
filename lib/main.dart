@@ -2,6 +2,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:physioapp/core/theme/app_theme.dart';
 import 'package:physioapp/pwa/pwa_install.dart';
 import 'package:physioapp/services/auth/auth.dart';
@@ -14,6 +15,8 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  await initializeDateFormatting('pt_BR', null);
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -27,7 +30,8 @@ Future<void> main() async {
     kDebugMode || (kIsWeb && kReleaseMode && isDevicePreview())
         ? DevicePreview(enabled: true, builder: (_) => const PhysioApp())
         : (kIsWeb && kReleaseMode && !isRunningAsPWA())
-            ? const InstallPwa()
+            // ? const InstallPwa()
+            ? const PhysioApp()
             : const PhysioApp()
   );
 }

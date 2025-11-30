@@ -19,13 +19,11 @@ class HomePhysioPage extends StatefulWidget {
 }
 
 class _HomePhysioPageState extends State<HomePhysioPage> {
-  // We initialize the selected date to today
   DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    // Ensure the controller has the correct initial date
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ScheduleAppointmentController>(context, listen: false)
           .onDaySelected(DateTime.now(), DateTime.now());
@@ -38,7 +36,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
     final scheduleController = Provider.of<ScheduleAppointmentController>(context);
     final appointments = scheduleController.listSchedule;
 
-    // Logic to find the next appointment relative to now
     Schedule? nextAppointment;
     final now = DateTime.now();
     final futureAppointments = appointments.where((appt) => appt.dateSchedule.isAfter(now)).toList()
@@ -49,11 +46,10 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Light grey/blue background
+      backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Header Section
             _buildHeader(context, currentUser),
 
             Expanded(
@@ -64,7 +60,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                   children: [
                     const SizedBox(height: 10),
 
-                    // // 2. Next Appointment Card
                     // const Padding(
                     //   padding: EdgeInsets.symmetric(horizontal: 20.0),
                     //   child: Text(
@@ -78,10 +73,9 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                     // ),
                     // const SizedBox(height: 12),
                     // _NextAppointmentCard(appointment: nextAppointment),
-//
+
                     // const SizedBox(height: 24),
 
-                    // 3. Calendar Strip (Past, Current, Next Week)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -119,7 +113,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
 
                     const SizedBox(height: 24),
 
-                    // 4. Appointment List for Selected Date
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -136,7 +129,7 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                     const SizedBox(height: 12),
                     DailyAppointmentsList(),
 
-                    const SizedBox(height: 80), // Bottom padding for FAB/Nav
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
@@ -151,7 +144,8 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
             onTap: () => Scaffold.of(context).openDrawer(),
@@ -171,42 +165,40 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
               ),
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Olá, ${user.firstName}',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3142),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Olá, ${user.firstName}',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3142),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                UserDataCache().isPatient
-                    ? 'O que faremos hoje?'
-                    : 'Vamos cuidar dos seus pacientes?',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+                const SizedBox(height: 4),
+                Text(
+                  UserDataCache().isPatient ? 'O que faremos hoje?' : 'Vamos cuidar dos seus pacientes?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
+
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }
-
-// ---------------------------------------------------------------------------
-// Custom Widgets (Internal)
-// ---------------------------------------------------------------------------
 
 class _NextAppointmentCard extends StatelessWidget {
   final Schedule? appointment;
@@ -255,7 +247,7 @@ class _NextAppointmentCard extends StatelessWidget {
 
     final appt = appointment!;
     final timeStr = DateFormat('HH:mm').format(appt.dateSchedule);
-    const durationStr = '1h'; // Assuming default, or fetch from model if available
+    const durationStr = '1h';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -279,7 +271,6 @@ class _NextAppointmentCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Background decoration
           Positioned(
             right: -20,
             top: -20,
@@ -409,18 +400,17 @@ class _Old_CalendarStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 21‑day window centered on today
     final now = DateTime.now();
     final startDate = now.subtract(const Duration(days: 10));
     final dates = List.generate(21, (i) => startDate.add(Duration(days: i)));
 
     return SizedBox(
       height: 90,
-      width: double.infinity, // <-- give the list a finite width
+      width: double.infinity,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        primary: false, // <-- do NOT use the parent’s primary controller
+        primary: false,
         itemCount: dates.length,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemBuilder: (context, index) {
@@ -490,7 +480,6 @@ class _Old_CalendarStrip extends StatelessWidget {
 }
 
 class _CalendarStrip extends StatelessWidget {
-  // this is the original one
   final DateTime selectedDate;
   final Function(DateTime) onDateSelected;
 
@@ -501,11 +490,8 @@ class _CalendarStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Generate dates: 7 days past, today, 7 days future = 15 days total
-    // Or strictly "Past, Current, Next week" = 21 days roughly.
-    // Let's do a 21-day window centered on today.
     final now = DateTime.now();
-    final startDate = now.subtract(const Duration(days: 3)); // Start of "Past week" roughly
+    final startDate = now.subtract(const Duration(days: 3));
     final dates = List.generate(21, (index) => startDate.add(Duration(days: index)));
 
     return SizedBox(
@@ -515,7 +501,6 @@ class _CalendarStrip extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         itemCount: dates.length,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        // Scroll to center initially? (Requires ScrollController, skipped for simplicity)
         itemBuilder: (context, index) {
           final date = dates[index];
           final isSelected = _isSameDay(date, selectedDate);
@@ -585,8 +570,8 @@ class _CalendarStrip extends StatelessWidget {
 
 class NewAppointmentModel {
   final String id;
-  final DateTime dateSchedule; // Maps to 'dateTime'
-  final String symptoms; // Maps to 'notes'
+  final DateTime dateSchedule;
+  final String symptoms;
   final NewPatientModel patient;
 
   NewAppointmentModel({
@@ -599,12 +584,9 @@ class NewAppointmentModel {
   factory NewAppointmentModel.fromJson(Map<String, dynamic> json) {
     return NewAppointmentModel(
       id: json['id']?.toString() ?? '',
-      // Map API 'dateTime' to 'dateSchedule'
       dateSchedule:
           json['dateTime'] != null ? DateTime.parse(json['dateTime'] as String) : DateTime.now(),
-      // Map API 'notes' to 'symptoms'
       symptoms: json['notes'] as String? ?? 'Sem descrição',
-      // Map nested patient
       patient: NewPatientModel.fromJson(json['patient'] as Map<String, dynamic>? ?? {}),
     );
   }
@@ -612,19 +594,16 @@ class NewAppointmentModel {
 
 class NewPatientModel {
   final String name;
-  final dynamic imageProfile; // Dynamic to handle File or Bytes
+  final dynamic imageProfile;
 
   NewPatientModel({required this.name, required this.imageProfile});
 
   factory NewPatientModel.fromJson(Map<String, dynamic> json) {
     final base64String = json['profileImage'];
 
-    // Logic: If we have base64, we decode it.
-    // Ideally we return Bytes, but your UI uses FileImage.
-    // We will handle this in the UI to be safe.
     return NewPatientModel(
       name: json['fullname'] as String? ?? 'Paciente',
-      imageProfile: base64String, // Store string to decode in UI
+      imageProfile: base64String,
     );
   }
 }
