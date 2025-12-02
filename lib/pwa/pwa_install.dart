@@ -39,18 +39,18 @@ class InstallPwaScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'icons/Icon-192.png',
+                  'assets/images/logotipo.png',
                   width: 80,
                   height: 80,
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Install Our App',
+                  'Instale Nosso App',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'For the best experience, please add this application to your home screen.',
+                  'Para a melhor experiência, adicione este aplicativo à sua tela inicial.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
@@ -58,21 +58,21 @@ class InstallPwaScreen extends StatelessWidget {
                 const Divider(),
                 const SizedBox(height: 16),
                 const Text(
-                  'Instructions:',
+                  'Instruções:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 _buildInstructionStep(
-                  '1. Tap the \'Share\' icon',
-                  'On iOS, it\'s at the bottom. On Android, find it in the browser menu.',
+                  '1. Toque no ícone “Compartilhar”',
+                  'No iOS, ele está na parte inferior. No Android, encontre‑o no menu do navegador.',
                   Theme.of(context).platform == TargetPlatform.iOS
                       ? Icons.ios_share
                       : Icons.more_vert,
                 ),
                 const SizedBox(height: 16),
                 _buildInstructionStep(
-                  '2. Select \'Add to Home Screen\'',
-                  'You may need to scroll to find it.',
+                  '2. Selecione “Adicionar à Tela Inicial”',
+                  'Pode ser necessário rolar a tela para encontrá‑lo.',
                   Icons.add_to_home_screen,
                 ),
               ],
