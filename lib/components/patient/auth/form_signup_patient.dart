@@ -4,6 +4,7 @@ import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FormSignUpPatient extends StatefulWidget {
   final void Function(AuthFormData) onSubmited;
@@ -17,6 +18,8 @@ class FormSignUpPatient extends StatefulWidget {
 }
 
 class FormSignUpPatientState extends State<FormSignUpPatient> {
+  bool termOfUseAccepted = false;
+  final Uri urlTermOfUse = Uri.parse('https://zampini28.github.io/termo-de-uso-physioapp');
   // Atributos de controle
   final AuthFormData _authForm = AuthFormData();
   final _authException = AuthSignupException();
@@ -31,17 +34,13 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
     if (isValid == false) return;
 
     // Validação de campos
-    if (_authForm.name == null ||
-        _authForm.name!.isEmpty ||
-        _authForm.name!.length < 5) {
+    if (_authForm.name == null || _authForm.name!.isEmpty || _authForm.name!.length < 5) {
       return _authException.showErrorValidate(
         message: 'Digite seu nome completo!',
         context: context,
       );
     }
-    if (_authForm.email == null ||
-        _authForm.email!.isEmpty ||
-        !_authForm.email!.contains('@')) {
+    if (_authForm.email == null || _authForm.email!.isEmpty || !_authForm.email!.contains('@')) {
       return _authException.showErrorValidate(
         message: 'Digite um e-mail valído!',
         context: context,
@@ -58,6 +57,13 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
     if (_passwordController.text != _authForm.password) {
       return _authException.showErrorValidate(
         message: 'As senhas digitadas estão divergentes!',
+        context: context,
+      );
+    }
+    
+    if (!termOfUseAccepted) {
+      return _authException.showErrorValidate(
+        message: 'Você deve aceitar os termos de uso!',
         context: context,
       );
     }
@@ -79,8 +85,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 label: Text(
                   'Nome Completo',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -98,8 +103,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 label: Text(
                   'Email',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -117,8 +121,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 label: Text(
                   'Senha',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -149,8 +152,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 label: Text(
                   'Confirmar Senha',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -160,8 +162,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 suffixIcon: GestureDetector(
                   onTap: () {
                     setState(
-                      () => _visibilityConfirmPassword =
-                          !_visibilityConfirmPassword,
+                      () => _visibilityConfirmPassword = !_visibilityConfirmPassword,
                     );
                   },
                   child: Icon(
@@ -175,6 +176,33 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
               ),
               keyboardType: TextInputType.visiblePassword,
               obscureText: _visibilityConfirmPassword == true ? false : true,
+            ),
+          ),
+          //  termos de uso
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Aceite nosso', style: TextStyle(color: Colors.white)),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => launchUrl(urlTermOfUse),
+                  child: Text(
+                    'Termo de Uso.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Checkbox(
+                  value: termOfUseAccepted,
+                  onChanged: (val) => setState(() => termOfUseAccepted = val ?? false),
+                ),
+              ],
             ),
           ),
           Container(
@@ -198,10 +226,8 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                       'Cadastrar',
                       style: TextStyle(
                         color: Colors.white,
-                        fontFamily:
-                            Theme.of(context).textTheme.titleLarge?.fontFamily,
-                        fontSize:
-                            Theme.of(context).textTheme.titleLarge?.fontSize,
+                        fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
+                        fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

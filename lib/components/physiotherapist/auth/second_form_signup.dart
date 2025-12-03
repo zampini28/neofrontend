@@ -5,6 +5,7 @@ import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SecondFormSignUp extends StatefulWidget {
   final void Function(AuthFormData) onSubmited;
@@ -15,6 +16,9 @@ class SecondFormSignUp extends StatefulWidget {
 }
 
 class SecondFormSignUpState extends State<SecondFormSignUp> {
+  bool termOfUseAccepted = false;
+  final Uri urlTermOfUse = Uri.parse('https://zampini28.github.io/termo-de-uso-physioapp');
+
   // Atributos de controle
   final AuthSignupException _authException = AuthSignupException();
   final AuthFormData _authForm = AuthFormData();
@@ -89,6 +93,12 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
     // 3)
     if (password != confirmPassword) {
       errorMessage('As senhas digitadas estão divergentes!');
+      return;
+    }
+
+    // --- Termo de Uso ---
+    if (!termOfUseAccepted) {
+      errorMessage('Você deve aceitar o Termo de Uso!');
       return;
     }
 
@@ -202,6 +212,34 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
               obscureText: _visibilityConfirmPassword == true ? false : true,
             ),
           ),
+          //  termos de uso
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Aceite nosso', style: TextStyle(color: Colors.white)),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => launchUrl(urlTermOfUse),
+                  child: Text(
+                    'Termo de Uso.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Checkbox(
+                  value: termOfUseAccepted,
+                  onChanged: (val) => setState(() => termOfUseAccepted = val ?? false),
+                ),
+              ],
+            ),
+          ),
+
           Container(
             width: double.infinity,
             height: 60,
