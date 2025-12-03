@@ -44,10 +44,6 @@ class ExercisesDetail extends StatelessWidget {
               ),
             ),
             IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.share_outlined),
-            ),
-            IconButton(
               onPressed: () {
                 exerciseProvider.toggleFavorite(exerciseId: exercise.id);
               },

@@ -22,7 +22,6 @@ class IndividualChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final myId = UserDataCache().id;
 
-
     return ChangeNotifierProvider(
       create: (_) => ChatController()..initChat(patientId),
       child: Scaffold(
@@ -71,15 +70,15 @@ class IndividualChatScreen extends StatelessWidget {
               ),
             ],
           ),
-          actions: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.videocam, color: Colors.blueGrey),
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.call, color: Colors.blueGrey),
-            ),
+          actions: const [
+            // IconBsutton(
+            //   onPressed: () {},
+            //   icon: const Icon(Icons.videocam, color: Colors.blueGrey),
+            // ),
+            // IconButton(
+            //   onPressed: () {},
+            //   icon: const Icon(Icons.call, color: Colors.blueGrey),
+            // ),
           ],
         ),
         body: Column(

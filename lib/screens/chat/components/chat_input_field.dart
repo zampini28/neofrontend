@@ -45,10 +45,11 @@ class _ChatInputFieldState extends State<ChatInputField> {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.add, color: Colors.grey),
-            ),
+            const SizedBox(width: 15),
+            // IconButton(
+            //   onPressed: () {},
+            //   icon: const Icon(Icons.add, color: Colors.grey),
+            // ),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(

@@ -32,21 +32,32 @@ class ExercisesList extends StatelessWidget {
           ),
           child: Row(
             children: [
+
+
+              // TODO: Add youtube thumbnail
               Container(
-              height: 100,
-              width: 100,
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.play_circle_fill,
-                  color: Colors.white,
-                  size: 40,
+                height: 100,
+                width: 100,
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.play_circle_fill,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
               ),
-            ),
+
+
+
+
+
+
+
+
               Flexible(
                 fit: FlexFit.tight,
                 child: ListTile(
