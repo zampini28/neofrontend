@@ -75,8 +75,12 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
 
     // --- password ---
     // 1) deve ter pelo menos 8 caracteres - message: 'Digite uma senha com pelo menos 8 caracteres!'
-    // 2) não deve conter mais de 30 caracteres - message: 'A senha não deve conter mais de 30 caracteres!'
-    // 3) deve ser igual ao campo de confirmação de senha - message: 'As senhas digitadas estão divergentes!'
+    // 2) deve ter pelo menos uma letra e número - message: 'A senha deve conter ao menos uma letra e um número!'
+    // 3) não deve conter mais de 30 caracteres - message: 'A senha não deve conter mais de 30 caracteres!'
+    // 4) deve ser igual ao campo de confirmação de senha - message: 'As senhas digitadas estão divergentes!'
+
+    bool _hasLetter(String s) => RegExp(r'[A-Za-z]').hasMatch(s);
+    bool _hasDigit(String s)  => RegExp(r'\d').hasMatch(s);
 
     // 1)
     if (password.length < 8) {
@@ -85,12 +89,18 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
     }
 
     // 2)
+    if (!(_hasLetter(password) && _hasDigit(password))) {
+      errorMessage('A senha deve conter ao menos uma letra e um número!');
+      return;
+    }
+
+    // 3)
     if (password.length > 30) {
       errorMessage('A senha não deve conter mais de 30 caracteres!');
       return;
     }
 
-    // 3)
+    // 4)
     if (password != confirmPassword) {
       errorMessage('As senhas digitadas estão divergentes!');
       return;

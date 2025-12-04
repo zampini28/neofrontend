@@ -1,3 +1,4 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/form_components.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
@@ -26,46 +27,90 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _vibilityPassword = false;
   bool _visibilityConfirmPassword = false;
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   // Metodo para submissão de formulário
   Future<void> _validateForm() async {
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (isValid == false) return;
+    // PQP - pq vc colocou essa merda aqui se não tem validação nenhuma no form?
+    // final isValid = _formKey.currentState?.validate() ?? false;
+    // if (isValid == false) return;
 
-    // Validação de campos
-    if (_authForm.name == null || _authForm.name!.isEmpty || _authForm.name!.length < 5) {
-      return _authException.showErrorValidate(
-        message: 'Digite seu nome completo!',
-        context: context,
-      );
+    debugPrint('--- sumbit physio register');
+
+    // campos
+    final String fname = _authForm.name?.trim() ?? '';
+    final String email = _authForm.email?.trim() ?? '';
+    final String password = _authForm.password ?? '';
+    final String confirmPassword = _confirmPasswordController.text;
+
+    void errorMessage(String message) =>
+        _authException.showErrorValidate(message: message, context: context);
+
+    // validações
+
+    // --- nome completo ---
+    // 1) deve conter pelo menos um espaço - message: 'Digite seu nome completo!'
+    // 2) não deve conter números ou caracteres especiais - message: 'Nome completo não deve conter números ou caracteres especiais!'
+
+    // 1)
+    if (fname.isEmpty || !fname.contains(' ')) {
+      errorMessage('Digite seu nome completo!');
+      return;
     }
-    if (_authForm.email == null || _authForm.email!.isEmpty || !_authForm.email!.contains('@')) {
-      return _authException.showErrorValidate(
-        message: 'Digite um e-mail valído!',
-        context: context,
-      );
+
+    // 2)
+    final RegExp nameRegex = RegExp(r'^[a-zA-ZÀ-ÖØ-öø-ÿ\s]+$');
+    if (!nameRegex.hasMatch(fname)) {
+      errorMessage('Nome completo não deve conter números ou caracteres especiais!');
+      return;
     }
-    if (_authForm.password == null ||
-        _authForm.password!.isEmpty ||
-        _authForm.password!.length < 6) {
-      return _authException.showErrorValidate(
-        message: 'Digite uma senha com pelo menos 6 caracteres!',
-        context: context,
-      );
+
+    // --- email ---
+    // 1) deve ser um email válido - message: 'Digite um e-mail valído!'
+
+    // 1)
+    if (!EmailValidator.validate(email)) {
+      errorMessage('Digite um e-mail valído!');
+      return;
     }
-    if (_passwordController.text != _authForm.password) {
-      return _authException.showErrorValidate(
-        message: 'As senhas digitadas estão divergentes!',
-        context: context,
-      );
+
+    // --- password ---
+    // 1) deve ter pelo menos 8 caracteres - message: 'Digite uma senha com pelo menos 8 caracteres!'
+    // 2) deve ter pelo menos uma letra e número - message: 'A senha deve conter ao menos uma letra e um número!'
+    // 3) não deve conter mais de 30 caracteres - message: 'A senha não deve conter mais de 30 caracteres!'
+    // 4) deve ser igual ao campo de confirmação de senha - message: 'As senhas digitadas estão divergentes!'
+
+    bool _hasLetter(String s) => RegExp(r'[A-Za-z]').hasMatch(s);
+    bool _hasDigit(String s)  => RegExp(r'\d').hasMatch(s);
+
+    // 1)
+    if (password.length < 8) {
+      errorMessage('Digite uma senha com pelo menos 8 caracteres!');
+      return;
     }
-    
+
+    // 2)
+    if (!(_hasLetter(password) && _hasDigit(password))) {
+      errorMessage('A senha deve conter ao menos uma letra e um número!');
+      return;
+    }
+
+    // 3)
+    if (password.length > 30) {
+      errorMessage('A senha não deve conter mais de 30 caracteres!');
+      return;
+    }
+
+    // 4)
+    if (password != confirmPassword) {
+      errorMessage('As senhas digitadas estão divergentes!');
+      return;
+    }
+
+    // --- Termo de Uso ---
     if (!termOfUseAccepted) {
-      return _authException.showErrorValidate(
-        message: 'Você deve aceitar os termos de uso!',
-        context: context,
-      );
+      errorMessage('Você deve aceitar o Termo de Uso!');
+      return;
     }
 
     widget.onSubmited(_authForm);
@@ -147,7 +192,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
           ),
           FormComponents(
             textForm: TextFormField(
-              controller: _passwordController,
+              controller: _confirmPasswordController,
               decoration: InputDecoration(
                 label: Text(
                   'Confirmar Senha',
