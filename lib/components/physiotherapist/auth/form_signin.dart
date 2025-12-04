@@ -33,6 +33,7 @@ class FormSignInState extends State<FormSignIn> {
       _radioPhysioValue = value ?? RadioButton.physioOption;
     });
   }
+
   Future<void> _submit({required SignUpPageForm pageForm}) async {
     try {
       pageForm.toggleLoadingValue();
@@ -46,8 +47,11 @@ class FormSignInState extends State<FormSignIn> {
       }
 
       if (mounted) {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
+        if (UserDataCache().isPatient) {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePatient, (_) => false);
+        } else {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
+        }
       }
     } catch (error) {
       if (mounted) {
@@ -55,8 +59,7 @@ class FormSignInState extends State<FormSignIn> {
         if (error is Exception) {
           errorMessage = error.toString().replaceFirst('Exception: ', '');
         }
-        authException.showErrorSubmit(
-            messageError: errorMessage, context: context);
+        authException.showErrorSubmit(messageError: errorMessage, context: context);
       }
     } finally {
       pageForm.toggleLoadingValue();
@@ -77,8 +80,7 @@ class FormSignInState extends State<FormSignIn> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(50),
-              border: Border.all(
-                  color: const Color.fromARGB(255, 110, 125, 162), width: 1),
+              border: Border.all(color: const Color.fromARGB(255, 110, 125, 162), width: 1),
             ),
             child: TextFormField(
               onChanged: (email) => formData.email = email,
@@ -86,8 +88,7 @@ class FormSignInState extends State<FormSignIn> {
                 label: Text(
                   'Email',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -106,8 +107,7 @@ class FormSignInState extends State<FormSignIn> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(50),
-              border: Border.all(
-                  color: const Color.fromARGB(255, 110, 125, 162), width: 1),
+              border: Border.all(color: const Color.fromARGB(255, 110, 125, 162), width: 1),
             ),
             child: TextFormField(
               onChanged: (password) => formData.password = password,
@@ -115,8 +115,7 @@ class FormSignInState extends State<FormSignIn> {
                 label: Text(
                   'Senha',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -126,8 +125,7 @@ class FormSignInState extends State<FormSignIn> {
                 suffixIcon: _vibilityPassword == true
                     ? GestureDetector(
                         onTap: () {
-                          setState(
-                              () => _vibilityPassword = !_vibilityPassword);
+                          setState(() => _vibilityPassword = !_vibilityPassword);
                         },
                         child: Icon(
                           Icons.visibility_outlined,
@@ -137,8 +135,7 @@ class FormSignInState extends State<FormSignIn> {
                       )
                     : GestureDetector(
                         onTap: () {
-                          setState(
-                              () => _vibilityPassword = !_vibilityPassword);
+                          setState(() => _vibilityPassword = !_vibilityPassword);
                         },
                         child: Icon(
                           Icons.visibility_off_outlined,
@@ -171,10 +168,8 @@ class FormSignInState extends State<FormSignIn> {
                       'Entrar',
                       style: TextStyle(
                         color: Colors.white,
-                        fontFamily:
-                            Theme.of(context).textTheme.titleLarge?.fontFamily,
-                        fontSize:
-                            Theme.of(context).textTheme.titleLarge?.fontSize,
+                        fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
+                        fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -188,8 +183,7 @@ class FormSignInState extends State<FormSignIn> {
                 'Esqueci minha senha',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.tertiary,
-                  fontFamily:
-                      Theme.of(context).textTheme.labelLarge?.fontFamily,
+                  fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
                   fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
                   fontWeight: FontWeight.w400,
                   decoration: TextDecoration.underline,

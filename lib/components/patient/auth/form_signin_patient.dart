@@ -44,10 +44,11 @@ class FormSignInPatientState extends State<FormSignInPatient> {
       }
 
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.tabPagePatient,
-          (_) => false,
-        );
+        if (UserDataCache().isPatient) {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePatient, (_) => false);
+        } else {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
+        }
       }
     } catch (error) {
       if (mounted) {
