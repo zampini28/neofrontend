@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:physioapp/components/auth/password_reset_sheet.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
@@ -66,6 +67,15 @@ class FormSignInState extends State<FormSignIn> {
     }
   }
 
+  void _showForgotPassword(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const PasswordResetSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pageForm = Provider.of<SignUpPageForm>(context);
@@ -73,6 +83,7 @@ class FormSignInState extends State<FormSignIn> {
       key: _formKey,
       child: Column(
         children: [
+          // email input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -100,6 +111,8 @@ class FormSignInState extends State<FormSignIn> {
               controller: _emailController,
             ),
           ),
+
+          // password input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -149,6 +162,8 @@ class FormSignInState extends State<FormSignIn> {
               controller: _passwordController,
             ),
           ),
+
+          // login button
           Container(
             height: 60,
             width: double.infinity,
@@ -175,10 +190,12 @@ class FormSignInState extends State<FormSignIn> {
                     ),
                   ),
           ),
+
+          // forget password button
           Container(
             margin: const EdgeInsets.only(top: 20),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => _showForgotPassword(context),
               child: Text(
                 'Esqueci minha senha',
                 style: TextStyle(

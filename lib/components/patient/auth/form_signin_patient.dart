@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:physioapp/components/auth/password_reset_sheet.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -62,6 +63,16 @@ class FormSignInPatientState extends State<FormSignInPatient> {
     }
   }
 
+
+  void _showForgotPassword(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const PasswordResetSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pageForm = Provider.of<SignUpPageForm>(context);
@@ -69,6 +80,7 @@ class FormSignInPatientState extends State<FormSignInPatient> {
       key: _formKey,
       child: Column(
         children: [
+          // email input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -97,6 +109,8 @@ class FormSignInPatientState extends State<FormSignInPatient> {
               controller: _emailController,
             ),
           ),
+
+          // password input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -149,6 +163,8 @@ class FormSignInPatientState extends State<FormSignInPatient> {
               controller: _passwordController,
             ),
           ),
+
+          // login button
           Container(
             height: 60,
             width: double.infinity,
@@ -177,16 +193,17 @@ class FormSignInPatientState extends State<FormSignInPatient> {
                     ),
                   ),
           ),
+
+          // forget password button
           Container(
             margin: const EdgeInsets.only(top: 20),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => _showForgotPassword(context),
               child: Text(
                 'Esqueci minha senha',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.tertiary,
-                  fontFamily:
-                      Theme.of(context).textTheme.labelLarge?.fontFamily,
+                  fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
                   fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
                   fontWeight: FontWeight.w400,
                   decoration: TextDecoration.underline,
