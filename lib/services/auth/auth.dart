@@ -27,7 +27,16 @@ Future<void> logout() async {
   await prefs.remove('jwt_token');
 }
 
-Future<bool> authRegister({
+// before I had only the created or not, but now I need to return if created, already exists or not created
+
+enum RegisterResult {
+  created,
+  alreadyExists,
+  notCreated,
+  failed,
+}
+
+Future<RegisterResult> authRegister({
   required String imageProfile,
   required String fullname,
   required String email,
@@ -47,16 +56,27 @@ Future<bool> authRegister({
   };
 
   debugPrint(' -- send register body: ${prettier(body)}');
+  try {
+    final response = await http.post(
+      Uri.parse('$_base/auth/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
 
-  final response = await http.post(
-    Uri.parse('$_base/auth/register'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(body),
-  );
-
-  debugPrint(' -- register status_code: ${response.statusCode}');
-
-  return response.statusCode == 201;
+    debugPrint(' -- register body: ${response.body}');
+    debugPrint(' -- register status_code: ${response.statusCode}');
+    switch (response.statusCode) {
+      case 201:
+        return RegisterResult.created;
+      case 409:
+        return RegisterResult.alreadyExists;
+      default:
+        return RegisterResult.notCreated;
+    }
+  } catch (e) {
+    debugPrint(' -- register exception: $e');
+    return RegisterResult.failed;
+  }
 }
 
 Future<bool> authLogin({
@@ -270,7 +290,6 @@ Future<bool> updateUserPassword({required String password}) async {
   return false;
 }
 
-
 Future<void> deleteAccount() async {
   final token = await getToken();
   if (token == null) return;
@@ -349,7 +368,6 @@ class UserDataCache {
 
   bool get isPatient => type == 'PATIENT';
   bool get isPhysiotherapist => type == 'PHYSIO';
-
 
   ImageProvider get imageProfile {
     final String? base64String = _cachedData?['image'];
@@ -459,7 +477,6 @@ Future<bool> updateExerciseToServer({required ExercisesControllerForm formExerci
     return false;
   }
 }
-
 
 Future<void> makeAppointment() async {
   debugPrint(' -- makeAppointment');

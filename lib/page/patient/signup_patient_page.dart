@@ -54,10 +54,18 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
         userType: 'PATIENT',
       );
 
-      if (!register) {
-        showPopupError('Usuário já cadastrado!');
-        return;
+      switch (register) {
+        case RegisterResult.alreadyExists:
+          showPopupError('Usuário já cadastrado!');
+          return;
+        case RegisterResult.notCreated:
+        case RegisterResult.failed:
+          showPopupError('Falha ao cadastrar. Tente novamente mais tarde.');
+          return;
+        case RegisterResult.created:
+          break;
       }
+
       // login user
       final login = await authLogin(email: email, password: password);
 
