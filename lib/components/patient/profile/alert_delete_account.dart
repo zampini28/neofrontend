@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:physioapp/services/auth/auth.dart';
+import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/services/auth/patient/auth_patient_service.dart';
 import 'package:physioapp/services/navigation/bottom_nav_bar_patient_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -39,12 +41,15 @@ class _AlertDeleteAccountState extends State<AlertDeleteAccount> {
           child: const Text('Não'),
         ),
         TextButton(
-          onPressed: () {
+          onPressed: () async {
             final currentUser = AuthPatientService();
 
             currentUser.deleteAccount(currentUser: currentUser.currentPatientUser!);
 
             navigationPage.toggleIndex(index: 0);
+          
+            await logout();
+            AuthFormData().reset();
 
             Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.initial, (_) => false);
           },
