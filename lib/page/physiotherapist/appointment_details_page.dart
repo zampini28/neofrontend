@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:physioapp/page/physiotherapist/daily_list.dart';
+import 'package:physioapp/services/auth/auth.dart';
 
 class AppointmentDetailsPage extends StatelessWidget {
   final AppointmentModel appointment;
@@ -54,14 +55,20 @@ class AppointmentDetailsPage extends StatelessWidget {
                     child: CircleAvatar(
                       radius: 50,
                       backgroundColor: Colors.grey[200],
-                      backgroundImage: imageProvider,
-                      child: imageProvider == null
-                          ? Icon(Icons.person, size: 50, color: Colors.grey[400])
-                          : null,
+                         backgroundImage: UserDataCache().isPatient
+                          ? appointment.physiotherapistImage.isNotEmpty
+                              ? MemoryImage(
+                                  base64Decode(appointment.physiotherapistImage))
+                              : const AssetImage('assets/fake_profile.jpg')
+                          : appointment.patientImage.isNotEmpty
+                              ? MemoryImage(base64Decode(appointment.patientImage))
+                              : const AssetImage('assets/fake_profile.jpg'),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
+                    UserDataCache().isPatient ?
+                    appointment.physiotherapistName :
                     appointment.patientName,
                     style: const TextStyle(
                       fontSize: 22,
