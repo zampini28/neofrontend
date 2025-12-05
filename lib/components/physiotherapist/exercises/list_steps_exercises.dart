@@ -24,52 +24,54 @@ class StepExercise extends StatelessWidget {
 
     final step = exercisesFormProvider.steps[index];
 
-    return SizedBox(
-      height: 180,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
       child: Column(
         spacing: 10,
         children: [
-          defaultTextForm(
-            textForm: TextFormField(
-              initialValue: step.title,
-              decoration: InputDecoration(
-                label: Text(
-                  'Título da Etapa',
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.labelLarge?.color,
+          Row(
+            children: [
+              Expanded(
+                child: defaultTextForm(
+                  textForm: TextFormField(
+                    key: ValueKey('title_$index'),
+                    initialValue: step.title,
+                    decoration: InputDecoration(
+                      label: Text('Título da Etapa',
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .labelLarge
+                                  ?.color)),
+                      border: InputBorder.none,
+                    ),
+                    onChanged: (val) =>
+                        exercisesFormProvider.updateStep(index, title: val),
                   ),
                 ),
-                border: InputBorder.none,
               ),
-              keyboardType: TextInputType.text,
-              onChanged: (value) {
-                exercisesFormProvider.updateStep(
-                  index,
-                  title: value,
-                );
-              },
-            ),
+              if (exercisesFormProvider.quantitySteps > 1)
+                IconButton(
+                  onPressed: () => exercisesFormProvider.removeStep(index),
+                  icon: const Icon(Icons.delete_outline_rounded,
+                      color: Colors.red),
+                ),
+            ],
           ),
+
           defaultTextForm(
             textForm: TextFormField(
+              key: ValueKey('desc_$index'),
               initialValue: step.description,
               decoration: InputDecoration(
-                label: Text(
-                  'Descrição da Etapa',
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.labelLarge?.color,
-                  ),
-                ),
+                label: Text('Descrição da Etapa',
+                    style: TextStyle(
+                        color: Theme.of(context).textTheme.labelLarge?.color)),
                 border: InputBorder.none,
               ),
-              keyboardType: TextInputType.text,
               maxLines: 3,
-              onChanged: (value) {
-                exercisesFormProvider.updateStep(
-                  index,
-                  description: value,
-                );
-              },
+              onChanged: (val) =>
+                  exercisesFormProvider.updateStep(index, description: val),
             ),
           ),
         ],

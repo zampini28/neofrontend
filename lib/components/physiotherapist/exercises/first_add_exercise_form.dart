@@ -55,7 +55,8 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
                 ),
                 border: InputBorder.none,
               ),
-              onChanged: (title) => exerciseFormProvider.updateMainExercise(title: title),
+              onChanged: (title) =>
+                  exerciseFormProvider.updateMainExercise(title: title),
               keyboardType: TextInputType.text,
             ),
           ),
@@ -71,7 +72,8 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
                 ),
                 border: InputBorder.none,
               ),
-              onChanged: (description) => exerciseFormProvider.updateMainExercise(description: description),
+              onChanged: (description) => exerciseFormProvider
+                  .updateMainExercise(description: description),
               keyboardType: TextInputType.multiline,
               maxLines: 3,
             ),
@@ -90,6 +92,8 @@ class _FirstAddExerciseFormState extends State<FirstAddExerciseForm> {
           SizedBox(
             height: exerciseFormProvider.quantitySteps * 180,
             child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: exerciseFormProvider.quantitySteps,
               itemBuilder: (context, index) {
                 return StepExercise(index: index);

@@ -8,7 +8,8 @@ class ExercisesControllerForm with ChangeNotifier {
 
   double? duration;
 
-  bool get isAllStepsFilled => mainExercise.isFilled && steps.every((step) => step.isFilled);
+  bool get isAllStepsFilled =>
+      mainExercise.isFilled && steps.every((step) => step.isFilled);
   int get quantitySteps => steps.length;
   bool get videoSelected => videoFile != null;
 
@@ -124,6 +125,13 @@ class ExercisesControllerForm with ChangeNotifier {
     isSecondForm = false;
     isNextButtonEnable = false;
     notifyListeners();
+  }
+
+  void removeStep(int index) {
+    if (steps.length > 1) {
+      steps.removeAt(index);
+      notifyListeners();
+    }
   }
 }
 
