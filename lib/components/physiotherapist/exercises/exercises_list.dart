@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:physioapp/components/physiotherapist/exercises/video_box.dart';
 import 'package:physioapp/model/exercises/exercise.dart';
 import 'package:physioapp/services/exercises/physio/exercise_controller.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -14,6 +15,7 @@ class ExercisesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final exercisesProvider = Provider.of<ExerciseController>(context);
+
     return GestureDetector(
       onTap: () => Navigator.of(context).pushNamed(
         AppRoutes.exercisesDetailPage,
@@ -32,31 +34,23 @@ class ExercisesList extends StatelessWidget {
           ),
           child: Row(
             children: [
-
-
-              // TODO: Add youtube thumbnail
-              Container(
-                height: 100,
+              // THUMBNAIL WIDGET
+              YoutubeThumbnail(
+                videoUrl: exercise.videoUrl,
                 width: 100,
-                decoration: BoxDecoration(
-                  color: Colors.black54,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.play_circle_fill,
-                    color: Colors.white,
-                    size: 40,
-                  ),
+                height: 100,
+                // Passing null to onTap lets the widget use its default
+                // behavior (opening the video player), OR you can set
+                // onTap: () {} to do nothing and let the Card's onTap handle navigation.
+                // Given the layout, usually tapping the row goes to details.
+                // Let's pass an empty function so the tap propagates to the parent GestureDetector
+                // or you can leave it to open the video directly.
+                // Based on standard UX for this list:
+                onTap: () => Navigator.of(context).pushNamed(
+                  AppRoutes.exercisesDetailPage,
+                  arguments: exercise,
                 ),
               ),
-
-
-
-
-
-
-
 
               Flexible(
                 fit: FlexFit.tight,
@@ -76,20 +70,20 @@ class ExercisesList extends StatelessWidget {
                     child: Row(
                       spacing: 5,
                       children: [
-                        //  const Icon(
-                        //    Icons.access_time_filled_rounded,
-                        //    size: 24,
-                        //    color: Colors.white,
-                        //  ),
-                        //  Text(
-                        //    '${exercise.videoDuration.ceil()} min',
-                        //    style: const TextStyle(
-                        //      color: Colors.white,
-                        //      fontWeight: FontWeight.w500,
-                        //      fontSize: 14,
-                        //    ),
-                        //    overflow: TextOverflow.ellipsis,
-                        //  ),
+                        const Icon(
+                          Icons.access_time_filled_rounded,
+                          size: 24,
+                          color: Colors.white,
+                        ),
+                        Text(
+                          '${exercise.videoDuration.ceil()} min',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),

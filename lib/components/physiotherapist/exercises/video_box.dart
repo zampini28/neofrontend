@@ -245,195 +245,6 @@ String? extractYoutubeId(String url) {
 
 
 
-
-/*
-class VideoBox extends StatefulWidget {
-  final String videoUrl;
-  const VideoBox({super.key, required this.videoUrl});
-
-  @override
-  State<VideoBox> createState() => _VideoBoxState();
-}
-
-class _VideoBoxState extends State<VideoBox> {
-  VideoPlayerController? _controller;
-  bool _isInitialized = false;
-  bool _hasError = false;
-  bool _isDownloading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initPlayer();
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initPlayer() async {
-    debugPrint('VideoURL: ${widget.videoUrl}'); // e.g. https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj
-
-    if (widget.videoUrl.trim().isEmpty) {
-      if (mounted) setState(() => _hasError = true);
-      return;
-    }
-
-    final token = await getToken();
-
-    try {
-      if (kIsWeb) {
-        _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
-        await _controller!.initialize();
-      } else {
-        if (widget.videoUrl.startsWith('http')) {
-          if (mounted) setState(() => _isDownloading = true);
-
-          final response = await http.get(
-            Uri.parse(widget.videoUrl),
-            headers: {'Authorization': 'Bearer $token'},
-          );
-
-          if (response.statusCode == 200) {
-            final dir = await getTemporaryDirectory();
-            final fileName = 'video_${widget.videoUrl.hashCode}.mp4';
-            final file = File('${dir.path}/$fileName');
-
-            await file.writeAsBytes(response.bodyBytes);
-
-            _controller = VideoPlayerController.file(file);
-            await _controller!.initialize();
-          } else {
-            throw Exception('Auth Failed: ${response.statusCode}');
-          }
-        } else {
-          _controller = VideoPlayerController.asset(widget.videoUrl);
-          await _controller!.initialize();
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          _isInitialized = true;
-          _isDownloading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error initializing video: $e');
-      if (mounted) {
-        setState(() {
-          _hasError = true;
-          _isDownloading = false;
-        });
-      }
-    }
-  }
-
-  bool isYoutubeUrl(String url) {
-    final uri = Uri.parse(url);
-    if (uri == null) return false;
-
-    final host = uri.host.toLowerCase();
-    return host.contains('youtube.com') || host.contains('youtu.be');
-  }
-
-  String? extractYoutubeId(String url) {
-    if (!isYouTubeUrl(url)) return null;
-    final uri = Uri.parse(url);
-
-    if (uri.host.contains('youtu.be')) {
-      return uri.pathSegments.isNotEmpty ? uri.pathSegments[0] : null;
-    }
-
-    if (uri.queryParameters.containsKey('v')) {
-      return uri.queryParameters['v'];
-    }
-
-    final possible = uri.pathSegments;
-    if (possible.length >= 2 &&
-        (possible[0] == 'shorts' || possible[0] == 'embed')) {
-      return possible[1];
-    }
-    return null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_hasError) {
-      return Container(
-        color: Colors.grey[300],
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.videocam_off, size: 50, color: Colors.grey[600]),
-            const SizedBox(height: 10),
-            Text('Vídeo indisponível', style: TextStyle(color: Colors.grey[700])),
-          ],
-        ),
-      );
-    }
-
-    if (_isDownloading || !_isInitialized || _controller == null) {
-      return ColoredBox(
-        color: Colors.black12,
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      children: [
-        Center(
-          child: AspectRatio(
-            aspectRatio: _controller!.value.aspectRatio,
-            child: VideoPlayer(_controller!),
-          ),
-        ),
-        _buildControls(),
-      ],
-    );
-  }
-
-  Widget _buildControls() {
-    return Container(
-      color: Colors.black38,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                if (_controller!.value.isPlaying) {
-                  _controller!.pause();
-                } else {
-                  _controller!.play();
-                }
-              });
-            },
-            icon: Icon(
-              _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              _controller!.pause();
-              _controller!.seekTo(Duration.zero);
-              setState(() {});
-            },
-            icon: const Icon(Icons.replay, color: Colors.white, size: 30),
-          ),
-        ],
-      ),
-    );
-  }
-}
-*/
-
 /*
 // Example inside a ListView or any layout
 YoutubeThumbnail(
@@ -443,7 +254,7 @@ YoutubeThumbnail(
 )
 */
 
-
+/*
 class YoutubeThumbnail extends StatefulWidget {
   final String videoUrl;
   final double? width;   // optional size constraints
@@ -515,6 +326,117 @@ class _YoutubeThumbnailState extends State<YoutubeThumbnail> {
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
         errorWidget: (c, url, err) => const Icon(Icons.broken_image, size: 48),
+      ),
+    );
+  }
+}
+*/
+
+
+class YoutubeThumbnail extends StatefulWidget {
+  final String videoUrl;
+  final double? width;
+  final double? height;
+  final VoidCallback? onTap;
+
+  const YoutubeThumbnail({
+    super.key,
+    required this.videoUrl,
+    this.width,
+    this.height,
+    this.onTap,
+  });
+
+  @override
+  State<YoutubeThumbnail> createState() => _YoutubeThumbnailState();
+}
+
+class _YoutubeThumbnailState extends State<YoutubeThumbnail> {
+  String? _videoId;
+  String? _thumbUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _videoId = extractYoutubeId(widget.videoUrl);
+    if (_videoId != null) {
+      _thumbUrl = 'https://img.youtube.com/vi/$_videoId/hqdefault.jpg';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // If not YouTube, fallback to a nice icon placeholder
+    if (_thumbUrl == null) {
+      return Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: Colors.black54,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Center(
+          child: Icon(Icons.play_circle_fill, color: Colors.white, size: 40),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (widget.onTap != null) {
+          widget.onTap!();
+        } else {
+          // Default: Open the video player in a dialog/page
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => Scaffold(
+                backgroundColor: Colors.black,
+                appBar: AppBar(
+                    backgroundColor: Colors.transparent,
+                    iconTheme: const IconThemeData(color: Colors.white)),
+                body: Center(
+                  child: VideoBox(videoUrl: widget.videoUrl),
+                ),
+              ),
+            ),
+          );
+        }
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            CachedNetworkImage(
+              imageUrl: _thumbUrl!,
+              width: widget.width,
+              height: widget.height,
+              fit: BoxFit.cover,
+              placeholder: (c, url) => Container(
+                width: widget.width,
+                height: widget.height,
+                color: Colors.grey[300],
+                child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+              errorWidget: (c, url, err) => Container(
+                width: widget.width,
+                height: widget.height,
+                color: Colors.grey[300],
+                child: const Icon(Icons.broken_image),
+              ),
+            ),
+            // Play Icon Overlay
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.play_circle_fill,
+                  color: Colors.white, size: 40),
+            ),
+          ],
+        ),
       ),
     );
   }
