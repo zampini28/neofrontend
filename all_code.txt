@@ -1244,195 +1244,9 @@ class PhysioEndpoint {
 
 
 FILE: lib/services/auth/physio/auth_physio_service.dart
-import 'dart:io';
-
-import 'package:physioapp/model/user/physio/physio_user.dart';
-import 'package:physioapp/services/auth/auth_form.dart';
-import 'package:physioapp/services/auth/physio/auth_physio_backend_service.dart';
-
-abstract class AuthPhysioService {
-  PhysioUser? get currentPhysioUser;
-
-  Future<void> signUp({
-    required RadioButton physioType,
-    required File imageProfile,
-    required String name,
-    required String email,
-    required String password,
-    required String crefito,
-  });
-
-  Future<void> login({required String email, required String password});
-
-  Future<void> deleteAccount({required PhysioUser currentUser});
-
-  Future<void> updateUser({
-    PhysioUser? currentUser,
-    String? password,
-    String? name,
-    String? email,
-  });
-
-  Future<void> logout();
-
-  factory AuthPhysioService() {
-    return AuthPhysioBackendService();
-  }
-}
 
 
 FILE: lib/services/auth/physio/auth_physio_backend_service.dart
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:physioapp/model/user/physio/physio_user.dart';
-import 'package:physioapp/services/auth/auth.dart';
-import 'package:physioapp/services/auth/auth_form.dart';
-import 'package:physioapp/services/auth/physio/auth_physio_service.dart';
-import 'package:physioapp/services/auth/physio/physio_endpoint.dart';
-
-class AuthPhysioBackendService implements AuthPhysioService {
-  final endpoints = PhysioEndpoint();
-
-  static String? _globalToken;
-  File? image;
-
-  void _updatePhysioUser({required dynamic user, File? imageProfile, RadioButton? physioType}) {
-    _currentUserPhysio = PhysioUser(
-      id: user['id'] as String,
-      crefito: user['crefito'] as String,
-      physioType: physioType ?? RadioButton.physioOption,
-      imageProfile: imageProfile ?? File(''),
-      name: user['fullname'] as String,
-      email: user['email'] as String,
-    );
-  }
-
-  static PhysioUser? _currentUserPhysio;
-
-  @override
-  // TODO: implement currentPhysioUser
-  PhysioUser? get currentPhysioUser => _currentUserPhysio;
-
-  @override
-  Future<void> signUp({
-    required RadioButton physioType,
-    required File imageProfile,
-    required String name,
-    required String email,
-    required String password,
-    required String crefito,
-  }) async {
-
-    // fazer registo
-    final register = await authRegister(
-      imageProfile: 'TODO: change this',
-      fullname: name,
-      email: email,
-      password: password,
-      userType: 'PHYSIO',
-      crefito: crefito,
-    );
-
-    if (!register) {
-      throw Exception('Usuário já existente!');
-    }
-
-    // fazer login
-    final login = await authLogin(
-      email: email,
-      password: password,
-    );
-
-    if (!login) {
-      throw Exception('Email ou senha incorretos.');
-    }
-  }
-
-  @override
-  Future<void> login({required String email, required String password}) async {
-    debugPrint(' -- hello from login (AuthPhysioBackendService)');
-    final login = await endpoints.loginEndpoint(
-      email: email,
-      password: password,
-    );
-
-    try {
-      final json = jsonDecode(login.body);
-      final String? token = json['token'] as String?;
-
-      if (token != null && token.isNotEmpty) {
-        _globalToken = token;
-
-        final current = await endpoints.meEndpoint(token: _globalToken!);
-
-        final user = jsonDecode(current.body);
-        debugPrint('User ===> $user');
-        image = image;
-
-        _updatePhysioUser(user: user, imageProfile: image);
-      }
-
-      debugPrint(' -- goodbye from login (AuthPhysioBackendService)');
-    } catch (error) {
-      debugPrint('ocorreu erro, deu ruim');
-      debugPrint(login.statusCode.toString());
-
-      debugPrint(' -- goodbye with error from login (AuthPhysioBackendService)');
-      throw Exception(
-        'Erro de acesso, verifique se o endereço de e-mail está correto',
-      );
-    }
-  }
-
-  @override
-  Future<void> deleteAccount({required PhysioUser currentUser}) async {
-    final response = await endpoints.deleteEndpoint(userId: currentUser.id, token: _globalToken!);
-
-    try {
-      debugPrint('Deu tudo certo');
-    } catch (error) {
-      debugPrint(response.toString());
-    }
-  }
-
-  @override
-  Future<void> updateUser(
-      {PhysioUser? currentUser, String? password, String? name, String? email}) async {
-    final response = await endpoints.updateEndpoint(
-      currentUser: currentUser,
-      name: name,
-      email: email,
-      token: _globalToken!,
-      password: password,
-    );
-
-    try {
-      debugPrint('deu bom');
-
-      final current = await endpoints.meEndpoint(token: _globalToken!);
-
-      final user = jsonDecode(current.body);
-
-      _updatePhysioUser(
-        user: user,
-        physioType: RadioButton.physioOption,
-      );
-    } catch (error) {
-      debugPrint(response.statusCode.toString());
-      debugPrint('deu ruim');
-    }
-  }
-
-  @override
-  Future<void> logout() async {
-    _currentUserPhysio = null;
-    _globalToken = null;
-    AuthFormData.crefito = null;
-    AuthFormData.imageProfile = null;
-  }
-}
 
 
 FILE: lib/services/auth/patient/patient_endpoint.dart
@@ -1725,6 +1539,67 @@ class AuthPatientBackendService implements AuthPatientService {
 }
 
 
+FILE: lib/services/auth/password_reset_service.dart
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:physioapp/utils/domain_connection.dart';
+
+class PasswordResetService {
+  final String _baseUrl = DomainConnection().url;
+
+  Future<bool> requestRecoveryCode(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        debugPrint('Failed to send code: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error requesting code: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/auth/reset-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'code': code,
+          'newPassword': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return {'success': true};
+      } else {
+        final body = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Falha ao redefinir senha.'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Erro de conexão: $e'};
+    }
+  }
+}
+
+
 FILE: lib/services/auth/auth_form.dart
 import 'package:flutter/material.dart';
 
@@ -1813,7 +1688,16 @@ Future<void> logout() async {
   await prefs.remove('jwt_token');
 }
 
-Future<bool> authRegister({
+// before I had only the created or not, but now I need to return if created, already exists or not created
+
+enum RegisterResult {
+  created,
+  alreadyExists,
+  notCreated,
+  failed,
+}
+
+Future<RegisterResult> authRegister({
   required String imageProfile,
   required String fullname,
   required String email,
@@ -1833,16 +1717,27 @@ Future<bool> authRegister({
   };
 
   debugPrint(' -- send register body: ${prettier(body)}');
+  try {
+    final response = await http.post(
+      Uri.parse('$_base/auth/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
 
-  final response = await http.post(
-    Uri.parse('$_base/auth/register'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(body),
-  );
-
-  debugPrint(' -- register status_code: ${response.statusCode}');
-
-  return response.statusCode == 201;
+    debugPrint(' -- register body: ${response.body}');
+    debugPrint(' -- register status_code: ${response.statusCode}');
+    switch (response.statusCode) {
+      case 201:
+        return RegisterResult.created;
+      case 409:
+        return RegisterResult.alreadyExists;
+      default:
+        return RegisterResult.notCreated;
+    }
+  } catch (e) {
+    debugPrint(' -- register exception: $e');
+    return RegisterResult.failed;
+  }
 }
 
 Future<bool> authLogin({
@@ -2056,7 +1951,6 @@ Future<bool> updateUserPassword({required String password}) async {
   return false;
 }
 
-
 Future<void> deleteAccount() async {
   final token = await getToken();
   if (token == null) return;
@@ -2135,7 +2029,6 @@ class UserDataCache {
 
   bool get isPatient => type == 'PATIENT';
   bool get isPhysiotherapist => type == 'PHYSIO';
-
 
   ImageProvider get imageProfile {
     final String? base64String = _cachedData?['image'];
@@ -2245,7 +2138,6 @@ Future<bool> updateExerciseToServer({required ExercisesControllerForm formExerci
     return false;
   }
 }
-
 
 Future<void> makeAppointment() async {
   debugPrint(' -- makeAppointment');
@@ -2362,7 +2254,6 @@ class IndividualChatScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final myId = UserDataCache().id;
 
-
     return ChangeNotifierProvider(
       create: (_) => ChatController()..initChat(patientId),
       child: Scaffold(
@@ -2411,15 +2302,15 @@ class IndividualChatScreen extends StatelessWidget {
               ),
             ],
           ),
-          actions: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.videocam, color: Colors.blueGrey),
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.call, color: Colors.blueGrey),
-            ),
+          actions: const [
+            // IconBsutton(
+            //   onPressed: () {},
+            //   icon: const Icon(Icons.videocam, color: Colors.blueGrey),
+            // ),
+            // IconButton(
+            //   onPressed: () {},
+            //   icon: const Icon(Icons.call, color: Colors.blueGrey),
+            // ),
           ],
         ),
         body: Column(
@@ -2538,10 +2429,11 @@ class _ChatInputFieldState extends State<ChatInputField> {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.add, color: Colors.grey),
-            ),
+            const SizedBox(width: 15),
+            // IconButton(
+            //   onPressed: () {},
+            //   icon: const Icon(Icons.add, color: Colors.grey),
+            // ),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -2905,18 +2797,18 @@ class InstallPwaScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'icons/Icon-192.png',
+                  'assets/images/logotipo.png',
                   width: 80,
                   height: 80,
                 ),
                 const SizedBox(height: 20),
                 const Text(
-                  'Install Our App',
+                  'Instale Nosso App',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'For the best experience, please add this application to your home screen.',
+                  'Para a melhor experiência, adicione este aplicativo à sua tela inicial.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16, color: Colors.grey),
                 ),
@@ -2924,21 +2816,21 @@ class InstallPwaScreen extends StatelessWidget {
                 const Divider(),
                 const SizedBox(height: 16),
                 const Text(
-                  'Instructions:',
+                  'Instruções:',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 _buildInstructionStep(
-                  '1. Tap the \'Share\' icon',
-                  'On iOS, it\'s at the bottom. On Android, find it in the browser menu.',
+                  '1. Toque no ícone “Compartilhar”',
+                  'No iOS, ele está na parte inferior. No Android, encontre‑o no menu do navegador.',
                   Theme.of(context).platform == TargetPlatform.iOS
                       ? Icons.ios_share
                       : Icons.more_vert,
                 ),
                 const SizedBox(height: 16),
                 _buildInstructionStep(
-                  '2. Select \'Add to Home Screen\'',
-                  'You may need to scroll to find it.',
+                  '2. Selecione “Adicionar à Tela Inicial”',
+                  'Pode ser necessário rolar a tela para encontrá‑lo.',
                   Icons.add_to_home_screen,
                 ),
               ],
@@ -3234,10 +3126,20 @@ class _SignupPhysioPageState extends State<SignupPhysioPage> {
         occupational: occupational,
       );
 
-      if (!register) {
-        showPopupError('Usuário já cadastrado!');
-        return;
+      switch (register) {
+        case RegisterResult.notCreated:
+          showPopupError('CREFITO e nome completo não correspondem.');
+          return;
+        case RegisterResult.alreadyExists:
+          showPopupError('Usuário já cadastrado!');
+          return;
+        case RegisterResult.failed:
+          showPopupError('Falha ao cadastrar. Tente novamente mais tarde.');
+          return;
+        case RegisterResult.created:
+          break;
       }
+
       // login user
       final login = await authLogin(email: email, password: password);
 
@@ -4035,13 +3937,11 @@ class HomePhysioPage extends StatefulWidget {
 }
 
 class _HomePhysioPageState extends State<HomePhysioPage> {
-  // We initialize the selected date to today
   DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    // Ensure the controller has the correct initial date
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ScheduleAppointmentController>(context, listen: false)
           .onDaySelected(DateTime.now(), DateTime.now());
@@ -4054,7 +3954,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
     final scheduleController = Provider.of<ScheduleAppointmentController>(context);
     final appointments = scheduleController.listSchedule;
 
-    // Logic to find the next appointment relative to now
     Schedule? nextAppointment;
     final now = DateTime.now();
     final futureAppointments = appointments.where((appt) => appt.dateSchedule.isAfter(now)).toList()
@@ -4065,11 +3964,10 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA), // Light grey/blue background
+      backgroundColor: const Color(0xFFF5F7FA),
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Header Section
             _buildHeader(context, currentUser),
 
             Expanded(
@@ -4080,7 +3978,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                   children: [
                     const SizedBox(height: 10),
 
-                    // // 2. Next Appointment Card
                     // const Padding(
                     //   padding: EdgeInsets.symmetric(horizontal: 20.0),
                     //   child: Text(
@@ -4094,10 +3991,9 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                     // ),
                     // const SizedBox(height: 12),
                     // _NextAppointmentCard(appointment: nextAppointment),
-//
+
                     // const SizedBox(height: 24),
 
-                    // 3. Calendar Strip (Past, Current, Next Week)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Row(
@@ -4135,7 +4031,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
 
                     const SizedBox(height: 24),
 
-                    // 4. Appointment List for Selected Date
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -4152,7 +4047,7 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                     const SizedBox(height: 12),
                     DailyAppointmentsList(),
 
-                    const SizedBox(height: 80), // Bottom padding for FAB/Nav
+                    const SizedBox(height: 80),
                   ],
                 ),
               ),
@@ -4167,7 +4062,8 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           GestureDetector(
             onTap: () => Scaffold.of(context).openDrawer(),
@@ -4187,42 +4083,40 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
               ),
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Olá, ${user.firstName}',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2D3142),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Olá, ${user.firstName}',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3142),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                UserDataCache().isPatient
-                    ? 'O que faremos hoje?'
-                    : 'Vamos cuidar dos seus pacientes?',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+                const SizedBox(height: 4),
+                Text(
+                  UserDataCache().isPatient ? 'O que faremos hoje?' : 'Vamos cuidar dos seus pacientes?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
+
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }
-
-// ---------------------------------------------------------------------------
-// Custom Widgets (Internal)
-// ---------------------------------------------------------------------------
 
 class _NextAppointmentCard extends StatelessWidget {
   final Schedule? appointment;
@@ -4271,7 +4165,7 @@ class _NextAppointmentCard extends StatelessWidget {
 
     final appt = appointment!;
     final timeStr = DateFormat('HH:mm').format(appt.dateSchedule);
-    const durationStr = '1h'; // Assuming default, or fetch from model if available
+    const durationStr = '1h';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -4295,7 +4189,6 @@ class _NextAppointmentCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Background decoration
           Positioned(
             right: -20,
             top: -20,
@@ -4425,18 +4318,17 @@ class _Old_CalendarStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 21‑day window centered on today
     final now = DateTime.now();
     final startDate = now.subtract(const Duration(days: 10));
     final dates = List.generate(21, (i) => startDate.add(Duration(days: i)));
 
     return SizedBox(
       height: 90,
-      width: double.infinity, // <-- give the list a finite width
+      width: double.infinity,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        primary: false, // <-- do NOT use the parent’s primary controller
+        primary: false,
         itemCount: dates.length,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemBuilder: (context, index) {
@@ -4506,7 +4398,6 @@ class _Old_CalendarStrip extends StatelessWidget {
 }
 
 class _CalendarStrip extends StatelessWidget {
-  // this is the original one
   final DateTime selectedDate;
   final Function(DateTime) onDateSelected;
 
@@ -4517,11 +4408,8 @@ class _CalendarStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Generate dates: 7 days past, today, 7 days future = 15 days total
-    // Or strictly "Past, Current, Next week" = 21 days roughly.
-    // Let's do a 21-day window centered on today.
     final now = DateTime.now();
-    final startDate = now.subtract(const Duration(days: 3)); // Start of "Past week" roughly
+    final startDate = now.subtract(const Duration(days: 3));
     final dates = List.generate(21, (index) => startDate.add(Duration(days: index)));
 
     return SizedBox(
@@ -4531,7 +4419,6 @@ class _CalendarStrip extends StatelessWidget {
         physics: const BouncingScrollPhysics(),
         itemCount: dates.length,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        // Scroll to center initially? (Requires ScrollController, skipped for simplicity)
         itemBuilder: (context, index) {
           final date = dates[index];
           final isSelected = _isSameDay(date, selectedDate);
@@ -4601,8 +4488,8 @@ class _CalendarStrip extends StatelessWidget {
 
 class NewAppointmentModel {
   final String id;
-  final DateTime dateSchedule; // Maps to 'dateTime'
-  final String symptoms; // Maps to 'notes'
+  final DateTime dateSchedule;
+  final String symptoms;
   final NewPatientModel patient;
 
   NewAppointmentModel({
@@ -4615,12 +4502,9 @@ class NewAppointmentModel {
   factory NewAppointmentModel.fromJson(Map<String, dynamic> json) {
     return NewAppointmentModel(
       id: json['id']?.toString() ?? '',
-      // Map API 'dateTime' to 'dateSchedule'
       dateSchedule:
           json['dateTime'] != null ? DateTime.parse(json['dateTime'] as String) : DateTime.now(),
-      // Map API 'notes' to 'symptoms'
       symptoms: json['notes'] as String? ?? 'Sem descrição',
-      // Map nested patient
       patient: NewPatientModel.fromJson(json['patient'] as Map<String, dynamic>? ?? {}),
     );
   }
@@ -4628,19 +4512,16 @@ class NewAppointmentModel {
 
 class NewPatientModel {
   final String name;
-  final dynamic imageProfile; // Dynamic to handle File or Bytes
+  final dynamic imageProfile;
 
   NewPatientModel({required this.name, required this.imageProfile});
 
   factory NewPatientModel.fromJson(Map<String, dynamic> json) {
     final base64String = json['profileImage'];
 
-    // Logic: If we have base64, we decode it.
-    // Ideally we return Bytes, but your UI uses FileImage.
-    // We will handle this in the UI to be safe.
     return NewPatientModel(
       name: json['fullname'] as String? ?? 'Paciente',
-      imageProfile: base64String, // Store string to decode in UI
+      imageProfile: base64String,
     );
   }
 }
@@ -5347,8 +5228,7 @@ class AppointmentDetailsPage extends StatelessWidget {
                         Container(height: 40, width: 1, color: Colors.grey[200]),
                         _buildInfoItem(Icons.access_time_rounded, timeStr, 'Horário'),
                         Container(height: 40, width: 1, color: Colors.grey[200]),
-                        _buildInfoItem(Icons.timer_outlined, '${appointment.durationInMinutes} min',
-                            'Duração'),
+                        _buildInfoItem(Icons.timer_outlined, '${appointment.durationInMinutes} min','Duração'),
                       ],
                     ),
                   ),
@@ -5885,10 +5765,18 @@ class _SignupPatientPageState extends State<SignupPatientPage> {
         userType: 'PATIENT',
       );
 
-      if (!register) {
-        showPopupError('Usuário já cadastrado!');
-        return;
+      switch (register) {
+        case RegisterResult.alreadyExists:
+          showPopupError('Usuário já cadastrado!');
+          return;
+        case RegisterResult.notCreated:
+        case RegisterResult.failed:
+          showPopupError('Falha ao cadastrar. Tente novamente mais tarde.');
+          return;
+        case RegisterResult.created:
+          break;
       }
+
       // login user
       final login = await authLogin(email: email, password: password);
 
@@ -7374,238 +7262,6 @@ class _ChatListPageState extends State<ChatListPage> {
 }
 
 
-FILE: lib/page/common/auth_physio_page.dart
-import 'package:flutter/material.dart';
-import 'package:physioapp/utils/app_routes.dart';
-
-class AuthPhysioPage extends StatelessWidget {
-  const AuthPhysioPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 236, 236, 236),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            colorFilter: ColorFilter.mode(Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
-            filterQuality: FilterQuality.high,
-            opacity: 0.9,
-            image: AssetImage(
-              'assets/images/background_image_auth_physio.png',
-            ),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(bottom: 40),
-              child: Text(
-                'Junte-se a nós \n& atenda com Confiança',
-                style: Theme.of(context).textTheme.displayMedium,
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Container(
-              height: 60,
-              width: double.infinity,
-              margin: const EdgeInsets.only(
-                top: 20,
-                right: 16,
-                left: 16,
-                bottom: 60,
-              ),
-              child: ElevatedButton.icon(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(
-                    Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signInPhysioPage),
-                label: Text(
-                  'Entre com email e senha',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
-                    fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                icon: const Icon(
-                  Icons.mail_outline_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 100),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Não possui conta? ',
-                    style: TextStyle(
-                      fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
-                      color: Theme.of(context).textTheme.labelLarge?.color,
-                      fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.signUpPhysioPage),
-                    child: Text(
-                      'Cadastre-se agora!',
-                      style: TextStyle(
-                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
-                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: IconButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-    );
-  }
-}
-
-
-FILE: lib/page/common/auth_patient_page.dart
-import 'package:flutter/material.dart';
-import 'package:physioapp/utils/app_routes.dart';
-
-class AuthPatientPage extends StatelessWidget {
-  const AuthPatientPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 236, 236, 236),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            colorFilter: ColorFilter.mode(Color.fromARGB(78, 255, 255, 255), BlendMode.colorDodge),
-            filterQuality: FilterQuality.high,
-            opacity: 0.9,
-            image: AssetImage(
-              'assets/images/background_image_auth_patient.jpg',
-            ),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Container(
-              margin: const EdgeInsets.only(bottom: 70),
-              child: Text(
-                'O seu\natendimento\ndireto no celular',
-                style: Theme.of(context).textTheme.displayMedium,
-                textAlign: TextAlign.justify,
-              ),
-            ),
-            Container(
-              height: 60,
-              width: double.infinity,
-              margin: const EdgeInsets.only(
-                top: 20,
-                right: 16,
-                left: 16,
-                bottom: 60,
-              ),
-              child: ElevatedButton.icon(
-                style: ButtonStyle(
-                  backgroundColor: WidgetStatePropertyAll(
-                    Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signInPatientPage),
-                label: Text(
-                  'Entre com email e senha',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
-                    fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                icon: const Icon(
-                  Icons.mail_outline_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.only(bottom: 100),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Não possui conta? ',
-                    style: TextStyle(
-                      fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
-                      color: Theme.of(context).textTheme.labelLarge?.color,
-                      fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.of(context).pushNamed(AppRoutes.signUpPatientPage),
-                    child: Text(
-                      'Cadastre-se agora!',
-                      style: TextStyle(
-                        fontFamily: Theme.of(context).textTheme.bodyLarge?.fontFamily,
-                        fontSize: Theme.of(context).textTheme.bodyLarge?.fontSize,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                        decorationColor: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: IconButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        icon: const Icon(
-          Icons.arrow_back_ios_new_rounded,
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-    );
-  }
-}
-
-
 FILE: lib/models/conversation_preview.dart
 class ConversationPreview {
   final String patientId;
@@ -8135,6 +7791,7 @@ import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:physioapp/core/theme/app_theme.dart';
 import 'package:physioapp/pwa/pwa_install.dart';
 import 'package:physioapp/services/auth/auth.dart';
@@ -8147,6 +7804,8 @@ import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  await initializeDateFormatting('pt_BR', null);
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -8406,7 +8065,7 @@ class ExercisesMockData {
       id: 'e1',
       name: 'Esticada de Perna (Quadriceps)',
       description: 'Exercício para alongar as articulações das pernas, melhorando a mobilidade',
-      videoUrl: '',
+      videoUrl: 'https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj',
       videoDuration: 25.3,
       steps: [
         StepModel(
@@ -8439,7 +8098,7 @@ class ExercisesMockData {
       name: 'Dobra de Perna (Joelho)',
       description:
           'Exercício para alongar as articulações do joelho, auxiliando assim na rotação da perna',
-      videoUrl: '',
+      videoUrl: 'https://youtube.com/shorts/dCHdSxiAPU0',
       videoDuration: 21.3,
       steps: [
         StepModel(
@@ -8481,7 +8140,7 @@ class ExercisesMockData {
       id: 'e3',
       name: 'Alogamento a Fundo (Posterior)',
       description: 'Exercício para alongar as articulações das costas e membros inferiores',
-      videoUrl: '',
+      videoUrl: 'https://youtube.com/shorts/GErYdn_fV3M',
       videoDuration: 13.3,
       steps: [
         StepModel(
@@ -8519,7 +8178,7 @@ class ExercisesMockData {
       name: 'Puxada Funda no Triceps Sural',
       description:
           'Exercício para trabalhar as articulações das costas e aumentar a flexibilidade das pernas',
-      videoUrl: '',
+      videoUrl: 'https://youtube.com/shorts/KoMrT_pVrxk',
       videoDuration: 15.3,
       steps: [
         StepModel(
@@ -8550,7 +8209,7 @@ class ExercisesMockData {
       name: 'Alogamento Posteiror Completa',
       description:
           'Exercício para alongar as articulações lombares, abdominais, membros inferiores e superiores',
-      videoUrl: '',
+      videoUrl: 'https://youtube.com/shorts/CL4akgrQtxk',
       videoDuration: 17.3,
       steps: [
         StepModel(
@@ -8588,7 +8247,7 @@ class ExercisesMockData {
       name: 'Fortalecimento (Corpo Inteiro)',
       description:
           'Exercício fortalecer as principais articulações dos membros superiores, inferiores e posteriores',
-      videoUrl: '',
+      videoUrl: 'https://youtube.com/shorts/oglZAbwb4LI',
       videoDuration: 20.3,
       steps: [
         StepModel(
@@ -11031,6 +10690,247 @@ import 'package:path_provider/path_provider.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:video_player/video_player.dart';
 
+
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:video_player/video_player.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+import 'package:cached_network_image/cached_network_image.dart';
+
+class VideoBox extends StatefulWidget {
+  final String videoUrl;
+  const VideoBox({super.key, required this.videoUrl});
+
+  @override
+  State<VideoBox> createState() => _VideoBoxState();
+}
+
+class _VideoBoxState extends State<VideoBox> {
+  VideoPlayerController? _controller;          // for non‑YouTube videos
+  YoutubePlayerController? _ytController;     // for YouTube videos
+  bool _isInitialized = false;
+  bool _hasError = false;
+  bool _isDownloading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPlayer();
+  }
+
+  @override
+  void dispose() {
+    _controller?.dispose();
+    _ytController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initPlayer() async {
+    debugPrint('VideoURL: ${widget.videoUrl}');
+
+    if (widget.videoUrl.trim().isEmpty) {
+      setState(() => _hasError = true);
+      return;
+    }
+
+    // ---------- 1️⃣  YouTube handling ----------
+    if (isYouTubeUrl(widget.videoUrl)) {
+      final videoId = extractYoutubeId(widget.videoUrl);
+      if (videoId == null) {
+        setState(() => _hasError = true);
+        return;
+      }
+
+      _ytController = YoutubePlayerController(
+        initialVideoId: videoId,
+        flags: const YoutubePlayerFlags(
+          autoPlay: false,
+          mute: false,
+        ),
+      );
+
+      setState(() {
+        _isInitialized = true;
+      });
+      return;
+    }
+
+    // ---------- 2️⃣  Non‑YouTube handling ----------
+    final token = await getToken(); // keep your existing auth logic
+
+    try {
+      if (kIsWeb) {
+        _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
+        await _controller!.initialize();
+      } else {
+        if (widget.videoUrl.startsWith('http')) {
+          setState(() => _isDownloading = true);
+
+          final response = await http.get(
+            Uri.parse(widget.videoUrl),
+            headers: {'Authorization': 'Bearer $token'},
+          );
+
+          if (response.statusCode == 200) {
+            final dir = await getTemporaryDirectory();
+            final fileName = 'video_${widget.videoUrl.hashCode}.mp4';
+            final file = File('${dir.path}/$fileName');
+            await file.writeAsBytes(response.bodyBytes);
+
+            _controller = VideoPlayerController.file(file);
+            await _controller!.initialize();
+          } else {
+            throw Exception('Auth Failed: ${response.statusCode}');
+          }
+        } else {
+          _controller = VideoPlayerController.asset(widget.videoUrl);
+          await _controller!.initialize();
+        }
+      }
+
+      setState(() {
+        _isInitialized = true;
+        _isDownloading = false;
+      });
+    } catch (e) {
+      debugPrint('Error initializing video: $e');
+      setState(() {
+        _hasError = true;
+        _isDownloading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasError) {
+      return _errorPlaceholder();
+    }
+
+    if (_isDownloading || !_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // ---------- YouTube player ----------
+    if (_ytController != null) {
+      return YoutubePlayerBuilder(
+        player: YoutubePlayer(controller: _ytController!),
+        builder: (context, player) => Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            player,
+            _buildControls(isYouTube: true),
+          ],
+        ),
+      );
+    }
+
+    // ---------- Regular video player ----------
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Center(
+          child: AspectRatio(
+            aspectRatio: _controller!.value.aspectRatio,
+            child: VideoPlayer(_controller!),
+          ),
+        ),
+        _buildControls(isYouTube: false),
+      ],
+    );
+  }
+
+  Widget _errorPlaceholder() {
+    return Container(
+      color: Colors.grey[300],
+      child: const Center(
+        child: Icon(Icons.videocam_off, size: 50, color: Colors.grey),
+      ),
+    );
+  }
+
+  Widget _buildControls({required bool isYouTube}) {
+    // For YouTube we let the built‑in controls handle most actions.
+    // We only add a simple play/pause overlay when the user taps the video.
+    if (isYouTube) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      color: Colors.black38,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            onPressed: () {
+              setState(() {
+                if (_controller!.value.isPlaying) {
+                  _controller!.pause();
+                } else {
+                  _controller!.play();
+                }
+              });
+            },
+            icon: Icon(
+              _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              _controller!.pause();
+              _controller!.seekTo(Duration.zero);
+              setState(() {});
+            },
+            icon: const Icon(Icons.replay, color: Colors.white, size: 30),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+bool isYouTubeUrl(String url) {
+  final uri = Uri.parse(url);
+  if (uri == null) return false;
+
+  final host = uri.host.toLowerCase();
+  return host.contains('youtube.com') || host.contains('youtu.be');
+}
+
+String? extractYoutubeId(String url) {
+  if (!isYouTubeUrl(url)) return null;
+  final uri = Uri.parse(url);
+
+  if (uri.host.contains('youtu.be')) {
+    return uri.pathSegments.isNotEmpty ? uri.pathSegments[0] : null;
+  }
+
+  if (uri.queryParameters.containsKey('v')) {
+    return uri.queryParameters['v'];
+  }
+
+  final possible = uri.pathSegments;
+  if (possible.length >= 2 &&
+      (possible[0] == 'shorts' || possible[0] == 'embed')) {
+    return possible[1];
+  }
+  return null;
+}
+
+
+
+
+
+
+/*
 class VideoBox extends StatefulWidget {
   final String videoUrl;
   const VideoBox({super.key, required this.videoUrl});
@@ -11058,6 +10958,8 @@ class _VideoBoxState extends State<VideoBox> {
   }
 
   Future<void> _initPlayer() async {
+    debugPrint('VideoURL: ${widget.videoUrl}'); // e.g. https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj
+
     if (widget.videoUrl.trim().isEmpty) {
       if (mounted) setState(() => _hasError = true);
       return;
@@ -11067,7 +10969,6 @@ class _VideoBoxState extends State<VideoBox> {
 
     try {
       if (kIsWeb) {
-        debugPrint('---------------- hello world ------------------');  
         _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
         await _controller!.initialize();
       } else {
@@ -11112,6 +11013,34 @@ class _VideoBoxState extends State<VideoBox> {
         });
       }
     }
+  }
+
+  bool isYoutubeUrl(String url) {
+    final uri = Uri.parse(url);
+    if (uri == null) return false;
+
+    final host = uri.host.toLowerCase();
+    return host.contains('youtube.com') || host.contains('youtu.be');
+  }
+
+  String? extractYoutubeId(String url) {
+    if (!isYouTubeUrl(url)) return null;
+    final uri = Uri.parse(url);
+
+    if (uri.host.contains('youtu.be')) {
+      return uri.pathSegments.isNotEmpty ? uri.pathSegments[0] : null;
+    }
+
+    if (uri.queryParameters.containsKey('v')) {
+      return uri.queryParameters['v'];
+    }
+
+    final possible = uri.pathSegments;
+    if (possible.length >= 2 &&
+        (possible[0] == 'shorts' || possible[0] == 'embed')) {
+      return possible[1];
+    }
+    return null;
   }
 
   @override
@@ -11187,6 +11116,93 @@ class _VideoBoxState extends State<VideoBox> {
     );
   }
 }
+*/
+
+/*
+// Example inside a ListView or any layout
+YoutubeThumbnail(
+  videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  width: 200,
+  height: 112, // 16:9 aspect ratio
+)
+*/
+
+
+class YoutubeThumbnail extends StatefulWidget {
+  final String videoUrl;
+  final double? width;   // optional size constraints
+  final double? height;
+  final VoidCallback? onTap; // if you want to handle the tap elsewhere
+
+  const YoutubeThumbnail({
+    Key? key,
+    required this.videoUrl,
+    this.width,
+    this.height,
+    this.onTap,
+  }) : super(key: key);
+
+  @override
+  State<YoutubeThumbnail> createState() => _YoutubeThumbnailState();
+}
+
+class _YoutubeThumbnailState extends State<YoutubeThumbnail> {
+  late final String? _videoId;
+  late final String? _thumbUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _videoId = extractYoutubeId(widget.videoUrl);
+    if (_videoId != null) {
+      // YouTube provides several preset sizes:
+      //   default.jpg   (120×90)
+      //   mqdefault.jpg (320×180)
+      //   hqdefault.jpg (480×360)   <-- used here
+      //   sddefault.jpg (640×480)
+      //   maxresdefault.jpg (1280×720) – may not exist for every video
+      _thumbUrl = 'https://img.youtube.com/vi/$_videoId/hqdefault.jpg';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_thumbUrl == null) {
+      // Not a YouTube link – fall back to a generic placeholder
+      return const Icon(Icons.videocam_off, size: 48);
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (widget.onTap != null) {
+          widget.onTap!();
+        } else {
+          // Default behaviour: replace the thumbnail with the full player
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => Scaffold(
+                appBar: AppBar(),
+                body: Center(
+                  child: VideoBox(videoUrl: widget.videoUrl), // your existing widget
+                ),
+              ),
+            ),
+          );
+        }
+      },
+      child: CachedNetworkImage(
+        imageUrl: _thumbUrl!,
+        width: widget.width,
+        height: widget.height,
+        fit: BoxFit.cover,
+        placeholder: (c, url) => const Center(
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+        errorWidget: (c, url, err) => const Icon(Icons.broken_image, size: 48),
+      ),
+    );
+  }
+}
 
 
 FILE: lib/components/physiotherapist/exercises/time_input_formatter.dart
@@ -11252,11 +11268,11 @@ class StepExercise extends StatelessWidget {
               child: Text(
                 indexStep.toString(),
                 style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    fontFamily:
-                        Theme.of(context).textTheme.labelLarge?.fontFamily,
-                    color: Theme.of(context).colorScheme.primary),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
             ),
             Column(
@@ -11300,7 +11316,7 @@ class StepExercise extends StatelessWidget {
       subtitle: Text(
         subtitleStep,
         style: Theme.of(context).textTheme.labelMedium,
-        textAlign: TextAlign.justify,
+        textAlign: TextAlign.start,
       ),
     );
   }
@@ -11430,8 +11446,13 @@ class SecondAddExerciseForm extends StatefulWidget {
 }
 
 class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
+  bool _isLoading = false;
+
   Future<void> _submitFormAddExercise({required ExercisesControllerForm formExercise}) async {
+    setState(() => _isLoading = true);
+
     if (!formExercise.videoSelected) {
+      setState(() => _isLoading = false);
       return AuthSignupException().showErrorValidate(
         message: 'Selecione um vídeo.',
         context: context,
@@ -11441,6 +11462,7 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
     final bool isUpdated = await updateExerciseToServer(formExercise: formExercise);
 
     if (!isUpdated) {
+      setState(() => _isLoading = false);
       return AuthSignupException().showErrorValidate(
         message: 'Erro ao atualizar o exercício.',
         context: context,
@@ -11450,6 +11472,7 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
     formExercise.resetSteps();
     formExercise.toggleSecondForm();
 
+    setState(() => _isLoading = false);
     Navigator.of(context).pushNamedAndRemoveUntil(
       AppRoutes.tabPagePhysio,
       (_) => false,
@@ -11510,7 +11533,16 @@ class _SecondAddExerciseFormState extends State<SecondAddExerciseForm> {
                   _submitFormAddExercise(formExercise: exercisesFormProvider);
                 }
               },
-              child: const Text(
+              child: _isLoading
+              ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+              : const Text(
                 'Adicionar Exercício',
                 style: TextStyle(
                   color: Colors.white,
@@ -11828,8 +11860,8 @@ class ExerciseSteps extends StatelessWidget {
               final Map<String, String> step = exercise.steps[index];
               return StepExercise(  
                 indexStep: index + 1,
-                titleStep: step.keys.first ?? 'Sem Título',
-                subtitleStep: step.values.first ?? 'Sem Descrição',
+                titleStep: step.values.first ?? 'Sem Título',
+                subtitleStep: step.values.last ?? 'Sem Descrição',
               );
             },
           ),
@@ -11875,21 +11907,32 @@ class ExercisesList extends StatelessWidget {
           ),
           child: Row(
             children: [
+
+
+              // TODO: Add youtube thumbnail
               Container(
-              height: 100,
-              width: 100,
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.play_circle_fill,
-                  color: Colors.white,
-                  size: 40,
+                height: 100,
+                width: 100,
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.play_circle_fill,
+                    color: Colors.white,
+                    size: 40,
+                  ),
                 ),
               ),
-            ),
+
+
+
+
+
+
+
+
               Flexible(
                 fit: FlexFit.tight,
                 child: ListTile(
@@ -11908,20 +11951,20 @@ class ExercisesList extends StatelessWidget {
                     child: Row(
                       spacing: 5,
                       children: [
-                        const Icon(
-                          Icons.access_time_filled_rounded,
-                          size: 24,
-                          color: Colors.white,
-                        ),
-                        Text(
-                          '${exercise.videoDuration.ceil()} min',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        //  const Icon(
+                        //    Icons.access_time_filled_rounded,
+                        //    size: 24,
+                        //    color: Colors.white,
+                        //  ),
+                        //  Text(
+                        //    '${exercise.videoDuration.ceil()} min',
+                        //    style: const TextStyle(
+                        //      color: Colors.white,
+                        //      fontWeight: FontWeight.w500,
+                        //      fontSize: 14,
+                        //    ),
+                        //    overflow: TextOverflow.ellipsis,
+                        //  ),
                       ],
                     ),
                   ),
@@ -12006,10 +12049,6 @@ class ExercisesDetail extends StatelessWidget {
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ),
-            ),
-            IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.share_outlined),
             ),
             IconButton(
               onPressed: () {
@@ -12591,6 +12630,7 @@ import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SecondFormSignUp extends StatefulWidget {
   final void Function(AuthFormData) onSubmited;
@@ -12601,6 +12641,9 @@ class SecondFormSignUp extends StatefulWidget {
 }
 
 class SecondFormSignUpState extends State<SecondFormSignUp> {
+  bool termOfUseAccepted = false;
+  final Uri urlTermOfUse = Uri.parse('https://zampini28.github.io/termo-de-uso-physioapp');
+
   // Atributos de controle
   final AuthSignupException _authException = AuthSignupException();
   final AuthFormData _authForm = AuthFormData();
@@ -12657,8 +12700,12 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
 
     // --- password ---
     // 1) deve ter pelo menos 8 caracteres - message: 'Digite uma senha com pelo menos 8 caracteres!'
-    // 2) não deve conter mais de 30 caracteres - message: 'A senha não deve conter mais de 30 caracteres!'
-    // 3) deve ser igual ao campo de confirmação de senha - message: 'As senhas digitadas estão divergentes!'
+    // 2) deve ter pelo menos uma letra e número - message: 'A senha deve conter ao menos uma letra e um número!'
+    // 3) não deve conter mais de 30 caracteres - message: 'A senha não deve conter mais de 30 caracteres!'
+    // 4) deve ser igual ao campo de confirmação de senha - message: 'As senhas digitadas estão divergentes!'
+
+    bool _hasLetter(String s) => RegExp(r'[A-Za-z]').hasMatch(s);
+    bool _hasDigit(String s)  => RegExp(r'\d').hasMatch(s);
 
     // 1)
     if (password.length < 8) {
@@ -12667,14 +12714,26 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
     }
 
     // 2)
+    if (!(_hasLetter(password) && _hasDigit(password))) {
+      errorMessage('A senha deve conter ao menos uma letra e um número!');
+      return;
+    }
+
+    // 3)
     if (password.length > 30) {
       errorMessage('A senha não deve conter mais de 30 caracteres!');
       return;
     }
 
-    // 3)
+    // 4)
     if (password != confirmPassword) {
       errorMessage('As senhas digitadas estão divergentes!');
+      return;
+    }
+
+    // --- Termo de Uso ---
+    if (!termOfUseAccepted) {
+      errorMessage('Você deve aceitar o Termo de Uso!');
       return;
     }
 
@@ -12788,6 +12847,34 @@ class SecondFormSignUpState extends State<SecondFormSignUp> {
               obscureText: _visibilityConfirmPassword == true ? false : true,
             ),
           ),
+          //  termos de uso
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Aceite nosso', style: TextStyle(color: Colors.white)),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => launchUrl(urlTermOfUse),
+                  child: Text(
+                    'Termo de Uso.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Checkbox(
+                  value: termOfUseAccepted,
+                  onChanged: (val) => setState(() => termOfUseAccepted = val ?? false),
+                ),
+              ],
+            ),
+          ),
+
           Container(
             width: double.infinity,
             height: 60,
@@ -12877,6 +12964,7 @@ class ImagePicketState extends State<ImagePicket> {
 
 FILE: lib/components/physiotherapist/auth/form_signin.dart
 import 'package:flutter/material.dart';
+import 'package:physioapp/components/auth/password_reset_sheet.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
@@ -12911,6 +12999,7 @@ class FormSignInState extends State<FormSignIn> {
       _radioPhysioValue = value ?? RadioButton.physioOption;
     });
   }
+
   Future<void> _submit({required SignUpPageForm pageForm}) async {
     try {
       pageForm.toggleLoadingValue();
@@ -12924,8 +13013,11 @@ class FormSignInState extends State<FormSignIn> {
       }
 
       if (mounted) {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
+        if (UserDataCache().isPatient) {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePatient, (_) => false);
+        } else {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
+        }
       }
     } catch (error) {
       if (mounted) {
@@ -12933,12 +13025,20 @@ class FormSignInState extends State<FormSignIn> {
         if (error is Exception) {
           errorMessage = error.toString().replaceFirst('Exception: ', '');
         }
-        authException.showErrorSubmit(
-            messageError: errorMessage, context: context);
+        authException.showErrorSubmit(messageError: errorMessage, context: context);
       }
     } finally {
       pageForm.toggleLoadingValue();
     }
+  }
+
+  void _showForgotPassword(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const PasswordResetSheet(),
+    );
   }
 
   @override
@@ -12948,6 +13048,7 @@ class FormSignInState extends State<FormSignIn> {
       key: _formKey,
       child: Column(
         children: [
+          // email input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -12955,8 +13056,7 @@ class FormSignInState extends State<FormSignIn> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(50),
-              border: Border.all(
-                  color: const Color.fromARGB(255, 110, 125, 162), width: 1),
+              border: Border.all(color: const Color.fromARGB(255, 110, 125, 162), width: 1),
             ),
             child: TextFormField(
               onChanged: (email) => formData.email = email,
@@ -12964,8 +13064,7 @@ class FormSignInState extends State<FormSignIn> {
                 label: Text(
                   'Email',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -12977,6 +13076,8 @@ class FormSignInState extends State<FormSignIn> {
               controller: _emailController,
             ),
           ),
+
+          // password input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -12984,8 +13085,7 @@ class FormSignInState extends State<FormSignIn> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(50),
-              border: Border.all(
-                  color: const Color.fromARGB(255, 110, 125, 162), width: 1),
+              border: Border.all(color: const Color.fromARGB(255, 110, 125, 162), width: 1),
             ),
             child: TextFormField(
               onChanged: (password) => formData.password = password,
@@ -12993,8 +13093,7 @@ class FormSignInState extends State<FormSignIn> {
                 label: Text(
                   'Senha',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -13004,8 +13103,7 @@ class FormSignInState extends State<FormSignIn> {
                 suffixIcon: _vibilityPassword == true
                     ? GestureDetector(
                         onTap: () {
-                          setState(
-                              () => _vibilityPassword = !_vibilityPassword);
+                          setState(() => _vibilityPassword = !_vibilityPassword);
                         },
                         child: Icon(
                           Icons.visibility_outlined,
@@ -13015,8 +13113,7 @@ class FormSignInState extends State<FormSignIn> {
                       )
                     : GestureDetector(
                         onTap: () {
-                          setState(
-                              () => _vibilityPassword = !_vibilityPassword);
+                          setState(() => _vibilityPassword = !_vibilityPassword);
                         },
                         child: Icon(
                           Icons.visibility_off_outlined,
@@ -13030,6 +13127,8 @@ class FormSignInState extends State<FormSignIn> {
               controller: _passwordController,
             ),
           ),
+
+          // login button
           Container(
             height: 60,
             width: double.infinity,
@@ -13049,25 +13148,24 @@ class FormSignInState extends State<FormSignIn> {
                       'Entrar',
                       style: TextStyle(
                         color: Colors.white,
-                        fontFamily:
-                            Theme.of(context).textTheme.titleLarge?.fontFamily,
-                        fontSize:
-                            Theme.of(context).textTheme.titleLarge?.fontSize,
+                        fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
+                        fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
           ),
+
+          // forget password button
           Container(
             margin: const EdgeInsets.only(top: 20),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => _showForgotPassword(context),
               child: Text(
                 'Esqueci minha senha',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.tertiary,
-                  fontFamily:
-                      Theme.of(context).textTheme.labelLarge?.fontFamily,
+                  fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
                   fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
                   fontWeight: FontWeight.w400,
                   decoration: TextDecoration.underline,
@@ -14870,12 +14968,14 @@ class BottomNavBarPatientState extends State<BottomNavBarPatient> {
 
 
 FILE: lib/components/patient/auth/form_signup_patient.dart
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:physioapp/components/form_components.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth_form.dart';
 import 'package:physioapp/utils/signup_page_form.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class FormSignUpPatient extends StatefulWidget {
   final void Function(AuthFormData) onSubmited;
@@ -14889,49 +14989,98 @@ class FormSignUpPatient extends StatefulWidget {
 }
 
 class FormSignUpPatientState extends State<FormSignUpPatient> {
+  bool termOfUseAccepted = false;
+  final Uri urlTermOfUse = Uri.parse('https://zampini28.github.io/termo-de-uso-physioapp');
   // Atributos de controle
   final AuthFormData _authForm = AuthFormData();
   final _authException = AuthSignupException();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _vibilityPassword = false;
   bool _visibilityConfirmPassword = false;
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   // Metodo para submissão de formulário
   Future<void> _validateForm() async {
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (isValid == false) return;
+    // PQP - pq vc colocou essa merda aqui se não tem validação nenhuma no form?
+    // final isValid = _formKey.currentState?.validate() ?? false;
+    // if (isValid == false) return;
 
-    // Validação de campos
-    if (_authForm.name == null ||
-        _authForm.name!.isEmpty ||
-        _authForm.name!.length < 5) {
-      return _authException.showErrorValidate(
-        message: 'Digite seu nome completo!',
-        context: context,
-      );
+    debugPrint('--- sumbit physio register');
+
+    // campos
+    final String fname = _authForm.name?.trim() ?? '';
+    final String email = _authForm.email?.trim() ?? '';
+    final String password = _authForm.password ?? '';
+    final String confirmPassword = _confirmPasswordController.text;
+
+    void errorMessage(String message) =>
+        _authException.showErrorValidate(message: message, context: context);
+
+    // validações
+
+    // --- nome completo ---
+    // 1) deve conter pelo menos um espaço - message: 'Digite seu nome completo!'
+    // 2) não deve conter números ou caracteres especiais - message: 'Nome completo não deve conter números ou caracteres especiais!'
+
+    // 1)
+    if (fname.isEmpty || !fname.contains(' ')) {
+      errorMessage('Digite seu nome completo!');
+      return;
     }
-    if (_authForm.email == null ||
-        _authForm.email!.isEmpty ||
-        !_authForm.email!.contains('@')) {
-      return _authException.showErrorValidate(
-        message: 'Digite um e-mail valído!',
-        context: context,
-      );
+
+    // 2)
+    final RegExp nameRegex = RegExp(r'^[a-zA-ZÀ-ÖØ-öø-ÿ\s]+$');
+    if (!nameRegex.hasMatch(fname)) {
+      errorMessage('Nome completo não deve conter números ou caracteres especiais!');
+      return;
     }
-    if (_authForm.password == null ||
-        _authForm.password!.isEmpty ||
-        _authForm.password!.length < 6) {
-      return _authException.showErrorValidate(
-        message: 'Digite uma senha com pelo menos 6 caracteres!',
-        context: context,
-      );
+
+    // --- email ---
+    // 1) deve ser um email válido - message: 'Digite um e-mail valído!'
+
+    // 1)
+    if (!EmailValidator.validate(email)) {
+      errorMessage('Digite um e-mail valído!');
+      return;
     }
-    if (_passwordController.text != _authForm.password) {
-      return _authException.showErrorValidate(
-        message: 'As senhas digitadas estão divergentes!',
-        context: context,
-      );
+
+    // --- password ---
+    // 1) deve ter pelo menos 8 caracteres - message: 'Digite uma senha com pelo menos 8 caracteres!'
+    // 2) deve ter pelo menos uma letra e número - message: 'A senha deve conter ao menos uma letra e um número!'
+    // 3) não deve conter mais de 30 caracteres - message: 'A senha não deve conter mais de 30 caracteres!'
+    // 4) deve ser igual ao campo de confirmação de senha - message: 'As senhas digitadas estão divergentes!'
+
+    bool _hasLetter(String s) => RegExp(r'[A-Za-z]').hasMatch(s);
+    bool _hasDigit(String s)  => RegExp(r'\d').hasMatch(s);
+
+    // 1)
+    if (password.length < 8) {
+      errorMessage('Digite uma senha com pelo menos 8 caracteres!');
+      return;
+    }
+
+    // 2)
+    if (!(_hasLetter(password) && _hasDigit(password))) {
+      errorMessage('A senha deve conter ao menos uma letra e um número!');
+      return;
+    }
+
+    // 3)
+    if (password.length > 30) {
+      errorMessage('A senha não deve conter mais de 30 caracteres!');
+      return;
+    }
+
+    // 4)
+    if (password != confirmPassword) {
+      errorMessage('As senhas digitadas estão divergentes!');
+      return;
+    }
+
+    // --- Termo de Uso ---
+    if (!termOfUseAccepted) {
+      errorMessage('Você deve aceitar o Termo de Uso!');
+      return;
     }
 
     widget.onSubmited(_authForm);
@@ -14951,8 +15100,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 label: Text(
                   'Nome Completo',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -14970,8 +15118,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 label: Text(
                   'Email',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -14989,8 +15136,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 label: Text(
                   'Senha',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -15016,13 +15162,12 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
           ),
           FormComponents(
             textForm: TextFormField(
-              controller: _passwordController,
+              controller: _confirmPasswordController,
               decoration: InputDecoration(
                 label: Text(
                   'Confirmar Senha',
                   style: TextStyle(
-                    fontFamily:
-                        Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                    fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
                     color: Theme.of(context).textTheme.labelMedium?.color,
                     fontSize: 18,
                     fontWeight: FontWeight.normal,
@@ -15032,8 +15177,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                 suffixIcon: GestureDetector(
                   onTap: () {
                     setState(
-                      () => _visibilityConfirmPassword =
-                          !_visibilityConfirmPassword,
+                      () => _visibilityConfirmPassword = !_visibilityConfirmPassword,
                     );
                   },
                   child: Icon(
@@ -15047,6 +15191,33 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
               ),
               keyboardType: TextInputType.visiblePassword,
               obscureText: _visibilityConfirmPassword == true ? false : true,
+            ),
+          ),
+          //  termos de uso
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('Aceite nosso', style: TextStyle(color: Colors.white)),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: () => launchUrl(urlTermOfUse),
+                  child: Text(
+                    'Termo de Uso.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                      decoration: TextDecoration.underline,
+                      decorationColor: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+                Checkbox(
+                  value: termOfUseAccepted,
+                  onChanged: (val) => setState(() => termOfUseAccepted = val ?? false),
+                ),
+              ],
             ),
           ),
           Container(
@@ -15070,10 +15241,8 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
                       'Cadastrar',
                       style: TextStyle(
                         color: Colors.white,
-                        fontFamily:
-                            Theme.of(context).textTheme.titleLarge?.fontFamily,
-                        fontSize:
-                            Theme.of(context).textTheme.titleLarge?.fontSize,
+                        fontFamily: Theme.of(context).textTheme.titleLarge?.fontFamily,
+                        fontSize: Theme.of(context).textTheme.titleLarge?.fontSize,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -15088,6 +15257,7 @@ class FormSignUpPatientState extends State<FormSignUpPatient> {
 
 FILE: lib/components/patient/auth/form_signin_patient.dart
 import 'package:flutter/material.dart';
+import 'package:physioapp/components/auth/password_reset_sheet.dart';
 import 'package:physioapp/exception/auth_signup_exception.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/utils/app_routes.dart';
@@ -15133,10 +15303,11 @@ class FormSignInPatientState extends State<FormSignInPatient> {
       }
 
       if (mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRoutes.tabPagePatient,
-          (_) => false,
-        );
+        if (UserDataCache().isPatient) {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePatient, (_) => false);
+        } else {
+          Navigator.of(context).pushNamedAndRemoveUntil(AppRoutes.tabPagePhysio, (_) => false);
+        }
       }
     } catch (error) {
       if (mounted) {
@@ -15150,6 +15321,16 @@ class FormSignInPatientState extends State<FormSignInPatient> {
     }
   }
 
+
+  void _showForgotPassword(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => const PasswordResetSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pageForm = Provider.of<SignUpPageForm>(context);
@@ -15157,6 +15338,7 @@ class FormSignInPatientState extends State<FormSignInPatient> {
       key: _formKey,
       child: Column(
         children: [
+          // email input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -15185,6 +15367,8 @@ class FormSignInPatientState extends State<FormSignInPatient> {
               controller: _emailController,
             ),
           ),
+
+          // password input
           Container(
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 20),
@@ -15237,6 +15421,8 @@ class FormSignInPatientState extends State<FormSignInPatient> {
               controller: _passwordController,
             ),
           ),
+
+          // login button
           Container(
             height: 60,
             width: double.infinity,
@@ -15265,16 +15451,17 @@ class FormSignInPatientState extends State<FormSignInPatient> {
                     ),
                   ),
           ),
+
+          // forget password button
           Container(
             margin: const EdgeInsets.only(top: 20),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () => _showForgotPassword(context),
               child: Text(
                 'Esqueci minha senha',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.tertiary,
-                  fontFamily:
-                      Theme.of(context).textTheme.labelLarge?.fontFamily,
+                  fontFamily: Theme.of(context).textTheme.labelLarge?.fontFamily,
                   fontSize: Theme.of(context).textTheme.labelLarge?.fontSize,
                   fontWeight: FontWeight.w400,
                   decoration: TextDecoration.underline,
@@ -15469,6 +15656,331 @@ class FormComponents extends StatelessWidget {
         ),
       ),
       child: textForm,
+    );
+  }
+}
+
+
+FILE: lib/components/auth/password_reset_sheet.dart
+import 'package:flutter/material.dart';
+import 'package:physioapp/services/auth/password_reset_service.dart';
+
+class PasswordResetSheet extends StatefulWidget {
+  const PasswordResetSheet({super.key});
+
+  @override
+  State<PasswordResetSheet> createState() => _PasswordResetSheetState();
+}
+
+class _PasswordResetSheetState extends State<PasswordResetSheet> {
+  final _service = PasswordResetService();
+  final _pageController = PageController();
+  
+  // controllers
+  final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  
+  bool _isLoading = false;
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _codeController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _showError(String message) {
+    setState(() => _errorMessage = message);
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _errorMessage = null);
+    });
+  }
+
+  Future<void> _handleSendCode() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      _showError('Digite um e-mail válido.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final success = await _service.requestRecoveryCode(email);
+
+    setState(() => _isLoading = false);
+
+    if (success) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _showError('E-mail não encontrado ou erro no servidor.');
+    }
+  }
+
+  Future<void> _handleResetPassword() async {
+    final code = _codeController.text.trim();
+    final pass = _passwordController.text.trim();
+    final confirmPass = _confirmPasswordController.text.trim();
+
+    if (code.length != 6) {
+      _showError('O código deve ter 6 dígitos.');
+      return;
+    }
+    if (pass.length < 6) {
+      _showError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    if (pass != confirmPass) {
+      _showError('As senhas não coincidem.');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await _service.resetPassword(
+      email: _emailController.text.trim(),
+      code: code,
+      newPassword: pass,
+    );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result['success'] as bool) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Senha redefinida com sucesso! Faça login.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      _showError(result['message'] as String? ?? 'Erro desconhecido.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Container(
+        height: 480,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 12, bottom: 20),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            
+            if (_errorMessage != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.red[800], fontSize: 13),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _buildStep1RequestCode(context),
+                  _buildStep2Reset(context),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep1RequestCode(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Recuperar Senha',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Digite seu e-mail para receber o código de verificação.',
+            style: TextStyle(color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: InputDecoration(
+              labelText: 'E-mail',
+              prefixIcon: const Icon(Icons.email_outlined),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: _isLoading ? null : _handleSendCode,
+              child: _isLoading 
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Enviar Código', style: TextStyle(color: Colors.white, fontSize: 16)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep2Reset(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => _pageController.previousPage(
+                  duration: const Duration(milliseconds: 300), 
+                  curve: Curves.easeInOut
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Definir Nova Senha',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Digite o código enviado e sua nova senha.',
+            style: TextStyle(color: Colors.grey),
+          ),
+          const SizedBox(height: 20),
+          
+          TextField(
+            controller: _codeController,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
+            decoration: InputDecoration(
+              hintText: '000000',
+              counterText: '',
+              filled: true,
+              fillColor: Colors.grey[50],
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          
+          // password input
+          TextField(
+            controller: _passwordController,
+            obscureText: !_showPassword,
+            decoration: InputDecoration(
+              labelText: 'Nova Senha',
+              prefixIcon: const Icon(Icons.lock_outline),
+              suffixIcon: IconButton(
+                icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
+                onPressed: () => setState(() => _showPassword = !_showPassword),
+              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          TextField(
+            controller: _confirmPasswordController,
+            obscureText: !_showConfirmPassword,
+            decoration: InputDecoration(
+              labelText: 'Confirmar Senha',
+              prefixIcon: const Icon(Icons.lock_reset),
+              suffixIcon: IconButton(
+                icon: Icon(_showConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                onPressed: () => setState(() => _showConfirmPassword = !_showConfirmPassword),
+              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+
+          const SizedBox(height: 24),
+          
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: _isLoading ? null : _handleResetPassword,
+              child: _isLoading 
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Redefinir Senha', style: TextStyle(color: Colors.white, fontSize: 16)),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 }

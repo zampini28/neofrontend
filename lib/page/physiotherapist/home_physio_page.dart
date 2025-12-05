@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:physioapp/model/appointment/appointment_model.dart';
 import 'package:physioapp/model/schedule/schedule.dart';
 import 'package:physioapp/services/appointment/appointment_service.dart';
 import 'package:physioapp/services/auth/auth.dart';
 import 'package:physioapp/services/schedule/schedule_appointment_controller.dart';
+import 'package:physioapp/utils/domain_connection.dart';
 import 'package:provider/provider.dart';
 import 'package:physioapp/page/physiotherapist/daily_list.dart';
 
@@ -33,12 +35,15 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
   @override
   Widget build(BuildContext context) {
     final currentUser = UserDataCache();
-    final scheduleController = Provider.of<ScheduleAppointmentController>(context);
+    final scheduleController =
+        Provider.of<ScheduleAppointmentController>(context);
     final appointments = scheduleController.listSchedule;
 
     Schedule? nextAppointment;
     final now = DateTime.now();
-    final futureAppointments = appointments.where((appt) => appt.dateSchedule.isAfter(now)).toList()
+    final futureAppointments = appointments
+        .where((appt) => appt.dateSchedule.isAfter(now))
+        .toList()
       ..sort((a, b) => a.dateSchedule.compareTo(b.dateSchedule));
 
     if (futureAppointments.isNotEmpty) {
@@ -51,7 +56,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
         child: Column(
           children: [
             _buildHeader(context, currentUser),
-
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -90,7 +94,9 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                             ),
                           ),
                           Text(
-                            DateFormat('MMMM yyyy', 'pt_BR').format(_selectedDate).toUpperCase(),
+                            DateFormat('MMMM yyyy', 'pt_BR')
+                                .format(_selectedDate)
+                                .toUpperCase(),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -118,7 +124,8 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                       child: Text(
                         _isSameDay(_selectedDate, DateTime.now())
                             ? 'Hoje'
-                            : DateFormat('EEEE, d', 'pt_BR').format(_selectedDate),
+                            : DateFormat('EEEE, d', 'pt_BR')
+                                .format(_selectedDate),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -127,7 +134,7 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    DailyAppointmentsList(),
+                    const DailyAppointmentsList(),
 
                     const SizedBox(height: 80),
                   ],
@@ -180,7 +187,9 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  UserDataCache().isPatient ? 'O que faremos hoje?' : 'Vamos cuidar dos seus pacientes?',
+                  UserDataCache().isPatient
+                      ? 'O que faremos hoje?'
+                      : 'Vamos cuidar dos seus pacientes?',
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.grey[600],
@@ -193,7 +202,6 @@ class _HomePhysioPageState extends State<HomePhysioPage> {
       ),
     );
   }
-
 
   bool _isSameDay(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
@@ -230,7 +238,8 @@ class _NextAppointmentCard extends StatelessWidget {
                 color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: const Icon(Icons.calendar_today_rounded, color: Colors.grey),
+              child:
+                  const Icon(Icons.calendar_today_rounded, color: Colors.grey),
             ),
             const SizedBox(width: 16),
             const Text(
@@ -279,7 +288,6 @@ class _NextAppointmentCard extends StatelessWidget {
               backgroundColor: Colors.white.withOpacity(0.1),
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -296,7 +304,8 @@ class _NextAppointmentCard extends StatelessWidget {
                         radius: 28,
                         backgroundColor: Colors.white24,
                         backgroundImage: FileImage(appt.patient.imageProfile),
-                        onBackgroundImageError: (_, __) => const Icon(Icons.person),
+                        onBackgroundImageError: (_, __) =>
+                            const Icon(Icons.person),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -304,9 +313,9 @@ class _NextAppointmentCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                           Text(
                             appt.patient.name,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -316,13 +325,16 @@ class _NextAppointmentCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              appt.symptoms.isNotEmpty ? appt.symptoms : 'Consulta de rotina',
+                              appt.symptoms.isNotEmpty
+                                  ? appt.symptoms
+                                  : 'Consulta de rotina',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -335,7 +347,8 @@ class _NextAppointmentCard extends StatelessWidget {
                     ),
                     Column(
                       children: [
-                        const Icon(Icons.access_time_filled, color: Colors.white70, size: 16),
+                        const Icon(Icons.access_time_filled,
+                            color: Colors.white70, size: 16),
                         const SizedBox(height: 4),
                         Text(
                           timeStr,
@@ -353,9 +366,12 @@ class _NextAppointmentCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _InfoBadge(icon: Icons.monitor_weight_outlined, label: '${appt.weight}kg'),
+                    _InfoBadge(
+                        icon: Icons.monitor_weight_outlined,
+                        label: '${appt.weight}kg'),
                     _InfoBadge(icon: Icons.height, label: '${appt.height}m'),
-                    _InfoBadge(icon: Icons.cake_outlined, label: '${appt.age} anos'),
+                    _InfoBadge(
+                        icon: Icons.cake_outlined, label: '${appt.age} anos'),
                   ],
                 ),
               ],
@@ -381,7 +397,8 @@ class _InfoBadge extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+          style:
+              const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
         ),
       ],
     );
@@ -425,15 +442,18 @@ class _Old_CalendarStrip extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 6),
               width: 60,
               decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                color:
+                    isSelected ? Theme.of(context).primaryColor : Colors.white,
                 borderRadius: BorderRadius.circular(18),
                 border: isToday && !isSelected
-                    ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                    ? Border.all(
+                        color: Theme.of(context).primaryColor, width: 2)
                     : null,
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: Theme.of(context).primaryColor.withOpacity(0.4),
+                          color:
+                              Theme.of(context).primaryColor.withOpacity(0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         )
@@ -450,7 +470,10 @@ class _Old_CalendarStrip extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat('EEE', 'pt_BR').format(date).toUpperCase().replaceAll('.', ''),
+                    DateFormat('EEE', 'pt_BR')
+                        .format(date)
+                        .toUpperCase()
+                        .replaceAll('.', ''),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -463,7 +486,8 @@ class _Old_CalendarStrip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : const Color(0xFF2D3142),
+                      color:
+                          isSelected ? Colors.white : const Color(0xFF2D3142),
                     ),
                   ),
                 ],
@@ -492,7 +516,8 @@ class _CalendarStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final startDate = now.subtract(const Duration(days: 3));
-    final dates = List.generate(21, (index) => startDate.add(Duration(days: index)));
+    final dates =
+        List.generate(21, (index) => startDate.add(Duration(days: index)));
 
     return SizedBox(
       height: 90,
@@ -513,15 +538,18 @@ class _CalendarStrip extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 6),
               width: 60,
               decoration: BoxDecoration(
-                color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+                color:
+                    isSelected ? Theme.of(context).primaryColor : Colors.white,
                 borderRadius: BorderRadius.circular(18),
                 border: isToday && !isSelected
-                    ? Border.all(color: Theme.of(context).primaryColor, width: 2)
+                    ? Border.all(
+                        color: Theme.of(context).primaryColor, width: 2)
                     : null,
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: Theme.of(context).primaryColor.withOpacity(0.4),
+                          color:
+                              Theme.of(context).primaryColor.withOpacity(0.4),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         )
@@ -538,7 +566,10 @@ class _CalendarStrip extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    DateFormat('EEE', 'pt_BR').format(date).toUpperCase().replaceAll('.', ''),
+                    DateFormat('EEE', 'pt_BR')
+                        .format(date)
+                        .toUpperCase()
+                        .replaceAll('.', ''),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -551,7 +582,8 @@ class _CalendarStrip extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : const Color(0xFF2D3142),
+                      color:
+                          isSelected ? Colors.white : const Color(0xFF2D3142),
                     ),
                   ),
                 ],
@@ -584,10 +616,12 @@ class NewAppointmentModel {
   factory NewAppointmentModel.fromJson(Map<String, dynamic> json) {
     return NewAppointmentModel(
       id: json['id']?.toString() ?? '',
-      dateSchedule:
-          json['dateTime'] != null ? DateTime.parse(json['dateTime'] as String) : DateTime.now(),
+      dateSchedule: json['dateTime'] != null
+          ? DateTime.parse(json['dateTime'] as String)
+          : DateTime.now(),
       symptoms: json['notes'] as String? ?? 'Sem descrição',
-      patient: NewPatientModel.fromJson(json['patient'] as Map<String, dynamic>? ?? {}),
+      patient: NewPatientModel.fromJson(
+          json['patient'] as Map<String, dynamic>? ?? {}),
     );
   }
 }

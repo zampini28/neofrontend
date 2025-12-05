@@ -81,7 +81,7 @@ class ExercisesMockData {
       name: 'Dobra de Perna (Joelho)',
       description:
           'Exercício para alongar as articulações do joelho, auxiliando assim na rotação da perna',
-      videoUrl: 'https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj',
+      videoUrl: 'https://youtube.com/shorts/dCHdSxiAPU0',
       videoDuration: 21.3,
       steps: [
         StepModel(
@@ -123,7 +123,7 @@ class ExercisesMockData {
       id: 'e3',
       name: 'Alogamento a Fundo (Posterior)',
       description: 'Exercício para alongar as articulações das costas e membros inferiores',
-      videoUrl: 'https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj',
+      videoUrl: 'https://youtube.com/shorts/GErYdn_fV3M',
       videoDuration: 13.3,
       steps: [
         StepModel(
@@ -161,7 +161,7 @@ class ExercisesMockData {
       name: 'Puxada Funda no Triceps Sural',
       description:
           'Exercício para trabalhar as articulações das costas e aumentar a flexibilidade das pernas',
-      videoUrl: 'https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj',
+      videoUrl: 'https://youtube.com/shorts/KoMrT_pVrxk',
       videoDuration: 15.3,
       steps: [
         StepModel(
@@ -192,7 +192,7 @@ class ExercisesMockData {
       name: 'Alogamento Posteiror Completa',
       description:
           'Exercício para alongar as articulações lombares, abdominais, membros inferiores e superiores',
-      videoUrl: 'https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj',
+      videoUrl: 'https://youtube.com/shorts/CL4akgrQtxk',
       videoDuration: 17.3,
       steps: [
         StepModel(
@@ -230,7 +230,7 @@ class ExercisesMockData {
       name: 'Fortalecimento (Corpo Inteiro)',
       description:
           'Exercício fortalecer as principais articulações dos membros superiores, inferiores e posteriores',
-      videoUrl: 'https://youtube.com/shorts/sdiUvqpTuZU?si=8zrcHP8Jz4iBd0Yj',
+      videoUrl: 'https://youtube.com/shorts/oglZAbwb4LI',
       videoDuration: 20.3,
       steps: [
         StepModel(

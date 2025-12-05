@@ -3,7 +3,6 @@ import 'package:physioapp/components/patient/app_drawer_patient.dart';
 import 'package:physioapp/components/patient/bottom_nav_bar_patient.dart';
 import 'package:physioapp/page/common/chat_list_page.dart';
 import 'package:physioapp/page/patient/exercises_page.dart';
-import 'package:physioapp/page/patient/home_patient_page.dart';
 import 'package:physioapp/page/patient/patient_profile_page.dart';
 import 'package:physioapp/page/physiotherapist/exercises_page_physio.dart';
 import 'package:physioapp/page/physiotherapist/home_physio_page.dart';

@@ -76,20 +76,20 @@ class ExercisesList extends StatelessWidget {
                     child: Row(
                       spacing: 5,
                       children: [
-                        const Icon(
-                          Icons.access_time_filled_rounded,
-                          size: 24,
-                          color: Colors.white,
-                        ),
-                        Text(
-                          '${exercise.videoDuration.ceil()} min',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        //  const Icon(
+                        //    Icons.access_time_filled_rounded,
+                        //    size: 24,
+                        //    color: Colors.white,
+                        //  ),
+                        //  Text(
+                        //    '${exercise.videoDuration.ceil()} min',
+                        //    style: const TextStyle(
+                        //      color: Colors.white,
+                        //      fontWeight: FontWeight.w500,
+                        //      fontSize: 14,
+                        //    ),
+                        //    overflow: TextOverflow.ellipsis,
+                        //  ),
                       ],
                     ),
                   ),
